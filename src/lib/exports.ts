@@ -2,8 +2,7 @@ import { block, generateCss, cssName } from './css.js';
 import { resolve, contexts, defaultInputs } from './resolver.js';
 import { toOklchString } from './color.js';
 import type { ExportFormat } from '../ports.js';
-import { VALUES } from './schema.js';
-import { valueAs } from './values.js';
+import { narrow, isColor, isSize } from './values.js';
 import type { FontFile, ResolverDoc, Tokens } from './types.js';
 
 const tailwindName = (path: string) =>
@@ -51,11 +50,11 @@ const RADIUS = ['radius.md', 'radius.lg', 'radius.sm'];
 function shadcnVars(tokens: Tokens, withRadius: boolean) {
   const lines: string[] = [];
   if (withRadius) {
-    const radius = RADIUS.map((p) => valueAs(VALUES.dimension, tokens.get(p)?.resolved)).find(Boolean);
+    const radius = RADIUS.map((p) => narrow(tokens.get(p)?.resolved, isSize)).find(Boolean);
     if (radius) lines.push(`--radius: ${radius.value}${radius.unit};`);
   }
   for (const [name, paths] of SHADCN) {
-    const color = paths.map((x) => valueAs(VALUES.color, tokens.get(x)?.resolved)).find(Boolean);
+    const color = paths.map((x) => narrow(tokens.get(x)?.resolved, isColor)).find(Boolean);
     if (color) lines.push(`--${name}: ${toOklchString(color)};`);
   }
   return lines;

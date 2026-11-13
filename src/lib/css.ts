@@ -2,10 +2,21 @@ import { flatten, contexts, defaultInputs, mergedTree, aliasTarget } from './res
 import { cssColor } from './color.js';
 import { fontFaceRules, cssString } from './fonts.js';
 import * as z from 'zod/mini';
-import { brandMeta as brandMetaSchema, VALUES } from './schema.js';
+import { brandMeta as brandMetaSchema } from './schema.js';
 import { isNode } from './tree.js';
-import type { FlatToken, FontFile, ResolverDoc } from './types.js';
-import { valueAs } from './values.js';
+import type { FlatToken, FontFile, ResolverDoc, Dimension } from './types.js';
+import {
+  narrow,
+  isBorder,
+  isColor,
+  isCubicBezier,
+  isDuration,
+  isFontFamily,
+  isFontWeight,
+  isShadow,
+  isSize,
+  isTransition,
+} from './values.js';
 
 type Namer = (path: string) => string;
 
@@ -71,7 +82,7 @@ const pointerPath = (ref: string) =>
     .join('.');
 
 function shadowCss(value: unknown, part: (type: string, value: unknown) => string | null): string | null {
-  const shadow = valueAs(VALUES.shadow, value);
+  const shadow = narrow(value, isShadow);
   if (!shadow) return null;
   return [shadow]
     .flat()
@@ -86,19 +97,21 @@ function shadowCss(value: unknown, part: (type: string, value: unknown) => strin
 }
 
 function weightCss(value: unknown): string | null {
-  const weight = valueAs(VALUES.fontWeight, value);
+  const weight = narrow(value, isFontWeight);
   if (weight === null) return null;
   return String(typeof weight === 'string' ? WEIGHTS[weight] : weight);
 }
 
 function familyCss(value: unknown): string | null {
-  const family = valueAs(VALUES.fontFamily, value);
+  const family = narrow(value, isFontFamily);
   if (family === null) return null;
   return [family]
     .flat()
     .map((f) => (GENERIC.has(f) ? f : cssString(f)))
     .join(', ');
 }
+
+const lengthCss = (length: Dimension | null) => length && `${length.value}${length.unit}`;
 
 export function cssValue(type: string | undefined, value: unknown, name: Namer = cssName): string | null {
   const target = aliasTarget(value);
@@ -107,33 +120,32 @@ export function cssValue(type: string | undefined, value: unknown, name: Namer =
   const part = (t: string, x: unknown) => cssValue(t, x, name);
   switch (type) {
     case 'color': {
-      const color = valueAs(VALUES.color, value);
+      const color = narrow(value, isColor);
       return color && cssColor(color);
     }
     case 'dimension':
-    case 'duration': {
-      const length = valueAs(VALUES[type], value);
-      return length && `${length.value}${length.unit}`;
-    }
+      return lengthCss(narrow(value, isSize));
+    case 'duration':
+      return lengthCss(narrow(value, isDuration));
     case 'fontFamily':
       return familyCss(value);
     case 'fontWeight':
       return weightCss(value);
     case 'cubicBezier': {
-      const curve = valueAs(VALUES.cubicBezier, value);
+      const curve = narrow(value, isCubicBezier);
       return curve && `cubic-bezier(${curve.join(', ')})`;
     }
     case 'shadow':
       return shadowCss(value, part);
     case 'border': {
-      const border = valueAs(VALUES.border, value);
+      const border = narrow(value, isBorder);
       return (
         border &&
         `${part('dimension', border.width)} ${part('strokeStyle', border.style)} ${part('color', border.color)}`
       );
     }
     case 'transition': {
-      const t = valueAs(VALUES.transition, value);
+      const t = narrow(value, isTransition);
       return (
         t &&
         `${part('duration', t.duration)} ${part('cubicBezier', t.timingFunction)} ${part('duration', t.delay)}`

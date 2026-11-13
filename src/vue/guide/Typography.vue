@@ -3,8 +3,7 @@ import { computed } from 'vue';
 import { cssName } from '../../lib/css.js';
 import { cssString } from '../../lib/fonts.js';
 import type { BrandMeta, FontFile, Tokens } from '../../lib/types.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isTypography } from '../../lib/values.js';
 import { dim } from './parts.js';
 
 const props = defineProps<{ tokens: Tokens; meta: BrandMeta }>();
@@ -13,7 +12,7 @@ const sizes = computed(() =>
 );
 const styles = computed(() =>
   [...props.tokens].flatMap(([path, token]) => {
-    const style = token.type === 'typography' ? valueAs(VALUES.typography, token.resolved) : null;
+    const style = token.type === 'typography' ? narrow(token.resolved, isTypography) : null;
     if (!style) return [];
     const family = [style.fontFamily].flat()[0];
     const summary = `${family} ${style.fontWeight} ${dim(style.fontSize)} / ${style.lineHeight}`;

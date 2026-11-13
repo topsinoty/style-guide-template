@@ -2,8 +2,7 @@
 import { computed } from 'vue';
 import { applyScale, scaleOf, setStep, type ScaleSpec } from '../../lib/scale.js';
 import { child, children, isHandSet, withVendorData } from '../../lib/tree.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isSize } from '../../lib/values.js';
 import type { EditorContext } from './context.js';
 import NumberField from './NumberField.vue';
 
@@ -21,7 +20,7 @@ const scales = computed(() =>
     if (!group) return [];
     const steps = children(group).map(([step, token]) => ({
       step,
-      length: valueAs(VALUES.dimension, token.$value),
+      length: narrow(token.$value, isSize),
       byHand: isHandSet(token, props.ctx.vendor),
     }));
     return [{ key, label, spec: scaleOf(group, props.ctx.vendor), steps }];
@@ -38,7 +37,7 @@ function regenerate(key: string, patch: Partial<ScaleSpec>) {
 
 function setValue(key: string, step: string, value: number) {
   const group = child(props.ctx.tree, key);
-  const length = valueAs(VALUES.dimension, child(group, step)?.$value);
+  const length = narrow(child(group, step)?.$value, isSize);
   if (!group || !length) return;
   props.ctx.setToken(key, setStep(group, step, { ...length, value }, props.ctx.vendor));
 }

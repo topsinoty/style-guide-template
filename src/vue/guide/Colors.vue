@@ -8,8 +8,7 @@ import type { DtcgColor, ResolvedToken, Tokens } from '../../lib/types.js';
 import { byShadeOrder } from '../../lib/palette.js';
 import { isNode } from '../../lib/tree.js';
 import { palettePath } from './color-path.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isColor } from '../../lib/values.js';
 import CopyButton from './CopyButton.vue';
 
 interface Shade {
@@ -30,7 +29,7 @@ const props = defineProps<{ tokens: Tokens; vendor: string }>();
 
 function shade(path: string, token: ResolvedToken): Shade | null {
   const palette = palettePath(path);
-  const color = valueAs(VALUES.color, token.resolved);
+  const color = narrow(token.resolved, isColor);
   if (!palette || !color) return null;
   const extension = token.extensions?.[props.vendor];
   const own = isNode(extension) ? extension : {};
@@ -53,7 +52,7 @@ function sourceOf(value: unknown, color: DtcgColor): string {
 }
 
 function row(path: string, token: ResolvedToken): Row | null {
-  const color = valueAs(VALUES.color, token.resolved);
+  const color = narrow(token.resolved, isColor);
   return color && { path, source: sourceOf(token.value, color), hex: toHex(color) };
 }
 

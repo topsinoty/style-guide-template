@@ -4,8 +4,7 @@ import { ROLES } from '../../lib/contrast.js';
 import { toHex } from '../../lib/color.js';
 import * as E from '../../lib/edit.js';
 import { paletteColors } from '../../lib/palette.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isColor } from '../../lib/values.js';
 import { COLOR_ERROR } from '../ColorInput.vue';
 import { cap } from '../guide/parts.js';
 import type { EditorContext } from './context.js';
@@ -15,7 +14,7 @@ import RoleColorCombobox from './RoleColorCombobox.vue';
 const props = defineProps<{ ctx: EditorContext }>();
 
 const hexOf = (resolved: unknown) => {
-  const color = valueAs(VALUES.color, resolved);
+  const color = narrow(resolved, isColor);
   return color ? toHex(color) : '#000000';
 };
 

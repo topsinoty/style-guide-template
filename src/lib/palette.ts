@@ -4,8 +4,7 @@ import { foundation } from './edit.js';
 import { entriesOf, isEmpty, mapValues, renameKey, valuesOf, without } from './records.js';
 import { child, children, ensureChild, isHandSet, isNode, vendorData, withVendorData } from './tree.js';
 import type { DtcgColor, ResolverDoc, TokenNode } from './types.js';
-import { VALUES } from './schema.js';
-import { valueAs } from './values.js';
+import { narrow, isColor } from './values.js';
 
 export interface Shade {
   name: string;
@@ -66,7 +65,7 @@ export function paletteColors(doc: ResolverDoc, vendor: string): PaletteColor[] 
           const token = child(group, name);
           return {
             name,
-            color: valueAs(VALUES.color, token?.$value),
+            color: narrow(token?.$value, isColor),
             isBase: name === base,
             byHand: isHandSet(token, vendor),
           };
@@ -156,7 +155,7 @@ export function addColor(doc: ResolverDoc, id: string, color: DtcgColor, vendor:
 }
 
 function blackOrWhite(value: unknown): unknown {
-  const color = valueAs(VALUES.color, value);
+  const color = narrow(value, isColor);
   if (!color) return value;
   const [lightness, , , alpha] = toOklch(color);
   return oklch(lightness >= 0.5 ? 1 : 0, 0, 0, alpha);
@@ -259,7 +258,7 @@ export function generateShades(
   const out = clone(doc);
   const group = child(colorsOf(out), colorId);
   const base = group && baseShadeOf(group, vendor);
-  const baseColor = base ? valueAs(VALUES.color, child(group, base)?.$value) : null;
+  const baseColor = base ? narrow(child(group, base)?.$value, isColor) : null;
   if (!group || !base || !baseColor) return doc;
   const { scale } = anchoredScale(baseColor);
   for (const [step, color] of entriesOf(scale)) {

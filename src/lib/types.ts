@@ -117,6 +117,45 @@ export interface Dimension {
   unit: string;
 }
 
+export type Alias = string | { $ref: string };
+export type OrAlias<T> = T | Alias;
+
+export type CubicBezier = [number, number, number, number];
+export type FontFamily = string | string[];
+export type FontWeight = number | string;
+export type StrokeStyle = string | Record<string, unknown>;
+
+export interface ShadowLayer {
+  color: OrAlias<DtcgColor>;
+  offsetX: OrAlias<Dimension>;
+  offsetY: OrAlias<Dimension>;
+  blur: OrAlias<Dimension>;
+  spread: OrAlias<Dimension>;
+  inset?: boolean;
+}
+
+export type Shadow = ShadowLayer | OrAlias<ShadowLayer>[];
+
+export interface Border {
+  color: OrAlias<DtcgColor>;
+  width: OrAlias<Dimension>;
+  style: OrAlias<StrokeStyle>;
+}
+
+export interface Transition {
+  duration: OrAlias<Dimension>;
+  delay: OrAlias<Dimension>;
+  timingFunction: OrAlias<CubicBezier>;
+}
+
+export interface Typography {
+  fontFamily: OrAlias<FontFamily>;
+  fontSize: OrAlias<Dimension>;
+  fontWeight: OrAlias<FontWeight>;
+  letterSpacing: OrAlias<Dimension>;
+  lineHeight: OrAlias<number>;
+}
+
 export interface FlatToken {
   type?: string;
   value: unknown;

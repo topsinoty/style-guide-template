@@ -2,8 +2,7 @@
 import { computed, reactive } from 'vue';
 import * as E from '../../lib/edit.js';
 import { child, children } from '../../lib/tree.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isFontFamily, isTypography } from '../../lib/values.js';
 import { cap, dim } from '../guide/parts.js';
 import FontPicker from '../FontPicker.vue';
 import Choice from './Choice.vue';
@@ -16,7 +15,7 @@ const props = defineProps<{ ctx: EditorContext }>();
 const draftWeights = reactive<Record<string, number | undefined>>({});
 const generic = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'system-ui']);
 
-const familiesOf = (value: unknown) => [valueAs(VALUES.fontFamily, value) ?? []].flat();
+const familiesOf = (value: unknown) => [narrow(value, isFontFamily) ?? []].flat();
 const aliasOrEmpty = (value: unknown) => (typeof value === 'string' ? value : '');
 
 const fonts = computed(() =>
@@ -46,7 +45,7 @@ const sizeOptions = computed(() =>
 
 const styles = computed(() =>
   children(child(props.ctx.tree, 'typography')).flatMap(([name, token]) => {
-    const style = valueAs(VALUES.typography, token.$value);
+    const style = narrow(token.$value, isTypography);
     if (!style) return [];
     return [
       {
