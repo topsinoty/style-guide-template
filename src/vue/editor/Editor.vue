@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { AccordionContent, AccordionHeader, AccordionItem, AccordionRoot, AccordionTrigger } from 'reka-ui';
 import type { Session } from '../../app/session.js';
 import type { Tokens } from '../../lib/types.js';
 import { editorContext } from './context.js';
@@ -15,8 +16,8 @@ const props = defineProps<{ session: Session; tokens: Tokens; theme: string }>()
 const emit = defineEmits<{ load: []; save: []; export: [] }>();
 const ctx = computed(() => editorContext(props.session, props.theme, props.tokens));
 const areas = [
-  { name: 'Brand', component: Brand, open: true },
-  { name: 'Palette', component: Palette, open: true },
+  { name: 'Brand', component: Brand },
+  { name: 'Palette', component: Palette },
   { name: 'Roles', component: Roles },
   { name: 'Fonts and type', component: Type },
   { name: 'Scales', component: Scales },
@@ -26,17 +27,21 @@ const areas = [
 </script>
 
 <template>
-  <details v-for="area in areas" :key="area.name" class="cd-drawer-area" :open="area.open">
-    <summary>
-      <h3>{{ area.name }}</h3>
-    </summary>
-    <Brand
-      v-if="area.name === 'Brand'"
-      :ctx="ctx"
-      @load="emit('load')"
-      @save="emit('save')"
-      @export="emit('export')"
-    />
-    <component :is="area.component" v-else :ctx="ctx" />
-  </details>
+  <AccordionRoot type="multiple" :default-value="['Brand', 'Palette']">
+    <AccordionItem v-for="area in areas" :key="area.name" :value="area.name" class="cd-drawer-area">
+      <AccordionHeader as="h3">
+        <AccordionTrigger class="cd-drawer-trigger">{{ area.name }}</AccordionTrigger>
+      </AccordionHeader>
+      <AccordionContent>
+        <Brand
+          v-if="area.name === 'Brand'"
+          :ctx="ctx"
+          @load="emit('load')"
+          @save="emit('save')"
+          @export="emit('export')"
+        />
+        <component :is="area.component" v-else :ctx="ctx" />
+      </AccordionContent>
+    </AccordionItem>
+  </AccordionRoot>
 </template>
