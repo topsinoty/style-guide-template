@@ -1,8 +1,7 @@
 import { flatten, contexts, defaultInputs, mergedTree, aliasTarget } from './resolver.js';
 import { cssColor } from './color.js';
 import { fontFaceRules, cssString } from './fonts.js';
-import * as z from 'zod/mini';
-import { brandMeta as brandMetaSchema } from './schema.js';
+import { readBrandMeta } from './assets.js';
 import { isNode } from './tree.js';
 import type { FlatToken, FontFile, ResolverDoc, Dimension } from './types.js';
 import {
@@ -184,8 +183,7 @@ export function block(selector: string, lines: string[]) {
 
 function fontFilesOf(doc: ResolverDoc, vendor?: string): FontFile[] {
   if (!vendor) return [];
-  const meta = z.safeParse(brandMetaSchema, doc.sets?.foundation?.$extensions?.[vendor] ?? {});
-  return meta.success ? meta.data.fontFiles : [];
+  return readBrandMeta(doc.sets?.foundation?.$extensions?.[vendor]).fontFiles;
 }
 
 export function generateCss(

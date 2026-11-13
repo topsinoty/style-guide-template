@@ -1,5 +1,5 @@
 import type { FileStore, KeyValueStore } from '../ports.js';
-import { isResolver } from './schema.js';
+import { isResolver } from './document.js';
 import type { ResolverDoc, SessionFiles } from './types.js';
 
 export type Store = ReturnType<typeof createStore>;

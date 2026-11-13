@@ -4,9 +4,7 @@ import type {
   AssetItem,
   BrandMeta,
   DtcgColor,
-  FontDetail,
   FontFile,
-  FontListing,
   FontStyle,
   Manifest,
   Problem,
@@ -14,52 +12,13 @@ import type {
   TokenNode,
 } from './types.js';
 import { entriesOf, keysOf, valuesOf } from './records.js';
+import { isSafeSrc } from './path.js';
 import { child, deepMerge, isNode } from './tree.js';
+import { COLOR_SPACES, FONT_STYLES, STROKE_STYLES, WEIGHT_KEYWORDS, isAlias } from './values.js';
 
-export const RESOLVER_SCHEMA = 'https://www.designtokens.org/schemas/2025.10/resolver.json';
-
-const COLOR_SPACES = [
-  'srgb',
-  'srgb-linear',
-  'hsl',
-  'hwb',
-  'lab',
-  'lch',
-  'oklab',
-  'oklch',
-  'display-p3',
-  'a98-rgb',
-  'prophoto-rgb',
-  'rec2020',
-  'xyz-d65',
-  'xyz-d50',
-] as const;
-const WEIGHTS = [
-  'thin',
-  'hairline',
-  'extra-light',
-  'ultra-light',
-  'light',
-  'normal',
-  'regular',
-  'book',
-  'medium',
-  'semi-bold',
-  'demi-bold',
-  'bold',
-  'extra-bold',
-  'ultra-bold',
-  'black',
-  'heavy',
-  'extra-black',
-  'ultra-black',
-] as const;
-const STROKES = ['solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'outset', 'inset'] as const;
 const TOKEN_KEYS = new Set(['$type', '$value', '$description', '$extensions', '$deprecated']);
 const GROUP_KEYS = new Set(['$type', '$description', '$extensions', '$deprecated', '$extends', '$root']);
 
-const isAlias = (v: unknown) =>
-  (typeof v === 'string' && /^\{[^{}]+\}$/.test(v)) || (isNode(v) && typeof v.$ref === 'string');
 const join = (path: string, key: string | number) => (path ? `${path}.${key}` : String(key));
 
 export const problems = (error: z.core.$ZodError, base = ''): Problem[] =>
@@ -94,11 +53,11 @@ const cubicBezier = z.tuple([z.number(), z.number(), z.number(), z.number()], {
 const fontFamily = z.union([z.string(), z.array(z.string()).check(z.minLength(1))], {
   error: 'must be a string or an array of strings',
 });
-const fontWeight = z.union([z.number().check(z.gte(1), z.lte(1000)), z.enum(WEIGHTS)], {
+const fontWeight = z.union([z.number().check(z.gte(1), z.lte(1000)), z.enum(WEIGHT_KEYWORDS)], {
   error: 'must be 1..1000 or a weight keyword',
 });
-const strokeStyle = z.union([z.enum(STROKES), z.looseObject({})], {
-  error: `stroke style must be one of ${STROKES.join(', ')}`,
+const strokeStyle = z.union([z.enum(STROKE_STYLES), z.looseObject({})], {
+  error: `stroke style must be one of ${STROKE_STYLES.join(', ')}`,
 });
 const shadowLayer = z.object({
   color: orAlias(color),
@@ -244,31 +203,9 @@ export function validateResolver(input: unknown): { ok: boolean; errors: Problem
   return { ok: errors.length === 0, errors };
 }
 
-export const isResolver = (json: unknown): json is ResolverDoc =>
-  isNode(json) && Array.isArray(json.resolutionOrder);
-
-export function toResolver(json: TokenNode | ResolverDoc, name: string): ResolverDoc {
-  if (isResolver(json)) return json;
-  return {
-    $schema: RESOLVER_SCHEMA,
-    version: '2025.10',
-    name,
-    sets: { foundation: { sources: [json] } },
-    modifiers: { theme: { contexts: { light: [], dark: [] }, default: 'light' } },
-    resolutionOrder: [{ $ref: '#/sets/foundation' }, { $ref: '#/modifiers/theme' }],
-  };
-}
-
-export const isSafeSrc = (src: unknown): src is string =>
-  typeof src === 'string' &&
-  src !== '' &&
-  !/^[a-z][a-z0-9+.-]*:|^\/|\\/i.test(src) &&
-  !src.split('/').includes('..');
-
-export const fontStyle: z.ZodMiniType<FontStyle> = z.enum(['normal', 'italic', 'oblique'], {
+export const fontStyle: z.ZodMiniType<FontStyle> = z.enum(FONT_STYLES, {
   error: 'style must be normal, italic or oblique',
 });
-export const isFontStyle = (s: string): s is FontStyle => z.safeParse(fontStyle, s).success;
 
 const src = z.custom<string>(isSafeSrc, {
   error: (iss) => `src "${String(iss.input)}" must be a relative path`,
@@ -327,25 +264,4 @@ export const manifest: z.ZodMiniType<Manifest> = z.object({
   brands: z
     .array(z.object({ name: z.string(), path: z.string() }))
     .check(z.minLength(1, 'the manifest lists no brands')),
-});
-
-const listingShape = {
-  id: z.string(),
-  family: z.string(),
-  category: z.string(),
-  weights: z.array(z.number()),
-  styles: z.array(z.string()),
-  defSubset: z.string(),
-  license: z.string(),
-};
-
-export const fontListing: z.ZodMiniType<FontListing> = z.object(listingShape);
-
-const variant = z.object({ url: z.optional(z.object({ woff2: z.optional(z.string()) })) });
-export const fontDetail: z.ZodMiniType<FontDetail> = z.object({
-  ...listingShape,
-  subsets: z.array(z.string()),
-  npmVersion: z.string(),
-  unicodeRange: z.optional(z.record(z.string(), z.string())),
-  variants: z.optional(z.record(z.string(), z.record(z.string(), z.record(z.string(), variant)))),
 });

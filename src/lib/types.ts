@@ -63,12 +63,14 @@ export interface AssetItem {
   label?: string;
   description?: string;
   provider?: string;
+  [key: string]: unknown;
 }
 
 export interface AssetGroup {
   id: string;
   label?: string;
   items: AssetItem[];
+  [key: string]: unknown;
 }
 
 export interface FontFile extends AssetItem {
@@ -84,6 +86,7 @@ export interface FontFile extends AssetItem {
 export interface BrandMeta {
   assetGroups: AssetGroup[];
   fontFiles: FontFile[];
+  [key: string]: unknown;
 }
 
 export interface Manifest {

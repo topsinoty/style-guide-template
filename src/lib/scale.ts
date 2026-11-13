@@ -1,20 +1,29 @@
-import * as z from 'zod/mini';
-import { child, isHandSet, vendorData, withVendorData } from './tree.js';
-import { entriesOf, mapValues } from './records.js';
+import { child, isHandSet, isNode, vendorData, withVendorData } from './tree.js';
+import { narrow } from './values.js';
+import { entriesOf, mapValues, valuesOf } from './records.js';
 import type { Dimension, TokenNode } from './types.js';
 
-const scaleSpec = z.object({
-  base: z.object({ value: z.number(), unit: z.string() }),
-  steps: z.record(z.string(), z.number()),
-  ratio: z.optional(z.number()),
-});
+export interface ScaleSpec {
+  base: Dimension;
+  steps: Record<string, number>;
+  ratio?: number;
+}
 
-export type ScaleSpec = z.infer<typeof scaleSpec>;
+const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
-export const scaleOf = (group: TokenNode | undefined, vendor: string): ScaleSpec | null => {
-  const spec = z.safeParse(scaleSpec, vendorData(group, vendor).scale);
-  return spec.success ? spec.data : null;
-};
+function isScaleSpec(value: unknown): value is ScaleSpec {
+  if (!isNode(value) || !isNode(value.base) || !isNode(value.steps)) return false;
+  const { base, steps, ratio } = value;
+  return (
+    isNumber(base.value) &&
+    typeof base.unit === 'string' &&
+    valuesOf(steps).every(isNumber) &&
+    (ratio === undefined || isNumber(ratio))
+  );
+}
+
+export const scaleOf = (group: TokenNode | undefined, vendor: string): ScaleSpec | null =>
+  narrow(vendorData(group, vendor).scale, isScaleSpec);
 
 const round = (n: number) => Math.round(n * 1e4) / 1e4;
 

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { keysOf } from '../src/lib/records.js';
 import type { ResolverDoc } from '../src/lib/types.js';
 import { load, present, removeAt, setAt } from './helpers.js';
-import { validateResolver, toResolver, isResolver } from '../src/lib/schema.js';
+import { isResolver, toResolver } from '../src/lib/document.js';
+import { validateResolver } from '../src/lib/schema.js';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 

@@ -6,6 +6,7 @@ import type {
   Dimension,
   DtcgColor,
   FontFamily,
+  FontStyle,
   FontWeight,
   OrAlias,
   Shadow,
@@ -55,6 +56,8 @@ export const WEIGHT_KEYWORDS = [
   'ultra-black',
 ] as const;
 
+export const FONT_STYLES = ['normal', 'italic', 'oblique'] as const;
+
 export const STROKE_STYLES = [
   'solid',
   'dashed',
@@ -69,6 +72,7 @@ export const STROKE_STYLES = [
 const colorSpaces = new Set<string>(COLOR_SPACES);
 const weightKeywords = new Set<string>(WEIGHT_KEYWORDS);
 const strokeStyles = new Set<string>(STROKE_STYLES);
+const fontStyles = new Set<string>(FONT_STYLES);
 
 export const narrow = <T>(value: unknown, guard: Guard<T>): T | null => (guard(value) ? value : null);
 
@@ -117,6 +121,9 @@ export const isFontFamily = (value: unknown): value is FontFamily =>
 export const isFontWeight = (value: unknown): value is FontWeight =>
   (isNumber(value) && value >= 1 && value <= 1000) ||
   (typeof value === 'string' && weightKeywords.has(value));
+
+export const isFontStyle = (value: unknown): value is FontStyle =>
+  typeof value === 'string' && fontStyles.has(value);
 
 export const isStrokeStyle = (value: unknown): value is StrokeStyle =>
   (typeof value === 'string' && strokeStyles.has(value)) || isNode(value);
