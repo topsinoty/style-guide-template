@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
 import {
   onKeyStroke,
   useColorMode,
@@ -58,6 +58,16 @@ useEventListener(document.fonts, 'loadingerror', (e: FontFaceSetLoadEvent) => {
   const failed = e.fontfaces.map((f) => `${f.family.replace(/"/g, '')} ${f.weight} ${f.style}`);
   session.value.warn(...failed.map((font) => `Font could not be loaded: ${font}`));
 });
+
+function previewTheme(next: string) {
+  if (next === 'light' || next === 'dark') themeChoice.value = next;
+}
+
+async function focusBrandName(event: Event) {
+  event.preventDefault();
+  await nextTick();
+  document.getElementById('cd-brand-name')?.focus();
+}
 
 function toggleTheme() {
   themeChoice.value = theme.value === 'dark' ? 'light' : 'dark';
@@ -211,6 +221,7 @@ function onNavWheel(e: WheelEvent) {
         class="cd-drawer"
         :aria-describedby="undefined"
         @interact-outside.prevent
+        @open-auto-focus="focusBrandName"
       >
         <div class="cd-drawer-header">
           <DialogTitle>Edit brand</DialogTitle>
@@ -244,9 +255,7 @@ function onNavWheel(e: WheelEvent) {
             :session="session"
             :tokens="view.tokens"
             :theme="theme"
-            @load="loadDialog.open()"
-            @save="save"
-            @export="exportKit"
+            @theme="previewTheme"
           />
         </div>
       </DialogContent>

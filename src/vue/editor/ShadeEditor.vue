@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { PopoverContent, PopoverRoot, PopoverTrigger } from 'reka-ui';
-import { toHex } from '../../lib/color.js';
+import { cmyk, toHex } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
 import { paletteId, renameShade, setBase, setShade, type Shade } from '../../lib/palette.js';
 import { vendorData, withVendorData } from '../../lib/tree.js';
 import ColorInput from '../ColorInput.vue';
 import type { EditorContext } from './context.js';
+import NumberField from './NumberField.vue';
 import TextField from './TextField.vue';
 
 const props = defineProps<{ ctx: EditorContext; colorId: string; shade: Shade }>();
@@ -15,7 +16,15 @@ const emit = defineEmits<{ remove: [] }>();
 const path = computed(() => `color.${props.colorId}.${props.shade.name}`);
 const label = computed(() => `${props.colorId}-${props.shade.name}`);
 const own = computed(() => vendorData(props.ctx.fresh(path.value), props.ctx.vendor));
-const cmyk = computed(() => (Array.isArray(own.value.cmyk) ? own.value.cmyk.join(' ') : ''));
+const INKS = ['C', 'M', 'Y', 'K'];
+
+const isInkList = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.length === 4 && value.every((ink) => typeof ink === 'number');
+
+const storedCmyk = computed(() => (isInkList(own.value.cmyk) ? own.value.cmyk : null));
+const printedCmyk = computed(
+  () => storedCmyk.value ?? (props.shade.color ? cmyk(props.shade.color) : [0, 0, 0, 0]),
+);
 const pantone = computed(() => (typeof own.value.pantone === 'string' ? own.value.pantone : ''));
 const status = computed(() => {
   if (props.shade.isBase) return 'Base shade';
@@ -32,13 +41,11 @@ function setExtension(patch: Record<string, unknown>) {
   props.ctx.setToken(path.value, withVendorData(props.ctx.fresh(path.value), props.ctx.vendor, patch));
 }
 
-function setCmyk(value: string) {
-  const parts = value
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .map(Number);
-  const valid = parts.length === 4 && parts.every((n) => n >= 0 && n <= 100);
-  setExtension({ cmyk: valid ? parts : undefined });
+function setInk(index: number, value: number) {
+  if (value < 0 || value > 100) return;
+  const next = [...printedCmyk.value];
+  next[index] = value;
+  setExtension({ cmyk: next });
 }
 </script>
 
@@ -60,14 +67,42 @@ function setCmyk(value: string) {
         @commit="ctx.edit((doc) => setShade(doc, colorId, shade.name, $event, ctx.vendor))"
       />
       <TextField label="Name" :value="shade.name" @commit="rename" />
-      <div class="cd-field-row">
-        <TextField label="CMYK" :value="cmyk" placeholder="C M Y K" @commit="setCmyk" />
+      <fieldset class="cd-print">
+        <legend>Print values</legend>
+        <div class="cd-field-row cd-cmyk">
+          <NumberField
+            v-for="(ink, index) in INKS"
+            :key="ink"
+            :label="ink"
+            :value="printedCmyk[index]"
+            :min="0"
+            :max="100"
+            :step="1"
+            @commit="setInk(index, $event)"
+          />
+        </div>
+        <p class="cd-hint">
+          {{
+            storedCmyk
+              ? 'CMYK set by hand, 0 to 100 per ink.'
+              : 'CMYK approximated from the color. Change any ink to set it by hand.'
+          }}
+        </p>
+        <button
+          v-if="storedCmyk"
+          type="button"
+          class="btn btn-secondary btn-small"
+          @click="setExtension({ cmyk: undefined })"
+        >
+          Use the approximation
+        </button>
         <TextField
           label="Pantone"
           :value="pantone"
+          placeholder="e.g. PANTONE 2728 C"
           @commit="setExtension({ pantone: $event || undefined })"
         />
-      </div>
+      </fieldset>
       <div v-if="!shade.isBase" class="cd-field-row">
         <button
           type="button"

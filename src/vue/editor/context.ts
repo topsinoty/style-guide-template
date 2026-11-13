@@ -13,6 +13,7 @@ export interface EditorContext {
   tokens: Tokens;
   meta: BrandMeta;
   theme: string;
+  setTheme(theme: string): void;
   edit(fn: (doc: ResolverDoc) => ResolverDoc): void;
   setToken(path: string, token: TokenNode): void;
   patchValue(path: string, patch: Record<string, unknown>): void;
@@ -20,7 +21,12 @@ export interface EditorContext {
   fresh(path: string): TokenNode;
 }
 
-export function editorContext(session: Session, theme: string, tokens: Tokens): EditorContext {
+export function editorContext(
+  session: Session,
+  theme: string,
+  tokens: Tokens,
+  setTheme: (theme: string) => void,
+): EditorContext {
   const { store, vendor } = session;
 
   const edit = (fn: (doc: ResolverDoc) => ResolverDoc) => {
@@ -40,6 +46,7 @@ export function editorContext(session: Session, theme: string, tokens: Tokens): 
     tokens,
     meta: session.meta,
     theme,
+    setTheme,
     edit,
     setToken,
     patchValue(path, patch) {
