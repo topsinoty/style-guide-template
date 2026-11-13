@@ -103,10 +103,10 @@ export const moveItem = (meta: BrandMeta, id: string, src: string, dir: number) 
       dir,
     ),
   );
-export const moveItemToTop = (meta: BrandMeta, id: string, src: string) =>
-  inGroup(meta, id, (is) => [...is.filter((i) => i.src === src), ...is.filter((i) => i.src !== src)]);
-export const removeItem = (meta: BrandMeta, id: string, src: string) =>
-  inGroup(meta, id, (is) => is.filter((i) => i.src !== src));
+export function removeItem(meta: BrandMeta, id: string, src: string): BrandMeta {
+  const { logo, ...rest } = inGroup(meta, id, (is) => is.filter((i) => i.src !== src));
+  return logo === undefined || logo === src ? rest : { ...rest, logo };
+}
 
 export function addFontFiles(meta: BrandMeta, entries: FontFile[]): BrandMeta {
   const seen = new Set(meta.fontFiles.map((f) => f.src));

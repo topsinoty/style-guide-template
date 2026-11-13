@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, shallowReactive, useTemplateRef } from 'vue';
-import { useDropZone, useFileDialog } from '@vueuse/core';
+import { computed, ref, shallowReactive } from 'vue';
+import { useFileDialog } from '@vueuse/core';
 import {
   DialogClose,
   DialogContent,
@@ -19,10 +19,6 @@ const session = injectSession();
 const newGroup = '__new';
 const pendingTarget = ref<string | null>(null);
 const targets = shallowReactive(new WeakMap<File, string>());
-const dropZone = useTemplateRef('dropZone');
-const { isOverDropZone } = useDropZone(dropZone, async (files) => {
-  if (files) await session.value.fillMissing(files);
-});
 const options = computed(() => [
   ...session.value.meta.assetGroups.map((g) => ({ value: g.id, label: g.label ?? g.id })),
   { value: newGroup, label: 'New group: Uploads' },
@@ -41,7 +37,7 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const targetFor = (file: File, candidates: string[]) => targets.get(file) ?? candidates[0];
 const missingDialog = useFileDialog({ reset: true });
 missingDialog.onChange(async (files) => {
-  if (files) await session.value.fillMissing([...files]);
+  if (files) await session.value.receive([...files]);
 });
 </script>
 
@@ -86,7 +82,10 @@ missingDialog.onChange(async (files) => {
   </DialogRoot>
   <div v-if="missing.length" class="cd-box cd-panel">
     <h2>Missing files</h2>
-    <p>This brand refers to files that are not loaded. Drop them here; they are matched by file name.</p>
+    <p>
+      This brand refers to files that are not loaded. Drop them anywhere on the page or choose them; they are
+      matched by file name.
+    </p>
     <ul>
       <li v-for="item in missing" :key="item">
         <code>{{ item }}</code>
@@ -106,11 +105,8 @@ missingDialog.onChange(async (files) => {
         Use here
       </button>
     </div>
-    <div ref="dropZone" class="cd-drop-zone" :class="{ 'is-over': isOverDropZone }">
-      Drop the missing files here, or
-      <button type="button" class="btn btn-secondary btn-small" @click="missingDialog.open()">
-        Choose files
-      </button>
-    </div>
+    <button type="button" class="btn btn-secondary btn-small" @click="missingDialog.open()">
+      Choose files
+    </button>
   </div>
 </template>

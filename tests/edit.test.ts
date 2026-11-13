@@ -32,17 +32,14 @@ test('removeToken deletes only that token', () => {
   assert.ok(nodeAt(E.foundation(doc), 'duration.fast'));
 });
 
-test('moveItemToTop puts the item first and keeps the rest in order', () => {
-  const items = ['a', 'b', 'c'].map((name) => ({ label: name, src: `logos/${name}.svg` }));
-  const meta = E.moveItemToTop(
-    { assetGroups: [{ id: 'logos', items }], fontFiles: [] },
+test('removing the logo item clears the logo choice', () => {
+  const items = [{ label: 'a', src: 'logos/a.svg' }];
+  const meta = E.removeItem(
+    { assetGroups: [{ id: 'logos', items }], fontFiles: [], logo: 'logos/a.svg' },
     'logos',
-    'logos/c.svg',
+    'logos/a.svg',
   );
-  assert.deepEqual(
-    meta.assetGroups[0].items.map((i) => i.label),
-    ['c', 'a', 'b'],
-  );
+  assert.equal(meta.logo, undefined);
 });
 
 test('asset groups: add with a unique id, rename, move, remove', () => {

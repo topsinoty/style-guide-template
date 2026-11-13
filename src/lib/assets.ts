@@ -67,13 +67,21 @@ function readGroup(value: unknown): AssetGroup | null {
 }
 
 export function readBrandMeta(value: unknown): BrandMeta {
-  const meta = isNode(value) ? value : {};
+  const { logo, ...meta } = isNode(value) ? value : {};
   const list = (key: string) => (Array.isArray(meta[key]) ? meta[key] : []);
   return {
     ...meta,
+    ...(typeof logo === 'string' ? { logo } : {}),
     assetGroups: list('assetGroups').flatMap((group) => readGroup(group) ?? []),
     fontFiles: list('fontFiles').flatMap((file) => readFontFile(file) ?? []),
   };
+}
+
+export function mainLogo(meta: BrandMeta): AssetItem | undefined {
+  const items = meta.assetGroups.flatMap((group) => group.items);
+  return (
+    items.find((item) => item.src === meta.logo) ?? meta.assetGroups.find((g) => g.id === 'logos')?.items[0]
+  );
 }
 
 export function brandMeta(doc: ResolverDoc, vendor: string): BrandMeta {

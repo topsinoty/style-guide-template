@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, shallowReactive } from 'vue';
+import { mainLogo } from '../../lib/assets.js';
 import * as E from '../../lib/edit.js';
 import { extension, fileName } from '../../lib/path.js';
 import type { AssetGroup, AssetItem } from '../../lib/types.js';
@@ -15,6 +16,7 @@ const picks = shallowReactive(new Map<string, string>());
 const newGroup = ref('');
 const library = computed(() => [...props.ctx.session.library].filter((p) => !p.startsWith('brands/')));
 const image = /\.(svg|png|jpe?g|gif|webp|avif|ico)$/i;
+const logo = computed(() => mainLogo(props.ctx.meta));
 const pick = (group: AssetGroup) => picks.get(group.id) ?? library.value[0];
 
 function addFromLibrary(group: AssetGroup) {
@@ -77,6 +79,15 @@ function thumb(item: AssetItem) {
               ctx.setMeta((m) => E.updateItem(m, group.id, item.src, { description: $event || undefined }))
             "
           />
+          <p v-if="item.src === logo?.src" class="cd-hint">Shown as the logo in the header.</p>
+          <button
+            v-else-if="image.test(item.src)"
+            type="button"
+            class="btn btn-secondary btn-small"
+            @click="ctx.setMeta((m) => ({ ...m, logo: item.src }))"
+          >
+            Use as logo
+          </button>
         </div>
         <IconButton
           name="up"

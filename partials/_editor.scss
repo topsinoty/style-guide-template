@@ -195,20 +195,6 @@
 	max-height: min(28rem, var(--reka-popover-content-available-height, 28rem));
 }
 
-.cd-drop-zone {
-	margin-top: var(--spacing-md);
-	padding: var(--spacing-lg);
-	border: 0.125rem dashed var(--color-input-border);
-	border-radius: var(--radius-md);
-	text-align: center;
-	color: var(--color-muted-foreground);
-
-	&.is-over {
-		border-color: var(--color-focus-border);
-		color: var(--color-page-foreground);
-	}
-}
-
 .cd-drop {
 	position: fixed;
 	inset: 0;

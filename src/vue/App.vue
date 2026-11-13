@@ -25,6 +25,7 @@ import {
 } from 'reka-ui';
 import type { Session } from '../app/session.js';
 import { download } from './download.js';
+import { mainLogo } from '../lib/assets.js';
 import { errorMessage } from '../lib/io.js';
 import { urlFor } from './urls.js';
 import Action from './Action.vue';
@@ -52,7 +53,7 @@ const exporting = ref(false);
 
 const view = computed(() => deriveView(session.value, theme.value));
 const sections = computed(() => sectionsOf(view.value.meta, view.value.tokens));
-const logo = computed(() => view.value.meta.assetGroups.find((g) => g.id === 'logos')?.items[0]);
+const logo = computed(() => mainLogo(view.value.meta));
 const logoUrl = computed(() => logo.value && urlFor(logo.value, session.value.ctx));
 
 useTitle(() => `${session.value.doc.name ?? 'Brand'} | Style Guide`);
@@ -128,9 +129,8 @@ loadDialog.onChange(async (files) => {
 
 const { isOverDropZone: dragging } = useDropZone(document, {
   checkValidity: (items) => [...items].some((item) => item.kind === 'file'),
-  async onDrop(files, e) {
-    const inMissingZone = e.target instanceof Element && e.target.closest('.cd-drop-zone');
-    if (files && !inMissingZone) await session.value.receive(files);
+  async onDrop(files) {
+    if (files) await session.value.receive(files);
   },
 });
 

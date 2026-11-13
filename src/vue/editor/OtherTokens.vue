@@ -6,7 +6,7 @@ import * as E from '../../lib/edit.js';
 import { paletteColors } from '../../lib/palette.js';
 import { narrow, isColor } from '../../lib/values.js';
 import { COLOR_ERROR } from '../ColorInput.vue';
-import { isOtherColor, isOtherToken } from '../guide/sections.js';
+import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections.js';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context.js';
 import IconButton from './IconButton.vue';
@@ -70,6 +70,8 @@ const error = ref<string>();
 function nameProblem(path: string) {
   if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(path))
     return 'Use lowercase words joined by dots, like duration.slow.';
+  const editor = ownEditor(path);
+  if (editor) return `${path.split('.')[0]} tokens belong to ${editor}, not Other tokens.`;
   if (props.ctx.tokens.has(path)) return `${path} already exists.`;
   return undefined;
 }
