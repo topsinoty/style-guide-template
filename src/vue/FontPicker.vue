@@ -27,11 +27,9 @@ async function choose(font: FontListing) {
   detail.value = { family: font.family, loading: true };
   try {
     const detailed = await props.provider.font(font.id);
-    Object.assign(picked, {
-      weights: detailed.weights.filter((w) => w === 400 || w === 700),
-      styles: detailed.styles.filter((s) => s === 'normal'),
-      subsets: detailed.subsets.filter((s) => s === detailed.defSubset),
-    });
+    picked.weights = detailed.weights.filter((w) => w === 400 || w === 700);
+    picked.styles = detailed.styles.filter((s) => s === 'normal');
+    picked.subsets = detailed.subsets.filter((s) => s === detailed.defSubset);
     detail.value = { font: detailed };
   } catch (e) {
     detail.value = { family: font.family, error: `Could not load ${font.family}: ${errorMessage(e)}` };

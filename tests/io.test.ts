@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { keysOf } from '../src/lib/records.js';
 import { setToken } from '../src/lib/edit.js';
 import { isNode, nodeAt } from '../src/lib/tree.js';
 import { fontsource } from '../src/adapters/fontsource.js';
@@ -85,7 +86,7 @@ test('export layout: one folder per group, fonts in fonts/, duplicates numbered'
 });
 
 test('zip contents', async () => {
-  const names = Object.keys(unzipSync((await buildExport(load(), ctx())).zip));
+  const names = keysOf(unzipSync((await buildExport(load(), ctx())).zip));
   for (const n of [
     'README.md',
     'css/theme.css',

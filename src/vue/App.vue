@@ -100,13 +100,15 @@ async function exportKit() {
 }
 
 const loadDialog = useFileDialog({ reset: true });
-loadDialog.onChange((files) => files && void session.value.receive([...files]));
+loadDialog.onChange(async (files) => {
+  if (files) await session.value.receive([...files]);
+});
 
 const { isOverDropZone: dragging } = useDropZone(document, {
   checkValidity: (items) => [...items].some((item) => item.kind === 'file'),
-  onDrop(files, e) {
+  async onDrop(files, e) {
     const inMissingZone = e.target instanceof Element && e.target.closest('.cd-drop-zone');
-    if (files && !inMissingZone) void session.value.receive(files);
+    if (files && !inMissingZone) await session.value.receive(files);
   },
 });
 

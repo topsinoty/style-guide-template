@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { keysOf } from '../src/lib/records.js';
 import type { FileData } from '../src/lib/types.js';
 import { nodeAt, vendorData } from '../src/lib/tree.js';
 import { fontsource } from '../src/adapters/fontsource.js';
@@ -84,7 +85,7 @@ test('a file saved under another origin key is read and moved, other extensions 
   assert.equal(meta.assetGroups.length, 2);
   const out = withBrandMeta(doc, V, meta);
   assert.deepEqual(
-    Object.keys(present(out.sets.foundation.$extensions)).sort((a, b) => a.localeCompare(b)),
+    keysOf(present(out.sets.foundation.$extensions)).sort((a, b) => a.localeCompare(b)),
     [V, 'org.tool.x'],
   );
   assert.equal(doc.sets.foundation.$extensions['com.other.site'] !== undefined, true, 'input not mutated');

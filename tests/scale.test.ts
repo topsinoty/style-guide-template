@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { keysOf } from '../src/lib/records.js';
 import { child } from '../src/lib/tree.js';
 import { present, V } from './helpers.js';
 import { generateScale, applyScale, setStep, type ScaleSpec } from '../src/lib/scale.js';
@@ -30,8 +31,8 @@ test('applyScale writes every step and keeps other extensions', () => {
   present(g.$extensions)['org.tool.x'] = { a: 1 };
   const out = applyScale(g, V);
   assert.deepEqual(
-    Object.keys(out).filter((k) => !k.startsWith('$')),
-    Object.keys(spacing.steps),
+    keysOf(out).filter((k) => !k.startsWith('$')),
+    keysOf(spacing.steps),
   );
   assert.deepEqual(out.$extensions?.['org.tool.x'], { a: 1 });
   assert.equal('md' in g, false, 'input not mutated');

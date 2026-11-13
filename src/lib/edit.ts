@@ -42,9 +42,10 @@ export function setRole(
     });
     return out;
   }
-  const ctx = (mod.contexts[theme] ??= []);
-  if (!ctx.length) ctx.push({});
-  setIn(ctx[0], `color.${rolePath}`, { $type: 'color', $value: value });
+  if (!mod.contexts[theme]) mod.contexts[theme] = [];
+  const sources = mod.contexts[theme];
+  if (!sources.length) sources.push({});
+  setIn(sources[0], `color.${rolePath}`, { $type: 'color', $value: value });
   return out;
 }
 

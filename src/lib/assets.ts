@@ -1,6 +1,7 @@
 import * as z from 'zod/mini';
 import { holds, isNode } from './tree.js';
 import { fileName } from './path.js';
+import { entriesOf, keysOf, without } from './records.js';
 import { brandMeta as brandMetaSchema, isSafeSrc } from './schema.js';
 import type { AssetContext, AssetItem, BrandMeta, FontFile, ResolverDoc, SessionFiles } from './types.js';
 
@@ -15,7 +16,7 @@ const basename = (p: string) => fileName(p).toLowerCase();
 function metaKey(doc: ResolverDoc, vendor: string): string | null {
   const ext = doc.sets?.foundation?.$extensions ?? {};
   if (ext[vendor]) return vendor;
-  const others = Object.keys(ext).filter((k) => META_KEYS.some((m) => holds(ext[k], m)));
+  const others = keysOf(ext).filter((k) => META_KEYS.some((m) => holds(ext[k], m)));
   return others.length === 1 ? others[0] : null;
 }
 
@@ -28,9 +29,10 @@ export function withBrandMeta(doc: ResolverDoc, vendor: string, meta: BrandMeta)
   const out = structuredClone(doc);
   const key = metaKey(doc, vendor);
   const foreign = key !== vendor ? key : null;
-  const kept = Object.entries(out.sets.foundation.$extensions ?? {}).filter(([k]) => k !== foreign);
-  const ext = { ...Object.fromEntries(kept), [vendor]: meta };
-  out.sets.foundation.$extensions = ext;
+  const others = foreign
+    ? without(out.sets.foundation.$extensions ?? {}, foreign)
+    : out.sets.foundation.$extensions;
+  out.sets.foundation.$extensions = { ...others, [vendor]: meta };
   return out;
 }
 
@@ -81,7 +83,7 @@ export function adoptVendor(doc: ResolverDoc, vendor: string): ResolverDoc {
       const { [key]: moved, ...rest } = node.$extensions;
       node.$extensions = { ...rest, [vendor]: moved };
     }
-    for (const [k, v] of Object.entries(node)) if (k !== '$extensions') visit(v);
+    for (const [k, v] of entriesOf(node)) if (k !== '$extensions') visit(v);
   };
   visit(out);
   return out;

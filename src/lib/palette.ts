@@ -1,6 +1,7 @@
 import { anchoredScale, oklch, toOklch } from './color.js';
 import { ROLES } from './contrast.js';
 import { foundation } from './edit.js';
+import { entriesOf, isEmpty, mapValues, renameKey, valuesOf, without } from './records.js';
 import { child, children, ensureChild, isHandSet, isNode, vendorData, withVendorData } from './tree.js';
 import type { DtcgColor, ResolverDoc, TokenNode } from './types.js';
 import { VALUES } from './schema.js';
@@ -39,9 +40,6 @@ export const byShadeOrder = (a: string, b: string) => {
 };
 
 const clone = <T>(value: T): T => structuredClone(value);
-
-const without = (node: TokenNode, key: string): TokenNode =>
-  Object.fromEntries(Object.entries(node).filter(([name]) => name !== key));
 
 const colorsOf = (doc: ResolverDoc): TokenNode => ensureChild(foundation(doc), 'color', { $type: 'color' });
 
@@ -82,11 +80,11 @@ const contextLabel = (modifier: string, context: string) =>
   modifier === 'theme' ? `${context} theme` : `${modifier} ${context}`;
 
 function treesOf(doc: ResolverDoc): [string, TokenNode][] {
-  const inSets = Object.entries(doc.sets).flatMap(([set, { sources }]) =>
+  const inSets = entriesOf(doc.sets).flatMap(([set, { sources }]) =>
     sources.map((tree): [string, TokenNode] => [setLabel(set), tree]),
   );
-  const inModifiers = Object.entries(doc.modifiers ?? {}).flatMap(([modifier, { contexts }]) =>
-    Object.entries(contexts).flatMap(([context, sources]) =>
+  const inModifiers = entriesOf(doc.modifiers ?? {}).flatMap(([modifier, { contexts }]) =>
+    entriesOf(contexts).flatMap(([context, sources]) =>
       sources.map((tree): [string, TokenNode] => [contextLabel(modifier, context), tree]),
     ),
   );
@@ -113,15 +111,13 @@ function replaceReference(value: unknown, colorId: string, shade: string, next: 
   if (pointsAt(value, colorId, shade)) return next;
   if (Array.isArray(value)) return value.map((item) => replaceReference(item, colorId, shade, next));
   if (!isNode(value)) return value;
-  return Object.fromEntries(
-    Object.entries(value).map(([key, item]) => [key, replaceReference(item, colorId, shade, next)]),
-  );
+  return mapValues(value, (item) => replaceReference(item, colorId, shade, next));
 }
 
 function mentions(value: unknown, colorId: string, shade: string): boolean {
   if (pointsAt(value, colorId, shade)) return true;
   if (Array.isArray(value)) return value.some((item) => mentions(item, colorId, shade));
-  return isNode(value) && Object.values(value).some((item) => mentions(item, colorId, shade));
+  return isNode(value) && valuesOf(value).some((item) => mentions(item, colorId, shade));
 }
 
 export function referencesTo(doc: ResolverDoc, colorId: string, shades?: string[]): Reference[] {
@@ -146,10 +142,8 @@ function generated(token: TokenNode, vendor: string, color: DtcgColor): TokenNod
   const { $extensions, ...rest } = token;
   const { [vendor]: own = {}, ...others } = $extensions ?? {};
   const { overridden, ...kept } = own;
-  const next = Object.keys(kept).length ? { ...others, [vendor]: kept } : others;
-  return Object.keys(next).length
-    ? { ...rest, $value: color, $extensions: next }
-    : { ...rest, $value: color };
+  const next = isEmpty(kept) ? others : { ...others, [vendor]: kept };
+  return !isEmpty(next) ? { ...rest, $value: color, $extensions: next } : { ...rest, $value: color };
 }
 
 const handSet = (token: TokenNode, vendor: string, color: DtcgColor): TokenNode =>
@@ -225,9 +219,7 @@ export function renameShade(
   const token = child(group, from);
   if (!group || !token || child(group, to)) return doc;
   const wasBase = baseShadeOf(group, vendor) === from;
-  const renamed = Object.fromEntries(
-    Object.entries(group).map(([key, value]) => [key === from ? to : key, value]),
-  );
+  const renamed = renameKey(group, from, to);
   colorsOf(out)[colorId] = wasBase ? withVendorData(renamed, vendor, { base: to }) : renamed;
   repoint(out, colorId, from, aliasOf(colorId, to));
   return out;
@@ -270,7 +262,7 @@ export function generateShades(
   const baseColor = base ? valueAs(VALUES.color, child(group, base)?.$value) : null;
   if (!group || !base || !baseColor) return doc;
   const { scale } = anchoredScale(baseColor);
-  for (const [step, color] of Object.entries(scale)) {
+  for (const [step, color] of entriesOf(scale)) {
     if (step === base) continue;
     const token = child(group, step) ?? {};
     if (isHandSet(token, vendor) && mode === 'keep') continue;

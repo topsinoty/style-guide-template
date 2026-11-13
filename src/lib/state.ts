@@ -117,7 +117,7 @@ export function createStore({
       for (const path of unused) files.delete(path);
       await Promise.allSettled(unused.map((path) => fileStore.delete(path)));
     },
-    drafts: () => [current, base, read(storage, PREVIOUS)].filter((d): d is ResolverDoc => !!d),
+    drafts: () => [current, base, read(storage, PREVIOUS)].filter((d): d is ResolverDoc => d !== null),
     async addFiles(map: SessionFiles) {
       for (const [path, data] of map) files.set(path, data);
       for (const fn of subs) fn(current);
