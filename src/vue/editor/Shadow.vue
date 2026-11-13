@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { child, children, isNode } from '../../lib/tree.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isColor, isSize } from '../../lib/values.js';
 import type { EditorContext } from './context.js';
 import NumberField from './NumberField.vue';
 
@@ -15,9 +14,9 @@ const shadows = computed(() =>
     return [
       {
         name,
-        offsetY: valueAs(VALUES.dimension, layer.offsetY),
-        blur: valueAs(VALUES.dimension, layer.blur),
-        color: valueAs(VALUES.color, layer.color),
+        offsetY: narrow(layer.offsetY, isSize),
+        blur: narrow(layer.blur, isSize),
+        color: narrow(layer.color, isColor),
       },
     ];
   }),

@@ -1,9 +1,8 @@
 import { parseCssColor, toHex } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
 import type { PaletteColor } from '../../lib/palette.js';
-import { VALUES } from '../../lib/schema.js';
 import type { DtcgColor } from '../../lib/types.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isColor } from '../../lib/values.js';
 
 export interface ColorOption {
   value: string;
@@ -29,7 +28,7 @@ export const optionFor = (text: string, options: ColorOption[]) =>
 
 export function roleText(value: unknown, options: ColorOption[]): string {
   if (typeof value === 'string') return optionFor(value, options)?.label ?? value;
-  const color = valueAs(VALUES.color, value);
+  const color = narrow(value, isColor);
   return color ? toHex(color) : '';
 }
 

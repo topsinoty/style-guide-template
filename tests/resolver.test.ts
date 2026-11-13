@@ -2,8 +2,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { setToken } from '../src/lib/edit.js';
 import { nodeAt } from '../src/lib/tree.js';
-import { VALUES } from '../src/lib/schema.js';
-import { valueAs } from '../src/lib/values.js';
+import { narrow, isColor, isTypography } from '../src/lib/values.js';
 import type { ResolverDoc, Tokens } from '../src/lib/types.js';
 import { load, present, token } from './helpers.js';
 import { ResolveError, resolve, contexts, defaultInputs, aliasTarget, flatten } from '../src/lib/resolver.js';
@@ -11,10 +10,8 @@ import { toHex } from '../src/lib/color.js';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 
-const colorAt = (doc: ResolverDoc, path: string) =>
-  present(valueAs(VALUES.color, nodeAt(tree(doc), path)?.$value));
-const colorOf = (tokens: Tokens, path: string) =>
-  present(valueAs(VALUES.color, token(tokens, path).resolved));
+const colorAt = (doc: ResolverDoc, path: string) => present(narrow(nodeAt(tree(doc), path)?.$value, isColor));
+const colorOf = (tokens: Tokens, path: string) => present(narrow(token(tokens, path).resolved, isColor));
 
 test('dark overrides light', () => {
   const doc = load();
@@ -44,7 +41,7 @@ test('$ref pointer resolves like a curly alias', () => {
 });
 
 test('composite alias', () => {
-  const t = present(valueAs(VALUES.typography, token(resolve(load()), 'typography.heading-1').resolved));
+  const t = present(narrow(token(resolve(load()), 'typography.heading-1').resolved, isTypography));
   assert.deepEqual(t.fontSize, { value: 3.0518, unit: 'rem' });
   assert.deepEqual(t.fontFamily, ['Merriweather', 'serif']);
 });

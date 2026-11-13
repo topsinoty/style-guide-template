@@ -16,9 +16,8 @@ import {
   setShade,
 } from '../src/lib/palette.js';
 import type { ResolverDoc } from '../src/lib/types.js';
-import { VALUES } from '../src/lib/schema.js';
 import { nodeAt } from '../src/lib/tree.js';
-import { valueAs } from '../src/lib/values.js';
+import { narrow, isColor } from '../src/lib/values.js';
 import { present, preset, V } from './helpers.js';
 
 const teal = present(parseCssColor('teal'));
@@ -134,7 +133,7 @@ test('removing the last palette color leaves roles in black and white', () => {
   assert.deepEqual(paletteColors(doc, V), []);
   const background = foundationAt(doc, 'color.primary.background')?.$value;
   const foreground = foundationAt(doc, 'color.primary.foreground')?.$value;
-  const lightness = (value: unknown) => present(valueAs(VALUES.color, value)).components[0];
+  const lightness = (value: unknown) => present(narrow(value, isColor)).components[0];
   assert.deepEqual(
     [lightness(background), lightness(foreground)].sort((a, b) => Number(a) - Number(b)),
     [0, 1],

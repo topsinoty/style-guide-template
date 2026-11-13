@@ -2,8 +2,7 @@
 import { computed } from 'vue';
 import { cssName } from '../../lib/css.js';
 import type { Tokens } from '../../lib/types.js';
-import { VALUES } from '../../lib/schema.js';
-import { valueAs } from '../../lib/values.js';
+import { narrow, isSize } from '../../lib/values.js';
 import { dim } from './parts.js';
 
 const props = defineProps<{ tokens: Tokens; kind: 'spacing' | 'radius' | 'shadow' }>();
@@ -11,7 +10,7 @@ const steps = computed(() => [...props.tokens].filter(([path]) => path.startsWit
 const value = (path: string) => `var(${cssName(path)})`;
 
 function radiusText(value: unknown) {
-  const radius = valueAs(VALUES.dimension, value);
+  const radius = narrow(value, isSize);
   if (!radius) return dim(value);
   const px = radius.unit === 'rem' ? radius.value * 16 : radius.value;
   return px >= 9999 ? 'full' : dim(radius);
