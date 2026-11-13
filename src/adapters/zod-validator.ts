@@ -258,6 +258,7 @@ const fontFile: z.ZodMiniType<FontFile> = z
 export const brandMeta: z.ZodMiniType<BrandMeta> = z.looseObject({
   assetGroups: z._default(z.array(assetGroup), []),
   fontFiles: z._default(z.array(fontFile), []),
+  logo: z.optional(z.string()),
 });
 
 export function validateBrandMeta(meta: unknown, path = 'brand'): Problem[] {

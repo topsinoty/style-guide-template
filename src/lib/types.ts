@@ -86,6 +86,7 @@ export interface FontFile extends AssetItem {
 export interface BrandMeta {
   assetGroups: AssetGroup[];
   fontFiles: FontFile[];
+  logo?: string;
   [key: string]: unknown;
 }
 

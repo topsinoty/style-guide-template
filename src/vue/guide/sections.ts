@@ -2,9 +2,19 @@ import { colorKind } from './color-path.js';
 import type { BrandMeta, Tokens } from '../../lib/types.js';
 
 const builtIn = new Set(['logos', 'favicons', 'icons']);
-const shownInOwnSection = ['color.', 'spacing.', 'radius.', 'shadow.', 'font-size.', 'typography.', 'font.'];
+const OWN_SECTIONS: [prefix: string, editor: string][] = [
+  ['color.', 'Palette'],
+  ['spacing.', 'Scales'],
+  ['radius.', 'Scales'],
+  ['font-size.', 'Scales'],
+  ['shadow.', 'Shadow'],
+  ['typography.', 'Fonts and type'],
+  ['font.', 'Fonts and type'],
+];
 
-export const isOtherToken = (path: string) => !shownInOwnSection.some((prefix) => path.startsWith(prefix));
+export const ownEditor = (path: string) => OWN_SECTIONS.find(([prefix]) => path.startsWith(prefix))?.[1];
+
+export const isOtherToken = (path: string) => ownEditor(path) === undefined;
 
 export const isOtherColor = (path: string, type: string) =>
   type === 'color' && path.startsWith('color.') && colorKind(path) === 'other';
