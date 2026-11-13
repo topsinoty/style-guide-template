@@ -136,7 +136,7 @@ function onNavWheel(e: WheelEvent) {
 
 <template>
   <DialogRoot v-model:open="editing" :modal="false" :unmount-on-hide="false">
-    <div :class="{ 'is-editing': editing, 'is-dragging': dragging }">
+    <div :class="{ 'is-dragging': dragging }">
       <header ref="header">
         <div class="cd-logo">
           <img v-if="logoUrl" :src="logoUrl" :alt="session.doc.name ?? 'Logo'" />

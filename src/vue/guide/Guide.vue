@@ -32,7 +32,7 @@ const itemsOf = (id: string) => props.meta.assetGroups.find((g) => g.id === id)?
 const otherTokens = computed(() => [...props.tokens].filter(([path]) => isOtherToken(path)));
 
 const specimen = ref(['', '']);
-const specimenEls = useTemplateRef<HTMLElement[]>('specimen');
+const specimenEls = useTemplateRef<HTMLElement[]>('specimenText');
 
 function measureSpecimen() {
   specimen.value = (specimenEls.value ?? []).map((el) => {
@@ -84,10 +84,10 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
     >
       <h2>{{ section.title }}</h2>
       <div v-if="section.id === 'typography'" class="cd-box">
-        <h1 ref="specimen" role="presentation">
+        <h1 ref="specimenText" role="presentation">
           Heading, <span class="cd-specimen-label">{{ specimen[0] }}</span>
         </h1>
-        <p ref="specimen">
+        <p ref="specimenText">
           Aa - <span class="cd-specimen-label">{{ specimen[1] }}</span>. Lorem ipsum dolor sit amet,
           consectetur adipisicing elit. Omnis voluptate distinctio reprehenderit, autem deleniti ad
           <a href="#0">voluptatum eaque</a>. Optio ea aperiam nisi distinctio nemo repellat, voluptate fugiat.
