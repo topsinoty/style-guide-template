@@ -2,12 +2,11 @@
 import { computed } from 'vue';
 import { RovingFocusGroup, RovingFocusItem } from 'reka-ui';
 import { cmyk, toHex, toOklchString, toRgbaString } from '../../lib/color.js';
-import { ROLES } from '../../lib/contrast.js';
 import { cssName } from '../../lib/css.js';
 import type { DtcgColor, ResolvedToken, Tokens } from '../../lib/types.js';
 import { byShadeOrder } from '../../lib/palette.js';
 import { isNode } from '../../lib/tree.js';
-import { palettePath } from './color-path.js';
+import { colorKind, palettePath } from './color-path.js';
 import { narrow, isColor } from '../../lib/values.js';
 import CopyButton from './CopyButton.vue';
 
@@ -56,20 +55,12 @@ function row(path: string, token: ResolvedToken): Row | null {
   return color && { path, source: sourceOf(token.value, color), hex: toHex(color) };
 }
 
-type Kind = 'palette' | 'role' | 'other';
-
-function kindOf(path: string): Kind {
-  const group = path.split('.')[1];
-  if (ROLES.includes(group)) return 'role';
-  return palettePath(path) ? 'palette' : 'other';
-}
-
 const color = computed(() => {
   const palette = new Map<string, Shade[]>();
   const rows: Record<'role' | 'other', Row[]> = { role: [], other: [] };
   for (const [path, token] of props.tokens) {
     if (token.type !== 'color' || !path.startsWith('color.')) continue;
-    const kind = kindOf(path);
+    const kind = colorKind(path);
     const swatch = kind === 'palette' ? shade(path, token) : null;
     const line = swatch ? null : row(path, token);
     if (swatch) palette.set(swatch.group, [...(palette.get(swatch.group) ?? []), swatch]);

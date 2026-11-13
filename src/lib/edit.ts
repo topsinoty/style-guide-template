@@ -27,6 +27,15 @@ export function setToken(doc: ResolverDoc, path: string, token: TokenNode): Reso
   return out;
 }
 
+export function removeToken(doc: ResolverDoc, path: string): ResolverDoc {
+  const out = clone(doc);
+  const keys = path.split('.');
+  const last = keys.pop() ?? path;
+  const parent = keys.length ? nodeAt(foundation(out), keys.join('.')) : foundation(out);
+  if (parent) Reflect.deleteProperty(parent, last);
+  return out;
+}
+
 export function setRole(
   doc: ResolverDoc,
   theme: string,
@@ -94,6 +103,8 @@ export const moveItem = (meta: BrandMeta, id: string, src: string, dir: number) 
       dir,
     ),
   );
+export const moveItemToTop = (meta: BrandMeta, id: string, src: string) =>
+  inGroup(meta, id, (is) => [...is.filter((i) => i.src === src), ...is.filter((i) => i.src !== src)]);
 export const removeItem = (meta: BrandMeta, id: string, src: string) =>
   inGroup(meta, id, (is) => is.filter((i) => i.src !== src));
 
