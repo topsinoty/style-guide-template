@@ -1,7 +1,14 @@
-// Opens the session (library, preset, the browser's saved draft) and mounts the app.
+import { createApp } from 'vue';
+import { fontsource } from './adapters/fontsource.js';
+import { indexedDbFileStore } from './adapters/indexeddb-file-store.js';
 import { Session } from './app/session.js';
-import { App } from './ui/app.js';
+import App from './vue/App.vue';
 
-const app = new App();
-app.session = await Session.open();
-document.body.prepend(app);
+const session = await Session.open({
+  drafts: localStorage,
+  files: indexedDbFileStore(),
+  fonts: fontsource({ cache: localStorage }),
+});
+const mount = document.createElement('div');
+document.body.prepend(mount);
+createApp(App, { session }).mount(mount);

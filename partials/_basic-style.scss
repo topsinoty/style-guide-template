@@ -1,11 +1,5 @@
 @use 'layout' as *;
 
-/* --------------------------------
-
-xBasic style
-
--------------------------------- */
-
 *,
 *::after,
 *::before {
@@ -14,6 +8,10 @@ xBasic style
 
 html {
 	scroll-padding-top: var(--header-h);
+
+	@media (prefers-reduced-motion: no-preference) {
+		scroll-behavior: smooth;
+	}
 }
 
 html * {
@@ -35,8 +33,7 @@ img {
 }
 
 code {
-	font-family:
-		monospace, monospace; // ds-allow-hardcode: code, not a brand font; doubled so browsers keep the inherited size
+	font-family: var(--font-code, monospace, monospace);
 	font-size: 0.95em;
 }
 
@@ -48,17 +45,12 @@ button {
 }
 
 .cd-sr-only {
-	position: absolute;
-	width: 1px; // ds-allow-hardcode: visually hidden pattern
-	height: 1px; // ds-allow-hardcode: visually hidden pattern
-	overflow: hidden;
-	clip: rect(0 0 0 0);
-	white-space: nowrap;
+	@include visually-hidden;
 }
 
-// below M the header has two rows: logo and actions, then the section strip
 :root {
 	--header-h: 5.875rem;
+	--hairline: 1px;
 
 	@include MQ(M) {
 		--header-h: 5rem;
@@ -165,7 +157,6 @@ main {
 	}
 
 	@include MQ(L) {
-		/* masonry: sections stack down two columns, in order, with no row gaps */
 		max-width: none;
 		columns: 2;
 		column-gap: 4%;
@@ -178,7 +169,6 @@ main {
 
 		> section {
 			break-inside: avoid;
-			/* keeps each heading's top margin inside its section, so both columns start level */
 			display: flow-root;
 		}
 	}
@@ -186,6 +176,7 @@ main {
 
 section {
 	margin: 3em 0;
+	scroll-margin-top: 3em;
 	counter-increment: section;
 	min-width: 0;
 
@@ -199,10 +190,9 @@ section {
 
 	@include MQ(L) {
 		margin: 0 0 4em;
+		scroll-margin-top: 0;
 	}
 }
-
-/* xBranding section - basic style */
 
 .cd-branding {
 	.cd-logos {
@@ -239,8 +229,6 @@ section {
 	}
 }
 
-/* xColor section - basic style */
-
 .cd-colors h3,
 .cd-typography h3 {
 	font-family: var(--font-heading);
@@ -266,7 +254,7 @@ section {
 		width: 100%;
 		padding: 30% 0;
 		border-radius: var(--radius-sm);
-		box-shadow: inset 0 0 0 1px var(--color-card-border); // ds-allow-hardcode: hairline
+		box-shadow: inset 0 0 0 var(--hairline) var(--color-card-border);
 	}
 
 	b {
@@ -294,12 +282,10 @@ section {
 		overflow-wrap: anywhere;
 		text-align: left;
 		padding: var(--spacing-xs) var(--spacing-sm);
-		border-bottom: 1px solid var(--color-card-border); // ds-allow-hardcode: hairline
+		border-bottom: var(--hairline) solid var(--color-card-border);
 		vertical-align: middle;
 	}
 }
-
-/* xTypography section - basic style */
 
 .cd-typography {
 	h1::before {
@@ -326,8 +312,6 @@ section {
 		text-transform: none;
 	}
 }
-
-/* xIcons section - basic style */
 
 .cd-icons {
 	ul {

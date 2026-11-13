@@ -1,5 +1,7 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import * as z from 'zod/mini';
+import { color } from '../src/lib/schema.js';
 import { present } from './helpers.js';
 import {
   oklch,
@@ -14,8 +16,7 @@ import {
 } from '../src/lib/color.js';
 import type { DtcgColor } from '../src/lib/types.js';
 
-// the color spaces under test, as typed by the schema
-const space = (colorSpace: string, components: number[]) => ({ colorSpace, components }) as DtcgColor;
+const space = (colorSpace: string, components: number[]) => z.parse(color, { colorSpace, components });
 
 const srgb = (r: number, g: number, b: number): DtcgColor => ({ colorSpace: 'srgb', components: [r, g, b] });
 

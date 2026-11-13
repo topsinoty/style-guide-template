@@ -1,5 +1,3 @@
-// The editing session around the brand store: files coming in, warnings, files waiting for a group,
-// and the brand kit going out. No DOM here; the UI subscribes and renders.
 import * as z from 'zod/mini';
 import { HOSTED_URL } from '../config.js';
 import {
@@ -11,10 +9,21 @@ import {
   withBrandMeta,
 } from '../lib/assets.js';
 import * as E from '../lib/edit.js';
-import { buildExport, classify, loadZip, parseBrandJson, saveJson, slug } from '../lib/io.js';
+import {
+  buildExport,
+  classify,
+  errorMessage,
+  loadZip,
+  parseBrandJson,
+  problemText,
+  saveJson,
+  slug,
+} from '../lib/io.js';
 import { brandMeta as brandMetaSchema, manifest as manifestSchema, resolverDoc } from '../lib/schema.js';
-import { createStore, idbFileStore, type Store } from '../lib/state.js';
+import { createStore, type Store } from '../lib/state.js';
 import type { AssetContext, BrandMeta, Manifest, Problem, ResolverDoc, SessionFiles } from '../lib/types.js';
+import { uniquePath } from '../lib/path.js';
+import type { FileStore, FontProvider, KeyValueStore } from '../ports.js';
 import { vendorKey } from '../lib/vendor-key.js';
 
 export interface Ambiguous {
@@ -24,12 +33,18 @@ export interface Ambiguous {
 
 const stem = (name: string) => name.replace(/\.[^.]+$/, '');
 const describe = (file: string, errors: Problem[]) =>
-  errors.map((e) => `${file}: ${e.path ? `${e.path}: ` : ''}${e.message}`);
+  errors.map((problem) => `${file}: ${problemText(problem)}`);
 
 async function fetchJson(url: string): Promise<unknown> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not load ${url} (${res.status})`);
   return res.json();
+}
+
+export interface SessionAdapters {
+  drafts: KeyValueStore;
+  files: FileStore;
+  fonts: FontProvider;
 }
 
 export class Session {
@@ -45,19 +60,19 @@ export class Session {
     readonly store: Store,
     readonly manifest: Manifest,
     readonly preset: ResolverDoc,
+    readonly fonts: FontProvider,
   ) {
     this.library = new Set(manifest.files);
-    this.ctx = { session: store.files, library: this.library };
+    this.ctx = { session: store.files, library: this.library, fonts };
     store.subscribe(() => this.#changed());
   }
 
-  /** Loads the library manifest and the first preset, and resumes the browser's saved draft. */
-  static async open(): Promise<Session> {
+  static async open({ drafts, files, fonts }: SessionAdapters): Promise<Session> {
     const manifest = z.parse(manifestSchema, await fetchJson('library/manifest.json'));
     const preset = await Session.fetchPreset(manifest.brands[0].path);
-    const store = createStore({ doc: preset, storage: localStorage, fileStore: idbFileStore() });
+    const store = createStore({ doc: preset, storage: drafts, fileStore: files });
     await store.ready;
-    return new Session(store, manifest, preset);
+    return new Session(store, manifest, preset, fonts);
   }
 
   static async fetchPreset(path: string): Promise<ResolverDoc> {
@@ -87,7 +102,7 @@ export class Session {
 
   warn(...messages: string[]) {
     const fresh = messages.filter((m) => !this.warnings.includes(m));
-    if (!fresh.length) return; // a repeated warning changes nothing, so nothing re-renders
+    if (!fresh.length) return;
     this.warnings = [...this.warnings, ...new Set(fresh)];
     this.#changed();
   }
@@ -97,7 +112,6 @@ export class Session {
     this.#changed();
   }
 
-  /** A draft that cannot be shown must never lock the page: show the preset, keep the draft as the previous one. */
   fallBack(error: unknown) {
     this.warnings = [
       ...this.warnings,
@@ -107,18 +121,15 @@ export class Session {
     this.store.load(this.preset, undefined, { record: false });
   }
 
-  /* files coming in */
-
   #takenPaths() {
     return new Set([...this.store.files.keys(), ...allSrcs(this.meta).map((s) => s.src)]);
   }
 
-  /** New session files, each under a path nothing else uses yet. */
   #place<T>(files: File[], folder: string, entry: (file: File, src: string) => T) {
     const taken = this.#takenPaths();
     const map: SessionFiles = new Map();
     const entries = files.map((file) => {
-      const src = E.uniquePath(`${folder}/${file.name}`, taken);
+      const src = uniquePath(`${folder}/${file.name}`, taken);
       taken.add(src);
       map.set(src, file);
       return entry(file, src);
@@ -161,7 +172,6 @@ export class Session {
     if (files?.size) await this.#persist(files);
   }
 
-  /** Files dropped for a brand's missing paths, matched by file name; returns the ones that match nothing. */
   async fillMissing(files: File[]) {
     const { matched, ambiguous, unmatched } = matchDropped(missingAssets(this.meta, this.ctx), files);
     if (matched.size) await this.#persist(matched);
@@ -181,11 +191,10 @@ export class Session {
     await this.#persist(new Map([[path, file]]));
   }
 
-  /** Puts the files waiting for a group into it; null makes a new group. */
   async addPending(groupId: string | null) {
     let id = groupId;
     if (!id) {
-      const next = E.addGroup(this.meta, 'Uploads'); // appends the group
+      const next = E.addGroup(this.meta, 'Uploads');
       this.setMeta(() => next);
       id = next.assetGroups.at(-1)?.id ?? null;
     }
@@ -200,7 +209,6 @@ export class Session {
     this.#changed();
   }
 
-  /** Anything dropped or loaded: one brand file (resolver, tokens or kit ZIP), fonts, and other files. */
   async receive(files: File[]) {
     try {
       const brands = files.filter((f) => ['resolver', 'tokens', 'zip'].includes(classify(f.name)));
@@ -214,7 +222,7 @@ export class Session {
       const others = rest.filter((f) => !fonts.includes(f));
       if (others.length) await this.fillMissing(others);
     } catch (e) {
-      this.warn(`Could not load ${files.map((f) => f.name).join(', ')}: ${(e as Error).message}`);
+      this.warn(`Could not load ${files.map((f) => f.name).join(', ')}: ${errorMessage(e)}`);
     }
   }
 
@@ -226,8 +234,6 @@ export class Session {
     if (doc && !errors.length) await this.#loadBrand(doc, files);
     else this.warn(...describe(file.name, errors));
   }
-
-  /* going out */
 
   get fileName() {
     return slug(this.doc.name ?? 'brand');
@@ -247,6 +253,7 @@ export class Session {
       vendor: this.vendor,
       files: this.store.files,
       library: this.library,
+      fonts: this.fonts,
       fetchBytes,
       hostedUrl: HOSTED_URL,
     });
@@ -254,10 +261,6 @@ export class Session {
     return { name: `${this.fileName}-brand-kit.zip`, data: zip };
   }
 
-  /**
-   * Drops session files no draft refers to. If a draft does not parse (one that could not be shown),
-   * nothing is dropped: its files are still needed if it is restored.
-   */
   prune() {
     const used = new Set<string>();
     for (const draft of this.store.drafts()) {

@@ -1,5 +1,5 @@
-// Types the app derives from a brand. The shapes of loaded data come from the zod schemas in schema.ts.
 import type * as z from 'zod/mini';
+import type { FontProvider } from '../ports.js';
 import type { color } from './schema.js';
 
 export type {
@@ -13,13 +13,15 @@ export type {
   ResolverDoc,
 } from './schema.js';
 
-// A token tree is user JSON that schema.ts has checked; its values are as varied as DTCG allows
-// (colors, dimensions, aliases, composites), so they are read where used instead of typed up front.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Json = any;
+export type VendorData = Record<string, unknown>;
 
-/** A node of a raw token tree: a group or a token, as loaded. */
-export type TokenNode = Record<string, Json>;
+export interface TokenNode {
+  $value?: unknown;
+  $type?: string;
+  $description?: string;
+  $extensions?: Record<string, VendorData>;
+  [key: string]: unknown;
+}
 
 export type DtcgColor = z.infer<typeof color>;
 
@@ -30,13 +32,13 @@ export interface Dimension {
 
 export interface FlatToken {
   type?: string;
-  value: Json;
-  extensions?: Record<string, Json>;
+  value: unknown;
+  extensions?: Record<string, unknown>;
   description?: string;
 }
 
 export interface ResolvedToken extends FlatToken {
-  resolved: Json;
+  resolved: unknown;
 }
 
 export type Tokens = Map<string, ResolvedToken>;
@@ -47,6 +49,7 @@ export type SessionFiles = Map<string, FileData>;
 export interface AssetContext {
   session: SessionFiles;
   library: Set<string>;
+  fonts: FontProvider;
 }
 
 export interface Problem {
