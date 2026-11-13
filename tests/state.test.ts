@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { memoryFileStore, memoryKeyValueStore } from '../src/adapters/memory.js';
@@ -43,23 +44,12 @@ test('autosave writes the draft and a new store resumes it', () => {
   assert.deepEqual(createStore({ doc: a, storage, fileStore: memFiles() }).get(), edit(a));
 });
 
-test('load keeps the previous draft', () => {
-  const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
-  s.update(edit);
-  s.flush();
-  s.load(b);
-  assert.deepEqual(s.get(), b);
-  assert.equal(s.hasPrevious(), true);
-  assert.equal(s.restorePrevious(), true);
-  assert.deepEqual(s.get(), edit(a));
-});
-
-test('clearDraft resets to the last loaded doc', () => {
+test('reset goes back to the last loaded doc', () => {
   const storage = mem();
   const s = createStore({ doc: a, storage, fileStore: memFiles() });
   s.load(b);
   s.update(edit);
-  s.clearDraft();
+  s.reset();
   assert.deepEqual(s.get(), b);
   assert.equal(storage.getItem('styleguide:draft'), null);
 });
@@ -71,6 +61,13 @@ test('quota exceeded is reported, the file stays in the session', async () => {
   assert.ok(s.files.has('photos/big.jpg'));
 });
 
+test('drafts include undo history, so its files are kept', () => {
+  const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
+  s.update(edit);
+  s.reset();
+  assert.ok(s.drafts().some((d) => isDeepStrictEqual(d, edit(a))));
+});
+
 test('persisted files come back on a new store', async () => {
   const fileStore = memFiles();
   const s = createStore({ doc: a, storage: mem(), fileStore });
@@ -78,25 +75,6 @@ test('persisted files come back on a new store', async () => {
   const t = createStore({ doc: a, storage: mem(), fileStore });
   await t.ready;
   assert.ok(t.files.has('logos/x.svg'));
-});
-
-test('clearDraft keeps the cleared draft as previous, so it can be undone', () => {
-  const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
-  s.update(edit);
-  s.flush();
-  s.clearDraft();
-  assert.deepEqual(s.get(), a);
-  assert.equal(s.restorePrevious(), true);
-  assert.deepEqual(s.get(), edit(a));
-});
-
-test('restorePrevious swaps, so restoring twice gets back to where you were', () => {
-  const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
-  s.load(b);
-  s.restorePrevious();
-  assert.deepEqual(s.get(), a);
-  s.restorePrevious();
-  assert.deepEqual(s.get(), b);
 });
 
 test('prune deletes files no draft refers to', async () => {
@@ -129,19 +107,18 @@ test('undo and redo step through edits; a new edit drops the redo steps', () => 
   assert.equal(s.canRedo(), false);
 });
 
-test('loading and clearing can be undone; a load that skips history cannot', () => {
+test('loading and resetting can be undone', () => {
   const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
   s.load(b);
-  s.clearDraft();
+  s.reset();
   assert.deepEqual(s.get(), b);
   s.update(edit);
-  s.clearDraft();
+  s.reset();
   s.undo();
   assert.deepEqual(s.get(), edit(b));
-  s.load(a, undefined, { record: false });
+  s.load(a);
   s.undo();
-  assert.notDeepEqual(s.get(), a);
-  assert.deepEqual(s.get(), b);
+  assert.deepEqual(s.get(), edit(b));
 });
 
 test('undo history is capped', () => {
