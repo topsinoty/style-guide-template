@@ -56,16 +56,8 @@
 	cursor: pointer;
 	transition: background-color var(--duration-fast);
 
-	span {
-		@include visually-hidden;
-	}
-
 	@include hover {
 		background: var(--color-secondary-background-hover);
-	}
-
-	&[aria-pressed='true'] {
-		background: var(--color-secondary-background-active);
 	}
 
 	&[aria-disabled='true'] {
@@ -73,15 +65,40 @@
 		cursor: default;
 		background: transparent;
 	}
+}
+
+.cd-action-label {
+	@include visually-hidden;
 
 	@include MQ(L) {
-		span {
-			position: static;
-			width: auto;
-			height: auto;
-			overflow: visible;
-			clip-path: none;
-		}
+		position: static;
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip-path: none;
+	}
+}
+
+.cd-switch {
+	display: inline-flex;
+	width: 2rem;
+	padding: var(--hairline);
+	border: var(--hairline) solid currentcolor;
+	border-radius: var(--radius-sm);
+}
+
+.cd-switch-thumb {
+	width: 0.75rem;
+	height: 0.75rem;
+	border-radius: var(--radius-sm);
+	background: currentcolor;
+
+	@media (prefers-reduced-motion: no-preference) {
+		transition: transform var(--duration-fast);
+	}
+
+	&[data-state='checked'] {
+		transform: translateX(calc(2rem - 0.75rem - 4 * var(--hairline)));
 	}
 }
 

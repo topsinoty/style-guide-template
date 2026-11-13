@@ -6,7 +6,6 @@ defineProps<{
   icon: IconName;
   label: string;
   title: string;
-  pressed?: boolean;
   busy?: boolean;
 }>();
 defineEmits<{ click: [] }>();
@@ -18,11 +17,10 @@ defineEmits<{ click: [] }>();
     type="button"
     class="cd-action"
     :title="title"
-    :aria-pressed="pressed"
     :aria-busy="busy ? 'true' : undefined"
     :disabled="busy || undefined"
     @click="$emit('click')"
   >
-    <Icon :name="icon" /><span>{{ label }}</span>
+    <Icon :name="icon" /><span class="cd-action-label">{{ label }}</span>
   </button>
 </template>

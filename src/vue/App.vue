@@ -14,12 +14,21 @@ import {
   watchDebounced,
   whenever,
 } from '@vueuse/core';
-import { DialogClose, DialogContent, DialogRoot, DialogTitle, DialogTrigger } from 'reka-ui';
+import {
+  DialogClose,
+  DialogContent,
+  DialogRoot,
+  DialogTitle,
+  DialogTrigger,
+  SwitchRoot,
+  SwitchThumb,
+} from 'reka-ui';
 import type { Session } from '../app/session.js';
 import { download } from './download.js';
 import { errorMessage } from '../lib/io.js';
 import { urlFor } from './urls.js';
 import Action from './Action.vue';
+import Icon from './Icon.vue';
 import Guide from './guide/Guide.vue';
 import Editor from './editor/Editor.vue';
 import { sectionsOf } from './guide/sections.js';
@@ -69,9 +78,12 @@ async function focusBrandName(event: Event) {
   document.getElementById('cd-brand-name')?.focus();
 }
 
-function toggleTheme() {
-  themeChoice.value = theme.value === 'dark' ? 'light' : 'dark';
-}
+const dark = computed({
+  get: () => theme.value === 'dark',
+  set: (on) => {
+    themeChoice.value = on ? 'dark' : 'light';
+  },
+});
 
 const TEXT_ENTRY = 'input, textarea, [contenteditable], [role=listbox]';
 
@@ -168,14 +180,10 @@ function onNavWheel(e: WheelEvent) {
           </ul>
         </nav>
         <div class="cd-actions">
-          <Action
-            id="theme-toggle"
-            icon="moon"
-            label="Dark mode"
-            title="Dark mode"
-            :pressed="theme === 'dark'"
-            @click="toggleTheme"
-          />
+          <SwitchRoot id="theme-toggle" v-model="dark" class="cd-action" title="Dark mode">
+            <Icon name="moon" /><span class="cd-action-label">Dark mode</span>
+            <span class="cd-switch" aria-hidden="true"><SwitchThumb class="cd-switch-thumb" /></span>
+          </SwitchRoot>
           <DialogTrigger as-child>
             <Action id="edit-toggle" icon="edit" label="Edit" title="Edit the brand" />
           </DialogTrigger>
