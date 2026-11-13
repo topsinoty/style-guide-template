@@ -13,8 +13,10 @@ import Shadow from './Shadow.vue';
 import Assets from './Assets.vue';
 
 const props = defineProps<{ session: Session; tokens: Tokens; theme: string }>();
-const emit = defineEmits<{ load: []; save: []; export: [] }>();
-const ctx = computed(() => editorContext(props.session, props.theme, props.tokens));
+const emit = defineEmits<{ theme: [theme: string] }>();
+const ctx = computed(() =>
+  editorContext(props.session, props.theme, props.tokens, (theme) => emit('theme', theme)),
+);
 const areas = [
   { name: 'Brand', component: Brand },
   { name: 'Palette', component: Palette },
@@ -33,14 +35,7 @@ const areas = [
         <AccordionTrigger class="cd-drawer-trigger">{{ area.name }}</AccordionTrigger>
       </AccordionHeader>
       <AccordionContent>
-        <Brand
-          v-if="area.name === 'Brand'"
-          :ctx="ctx"
-          @load="emit('load')"
-          @save="emit('save')"
-          @export="emit('export')"
-        />
-        <component :is="area.component" v-else :ctx="ctx" />
+        <component :is="area.component" :ctx="ctx" />
       </AccordionContent>
     </AccordionItem>
   </AccordionRoot>

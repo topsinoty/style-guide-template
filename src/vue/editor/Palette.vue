@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { parseCssColor, toHex } from '../../lib/color.js';
+import { PopoverContent, PopoverRoot, PopoverTrigger } from 'reka-ui';
+import { parseCssColor } from '../../lib/color.js';
 import { ROLES } from '../../lib/contrast.js';
 import {
   addColor,
@@ -11,10 +12,7 @@ import {
   referencesTo,
   removeColor,
   removeShade,
-  setShade,
-  type PaletteColor,
 } from '../../lib/palette.js';
-import type { DtcgColor } from '../../lib/types.js';
 import ColorInput, { COLOR_ERROR } from '../ColorInput.vue';
 import Confirm, { type ConfirmChoice } from '../Confirm.vue';
 import { cap } from '../guide/parts.js';
@@ -34,12 +32,9 @@ interface Question {
 const props = defineProps<{ ctx: EditorContext }>();
 
 const colors = computed(() => paletteColors(props.ctx.doc, props.ctx.vendor));
-const baseHex = (color: PaletteColor) => {
-  const base = color.shades.find((shade) => shade.isBase)?.color;
-  return base ? toHex(base) : '';
-};
 
 const question = ref<Question>();
+const addingTo = ref<Record<string, boolean>>({});
 const asking = ref(false);
 
 function ask(next: Question) {
@@ -93,11 +88,6 @@ function generate(id: string) {
   });
 }
 
-function setBaseColor(color: PaletteColor, value: DtcgColor) {
-  const base = color.shades.find((shade) => shade.isBase);
-  if (base) props.ctx.edit((doc) => setShade(doc, color.id, base.name, value, props.ctx.vendor));
-}
-
 const newName = ref('');
 const newColor = ref('');
 const nameError = ref<string>();
@@ -123,12 +113,8 @@ function addNewColor() {
 
 <template>
   <section v-for="color in colors" :key="color.id" class="cd-hue" :aria-label="`${cap(color.id)} color`">
-    <div class="cd-field-row">
-      <ColorInput
-        :label="`${cap(color.id)} base color`"
-        :model-value="baseHex(color)"
-        @commit="setBaseColor(color, $event)"
-      />
+    <div class="cd-hue-header">
+      <h4>{{ cap(color.id) }}</h4>
       <IconButton name="trash" :label="`Remove ${color.id}`" @click="removeWholeColor(color.id)" />
     </div>
     <ol class="cd-mini-scale" :aria-label="`${color.id} shades`">
@@ -143,14 +129,25 @@ function addNewColor() {
     </ol>
     <p class="cd-hint">
       {{ color.shades.length }} {{ color.shades.length === 1 ? 'shade' : 'shades' }}. Select a shade to edit
-      it; a dot marks shades set by hand.
+      it; the outlined one is the base and a dot marks shades set by hand.
     </p>
     <div class="cd-field-row">
       <button type="button" class="btn btn-secondary btn-small" @click="generate(color.id)">
         {{ color.shades.length === 1 ? 'Generate shades 50 to 950' : 'Regenerate shades' }}
       </button>
+      <PopoverRoot v-model:open="addingTo[color.id]">
+        <PopoverTrigger class="btn btn-secondary btn-small">Add shade</PopoverTrigger>
+        <PopoverContent
+          class="cd-popover"
+          side="bottom"
+          align="start"
+          :side-offset="6"
+          :collision-padding="8"
+        >
+          <AddShadeForm :ctx="ctx" :color="color" @added="addingTo[color.id] = false" />
+        </PopoverContent>
+      </PopoverRoot>
     </div>
-    <AddShadeForm :ctx="ctx" :color="color" />
   </section>
   <p v-if="!colors.length" class="cd-hint">
     No palette colors yet. Add one here; role colors can still reference independent values.

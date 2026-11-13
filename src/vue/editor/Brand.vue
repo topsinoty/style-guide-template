@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { errorMessage } from '../../lib/io.js';
-import type { EditorContext } from './context.js';
 import Choice from './Choice.vue';
+import type { EditorContext } from './context.js';
 import TextField from './TextField.vue';
 
 const { ctx } = defineProps<{ ctx: EditorContext }>();
-defineEmits<{ load: []; save: []; export: [] }>();
 
-async function replace(path: string) {
+const presets = ctx.session.manifest.brands.map((brand) => ({ value: brand.path, label: brand.name }));
+
+async function startOver(path: string) {
   try {
     ctx.session.store.load(await ctx.session.loadPreset(path));
   } catch (e) {
@@ -19,35 +20,17 @@ async function replace(path: string) {
 <template>
   <TextField
     label="Name"
+    input-id="cd-brand-name"
     :value="ctx.doc.name"
     @commit="(value) => value && ctx.edit((doc) => ({ ...doc, name: value }))"
   />
-  <div class="cd-field-row">
-    <button type="button" class="btn btn-secondary btn-small" @click="$emit('load')">Load file</button>
-    <button type="button" class="btn btn-secondary btn-small" @click="$emit('save')">Save JSON</button>
-    <button type="button" class="btn btn-secondary btn-small" @click="$emit('export')">Export ZIP</button>
-  </div>
-  <Choice
-    label="Replace with a preset"
-    :options="ctx.session.manifest.brands.map((b) => ({ value: b.path, label: b.name }))"
-    value=""
-    @update:value="replace"
-  />
-  <div class="cd-field-row">
-    <button type="button" class="btn btn-secondary btn-small" @click="ctx.session.store.clearDraft()">
-      Clear local draft
-    </button>
-    <button
-      v-if="ctx.session.store.hasPrevious()"
-      type="button"
-      class="btn btn-secondary btn-small"
-      @click="ctx.session.store.restorePrevious()"
-    >
-      Restore previous draft
+  <Choice label="Start over from" :options="presets" value="" @update:value="startOver" />
+  <div v-if="ctx.session.store.hasPrevious()" class="cd-field-row">
+    <button type="button" class="btn btn-secondary btn-small" @click="ctx.session.store.restorePrevious()">
+      Restore what you had
     </button>
   </div>
   <p class="cd-hint">
-    Clearing or replacing keeps your previous draft, so it can be restored. Undo (Ctrl+Z) steps back through
-    every edit.
+    Starting over keeps what you had, so you can restore it. Undo (Ctrl+Z) also steps back.
   </p>
 </template>

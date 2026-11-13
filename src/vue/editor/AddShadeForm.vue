@@ -6,6 +6,7 @@ import ColorInput, { COLOR_ERROR } from '../ColorInput.vue';
 import type { EditorContext } from './context.js';
 
 const props = defineProps<{ ctx: EditorContext; color: PaletteColor }>();
+const emit = defineEmits<{ added: [] }>();
 
 const name = ref('');
 const value = ref('');
@@ -25,6 +26,7 @@ function add() {
   props.ctx.edit((doc) => addShade(doc, props.color.id, id, color, props.ctx.vendor));
   name.value = '';
   value.value = '';
+  emit('added');
 }
 </script>
 

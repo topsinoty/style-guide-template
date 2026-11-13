@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 import { ROLES } from '../../lib/contrast.js';
 import { toHex } from '../../lib/color.js';
 import * as E from '../../lib/edit.js';
+import { contexts } from '../../lib/resolver.js';
 import { paletteColors } from '../../lib/palette.js';
 import { narrow, isColor } from '../../lib/values.js';
 import { COLOR_ERROR } from '../ColorInput.vue';
@@ -34,6 +36,16 @@ const roleFields = computed(() =>
   })).filter((group) => group.tokens.length),
 );
 
+const themes = computed(() =>
+  contexts(props.ctx.doc)
+    .filter((c) => c.modifier === 'theme')
+    .map((c) => c.context),
+);
+
+function chooseTheme(theme: unknown) {
+  if (typeof theme === 'string') props.ctx.setTheme(theme);
+}
+
 function setRole(path: string, text: string) {
   const value = roleEntry(text, shades.value);
   if (!value) return props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
@@ -42,17 +54,24 @@ function setRole(path: string, text: string) {
 </script>
 
 <template>
-  <p class="cd-hint">Editing the {{ ctx.theme }} theme. Switch the theme in the header to edit the other.</p>
-  <div v-for="group in roleFields" :key="group.role">
-    <div v-for="{ path, label, text, hex } in group.tokens" :key="path" class="cd-field">
-      <span>{{ label }}</span>
-      <RoleColorCombobox
-        :label="label"
-        :text="text"
-        :hex="hex"
-        :options="shades"
-        @commit="setRole(path, $event)"
-      />
-    </div>
-  </div>
+  <TabsRoot :model-value="ctx.theme" @update:model-value="chooseTheme">
+    <TabsList class="cd-tabs" aria-label="Theme to edit">
+      <TabsTrigger v-for="theme in themes" :key="theme" :value="theme">{{ cap(theme) }}</TabsTrigger>
+    </TabsList>
+    <TabsContent v-for="theme in themes" :key="theme" :value="theme">
+      <p class="cd-hint">These roles apply to the {{ theme }} theme. The page preview follows this tab.</p>
+      <div v-for="group in roleFields" :key="group.role">
+        <div v-for="{ path, label, text, hex } in group.tokens" :key="path" class="cd-field">
+          <span>{{ label }}</span>
+          <RoleColorCombobox
+            :label="label"
+            :text="text"
+            :hex="hex"
+            :options="shades"
+            @commit="setRole(path, $event)"
+          />
+        </div>
+      </div>
+    </TabsContent>
+  </TabsRoot>
 </template>
