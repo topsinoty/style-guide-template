@@ -112,9 +112,9 @@ function setFont(name: string, family: string) {
         <span>Weight: {{ draftWeights[style.name] ?? style.fontWeight ?? 400 }}</span>
         <input
           type="range"
-          min="1"
-          max="1000"
-          step="1"
+          min="100"
+          max="900"
+          step="100"
           :value="draftWeights[style.name] ?? style.fontWeight ?? 400"
           @input="updateWeight(style.name, $event)"
           @change="commitWeight(style.name, $event)"
