@@ -1,5 +1,18 @@
 import * as z from 'zod/mini';
-import type { Problem, TokenNode } from './types.js';
+import type {
+  AssetGroup,
+  AssetItem,
+  BrandMeta,
+  DtcgColor,
+  FontDetail,
+  FontFile,
+  FontListing,
+  FontStyle,
+  Manifest,
+  Problem,
+  ResolverDoc,
+  TokenNode,
+} from './types.js';
 import { entriesOf, keysOf, valuesOf } from './records.js';
 import { child, deepMerge, isNode } from './tree.js';
 
@@ -65,7 +78,7 @@ const dimension = (units: readonly [string, ...string[]]) =>
 const size = dimension(['px', 'rem']);
 const duration = dimension(['ms', 's']);
 const component = z.union([z.number(), z.literal('none')]);
-export const color = z.object({
+export const color: z.ZodMiniType<DtcgColor> = z.object({
   colorSpace: z.enum(COLOR_SPACES, {
     error: (iss) => `colorSpace "${String(iss.input)}" is not a DTCG color space`,
   }),
@@ -180,7 +193,7 @@ const tokenTree = z
   );
 const sources = z.array(tokenTree, { error: 'must be an array of token objects' });
 
-export const resolverDoc = z.object({
+export const resolverDoc: z.ZodMiniType<ResolverDoc> = z.object({
   $schema: z.optional(z.string()),
   version: z.literal('2025.10', { error: 'version must be "2025.10"' }),
   name: z.optional(z.string()),
@@ -197,8 +210,6 @@ export const resolverDoc = z.object({
   ),
   resolutionOrder: z.array(z.object({ $ref: z.string() }), { error: 'resolutionOrder must be an array' }),
 });
-
-export type ResolverDoc = z.infer<typeof resolverDoc>;
 
 const mergeSources = (list: TokenNode[]) => list.reduce((acc, s) => deepMerge(acc, s), {});
 
@@ -236,7 +247,7 @@ export function validateResolver(input: unknown): { ok: boolean; errors: Problem
 export const isResolver = (json: unknown): json is ResolverDoc =>
   isNode(json) && Array.isArray(json.resolutionOrder);
 
-export function toResolver(json: TokenNode, name: string): ResolverDoc {
+export function toResolver(json: TokenNode | ResolverDoc, name: string): ResolverDoc {
   if (isResolver(json)) return json;
   return {
     $schema: RESOLVER_SCHEMA,
@@ -254,22 +265,22 @@ export const isSafeSrc = (src: unknown): src is string =>
   !/^[a-z][a-z0-9+.-]*:|^\/|\\/i.test(src) &&
   !src.split('/').includes('..');
 
-export const fontStyle = z.enum(['normal', 'italic', 'oblique'], {
+export const fontStyle: z.ZodMiniType<FontStyle> = z.enum(['normal', 'italic', 'oblique'], {
   error: 'style must be normal, italic or oblique',
 });
-export type FontStyle = z.infer<typeof fontStyle>;
 export const isFontStyle = (s: string): s is FontStyle => z.safeParse(fontStyle, s).success;
 
 const src = z.custom<string>(isSafeSrc, {
   error: (iss) => `src "${String(iss.input)}" must be a relative path`,
 });
-const assetItem = z.looseObject({
+const assetItemShape = {
   src,
   label: z.optional(z.string()),
   description: z.optional(z.string()),
   provider: z.optional(z.string()),
-});
-const assetGroup = z.looseObject({
+};
+const assetItem: z.ZodMiniType<AssetItem> = z.looseObject(assetItemShape);
+const assetGroup: z.ZodMiniType<AssetGroup> = z.looseObject({
   id: z.string().check(
     z.regex(/^[a-z0-9][a-z0-9-]*$/, {
       error: (iss) => `group id "${String(iss.input)}" must use a-z, 0-9 and -`,
@@ -278,9 +289,9 @@ const assetGroup = z.looseObject({
   label: z.optional(z.string()),
   items: z.array(assetItem, { error: 'group needs an items array' }),
 });
-const fontFile = z
+const fontFile: z.ZodMiniType<FontFile> = z
   .looseObject({
-    ...assetItem.shape,
+    ...assetItemShape,
     family: z.string({ error: 'font file needs a family' }).check(z.minLength(1, 'font file needs a family')),
     weight: z._default(
       z.number().check(z.gte(1, 'weight must be 1..1000'), z.lte(1000, 'weight must be 1..1000')),
@@ -301,30 +312,24 @@ const fontFile = z
     ),
   );
 
-export const brandMeta = z.looseObject({
+export const brandMeta: z.ZodMiniType<BrandMeta> = z.looseObject({
   assetGroups: z._default(z.array(assetGroup), []),
   fontFiles: z._default(z.array(fontFile), []),
 });
-
-export type AssetItem = z.infer<typeof assetItem>;
-export type AssetGroup = z.infer<typeof assetGroup>;
-export type FontFile = z.infer<typeof fontFile>;
-export type BrandMeta = z.infer<typeof brandMeta>;
 
 export function validateBrandMeta(meta: unknown, path = 'brand'): Problem[] {
   const result = z.safeParse(brandMeta, meta);
   return result.success ? [] : problems(result.error, path);
 }
 
-export const manifest = z.object({
+export const manifest: z.ZodMiniType<Manifest> = z.object({
   files: z.array(z.string()),
   brands: z
     .array(z.object({ name: z.string(), path: z.string() }))
     .check(z.minLength(1, 'the manifest lists no brands')),
 });
-export type Manifest = z.infer<typeof manifest>;
 
-export const fontListing = z.object({
+const listingShape = {
   id: z.string(),
   family: z.string(),
   category: z.string(),
@@ -332,15 +337,15 @@ export const fontListing = z.object({
   styles: z.array(z.string()),
   defSubset: z.string(),
   license: z.string(),
-});
-export type FontListing = z.infer<typeof fontListing>;
+};
+
+export const fontListing: z.ZodMiniType<FontListing> = z.object(listingShape);
 
 const variant = z.object({ url: z.optional(z.object({ woff2: z.optional(z.string()) })) });
-export const fontDetail = z.object({
-  ...fontListing.shape,
+export const fontDetail: z.ZodMiniType<FontDetail> = z.object({
+  ...listingShape,
   subsets: z.array(z.string()),
   npmVersion: z.string(),
   unicodeRange: z.optional(z.record(z.string(), z.string())),
   variants: z.optional(z.record(z.string(), z.record(z.string(), z.record(z.string(), variant)))),
 });
-export type FontDetail = z.infer<typeof fontDetail>;
