@@ -390,8 +390,9 @@
 
 	input[type='color'] {
 		flex: none;
+		align-self: stretch;
 		width: var(--control-h);
-		height: var(--control-h);
+		height: auto;
 		padding: 0.125rem;
 		border: var(--hairline) solid var(--color-input-border);
 		border-radius: var(--radius-sm);
@@ -590,8 +591,9 @@
 
 .cd-role-color .cd-role-swatch {
 	flex: none;
+	align-self: stretch;
 	width: var(--control-h);
-	height: var(--control-h);
+	height: auto;
 	padding: 0.125rem;
 	border: var(--hairline) solid var(--color-input-border);
 	border-radius: var(--radius-sm);

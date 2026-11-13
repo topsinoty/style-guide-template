@@ -64,6 +64,7 @@ function choose(value: unknown) {
     <ComboboxAnchor class="cd-combobox-anchor">
       <ComboboxInput
         v-model="search"
+        type="text"
         class="cd-combobox-input"
         :display-value="() => text"
         :aria-label="label"
