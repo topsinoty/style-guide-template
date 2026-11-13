@@ -521,9 +521,11 @@
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: var(--spacing-sm);
+	margin-bottom: var(--spacing-sm);
 
 	> .cd-field {
 		flex: 1 1 8rem;
+		margin-bottom: 0;
 	}
 }
 
