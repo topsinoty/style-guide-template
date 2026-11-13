@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 import * as E from '../../lib/edit.js';
 import { child, children } from '../../lib/tree.js';
 import { VALUES } from '../../lib/schema.js';
@@ -13,6 +13,7 @@ import NumberField from './NumberField.vue';
 import UploadButton from './UploadButton.vue';
 
 const props = defineProps<{ ctx: EditorContext }>();
+const draftWeights = reactive<Record<string, number | undefined>>({});
 const generic = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'system-ui']);
 
 const familiesOf = (value: unknown) => [valueAs(VALUES.fontFamily, value) ?? []].flat();
@@ -64,6 +65,16 @@ function put(name: string, patch: Record<string, unknown>) {
   props.ctx.patchValue(`typography.${name}`, patch);
 }
 
+function updateWeight(name: string, event: Event) {
+  if (event.currentTarget instanceof HTMLInputElement) draftWeights[name] = Number(event.currentTarget.value);
+}
+
+function commitWeight(name: string, event: Event) {
+  if (!(event.currentTarget instanceof HTMLInputElement)) return;
+  props.ctx.patchValue(`typography.${name}`, { fontWeight: Number(event.currentTarget.value) });
+  draftWeights[name] = undefined;
+}
+
 function setFont(name: string, family: string) {
   const last = familiesOf(child(child(props.ctx.tree, 'font'), name)?.$value).at(-1);
   const fallback = last && generic.has(last) ? last : 'sans-serif';
@@ -97,13 +108,18 @@ function setFont(name: string, family: string) {
       />
     </div>
     <div class="cd-field-row">
-      <NumberField
-        label="Weight"
-        :value="style.fontWeight"
-        :min="1"
-        :max="1000"
-        @commit="(value) => value >= 1 && value <= 1000 && put(style.name, { fontWeight: value })"
-      />
+      <label class="cd-field cd-range-field">
+        <span>Weight: {{ draftWeights[style.name] ?? style.fontWeight ?? 400 }}</span>
+        <input
+          type="range"
+          min="1"
+          max="1000"
+          step="1"
+          :value="draftWeights[style.name] ?? style.fontWeight ?? 400"
+          @input="updateWeight(style.name, $event)"
+          @change="commitWeight(style.name, $event)"
+        />
+      </label>
       <NumberField
         label="Line height"
         :value="style.lineHeight"

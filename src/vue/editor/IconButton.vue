@@ -6,7 +6,7 @@ defineEmits<{ click: [] }>();
 </script>
 
 <template>
-  <button type="button" class="cd-action" :title="label" @click="$emit('click')">
-    <Icon :name="name" /><span>{{ label }}</span>
+  <button type="button" class="cd-action" :aria-label="label" :title="label" @click="$emit('click')">
+    <Icon :name="name" />
   </button>
 </template>

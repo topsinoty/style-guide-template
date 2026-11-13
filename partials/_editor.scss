@@ -139,6 +139,45 @@
 	}
 }
 
+.cd-contrast-button {
+	position: fixed;
+	bottom: var(--spacing-lg);
+	left: var(--spacing-lg);
+	z-index: 20;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+	min-height: 2.75rem;
+	padding: 0 var(--spacing-md);
+	border: none;
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-md);
+	font: inherit;
+	font-size: var(--font-size-sm);
+	font-weight: 700;
+	cursor: pointer;
+
+	&.is-pass {
+		background: var(--color-success-background);
+		color: var(--color-success-foreground);
+	}
+
+	&.is-warn {
+		background: var(--color-warning-background);
+		color: var(--color-warning-foreground);
+	}
+
+	&:focus-visible {
+		outline: 0.125rem solid var(--color-focus-border);
+		outline-offset: 0.125rem;
+	}
+}
+
+.cd-popover.cd-contrast-popover {
+	width: min(36rem, var(--reka-popover-content-available-width, 36rem));
+	max-height: min(28rem, var(--reka-popover-content-available-height, 28rem));
+}
+
 .cd-drop-zone {
 	margin-top: var(--spacing-md);
 	padding: var(--spacing-lg);
@@ -162,7 +201,7 @@
 	justify-content: center;
 	padding: var(--spacing-xl);
 	background: color-mix(in oklch, var(--color-page-background) 85%, transparent);
-	font-family: var(--font-heading);
+	font-family: var(--font-body);
 	font-size: var(--font-size-xl);
 	text-align: center;
 	pointer-events: none;
@@ -183,11 +222,34 @@
 	flex-direction: column;
 	background: var(--color-card-background);
 	color: var(--color-card-foreground);
+	font-family: var(--font-body);
 	box-shadow: var(--shadow-lg);
 
 	@include MQ(S) {
 		width: 30rem;
 		border-left: var(--hairline) solid var(--color-card-border);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		&[data-state='open'] {
+			animation: cd-drawer-in var(--duration-normal) ease-out;
+		}
+
+		&[data-state='closed'] {
+			animation: cd-drawer-out var(--duration-fast) ease-in;
+		}
+	}
+}
+
+@keyframes cd-drawer-in {
+	from {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes cd-drawer-out {
+	to {
+		transform: translateX(100%);
 	}
 }
 
@@ -487,13 +549,16 @@
 		display: flex;
 		align-items: center;
 		gap: var(--spacing-xs);
+		min-width: 0;
 		font-size: var(--font-size-sm);
 		overflow-wrap: anywhere;
 
 		> div,
 		> span {
-			flex: 1;
+			flex: 1 1 auto;
 			min-width: 0;
+			white-space: normal;
+			overflow-wrap: anywhere;
 		}
 	}
 }
@@ -508,6 +573,88 @@
 		display: block;
 		width: 100%;
 	}
+}
+
+.cd-role-color {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-xs);
+
+	input {
+		flex: 1;
+		min-width: 0;
+	}
+}
+
+.cd-role-swatch {
+	flex: none;
+	width: var(--control-h);
+	height: var(--control-h);
+	border: var(--hairline) solid var(--color-input-border);
+	border-radius: var(--radius-sm);
+}
+
+.cd-combobox-trigger {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: var(--control-h);
+	height: var(--control-h);
+	padding: 0;
+	border: var(--hairline) solid var(--color-input-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-input-background);
+	color: var(--color-input-foreground);
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: 0.125rem solid var(--color-focus-border);
+		outline-offset: 0;
+	}
+}
+
+.cd-combobox-input {
+	width: 100%;
+	min-width: 0;
+}
+
+.cd-combobox-popup {
+	z-index: 35;
+	width: min(var(--reka-combobox-trigger-width), var(--reka-combobox-content-available-width, 24rem));
+	max-height: min(16rem, var(--reka-combobox-content-available-height, 16rem));
+	overflow-y: auto;
+	padding: var(--spacing-xs);
+	border: var(--hairline) solid var(--color-card-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-card-background);
+	box-shadow: var(--shadow-md);
+}
+
+.cd-combobox-empty {
+	display: block;
+	padding: var(--spacing-sm);
+	color: var(--color-muted-foreground);
+	font-size: var(--font-size-xs);
+}
+
+.cd-combobox-option-swatch {
+	width: 1rem;
+	height: 1rem;
+}
+
+.cd-new-color {
+	> .cd-field:first-child {
+		flex: 1 1 8rem;
+	}
+
+	> .cd-field:nth-child(2) {
+		flex: 2 1 12rem;
+	}
+}
+
+.cd-range-field input[type='range'] {
+	width: 100%;
+	accent-color: var(--color-primary-background, var(--color-focus-border));
 }
 
 .cd-listbox-trigger {
@@ -663,14 +810,13 @@
 .cd-code {
 	max-height: 30rem;
 	overflow: auto;
+	padding: var(--spacing-lg);
 	border-radius: var(--radius-sm);
+	background: var(--color-muted-background);
+	color: var(--color-page-foreground);
 
 	pre {
 		margin: 0;
-		padding: var(--spacing-lg);
-		border-radius: var(--radius-sm);
-		background: var(--color-muted-background);
-		color: var(--color-page-foreground);
 		font-size: var(--font-size-xs);
 		line-height: 1.6;
 	}

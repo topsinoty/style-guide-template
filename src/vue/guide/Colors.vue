@@ -7,6 +7,7 @@ import { cssName } from '../../lib/css.js';
 import type { DtcgColor, ResolvedToken, Tokens } from '../../lib/types.js';
 import { byShadeOrder } from '../../lib/palette.js';
 import { isNode } from '../../lib/tree.js';
+import { palettePath } from './color-path.js';
 import { VALUES } from '../../lib/schema.js';
 import { valueAs } from '../../lib/values.js';
 import CopyButton from './CopyButton.vue';
@@ -28,9 +29,9 @@ interface Row {
 const props = defineProps<{ tokens: Tokens; vendor: string }>();
 
 function shade(path: string, token: ResolvedToken): Shade | null {
-  const [, group, step] = path.split('.');
+  const palette = palettePath(path);
   const color = valueAs(VALUES.color, token.resolved);
-  if (!color) return null;
+  if (!palette || !color) return null;
   const extension = token.extensions?.[props.vendor];
   const own = isNode(extension) ? extension : {};
   const printedCmyk = Array.isArray(own.cmyk) ? own.cmyk : null;
@@ -41,7 +42,8 @@ function shade(path: string, token: ResolvedToken): Shade | null {
   }));
   copies.push({ text: cmykText, shown: printedCmyk ? cmykText : `${cmykText} (approx.)` });
   if (typeof own.pantone === 'string') copies.push({ text: own.pantone, shown: own.pantone });
-  return { path, group, step, name: `${group}-${step}`, hex: toHex(color), copies };
+  const name = palette.step ? `${palette.group}-${palette.step}` : palette.group;
+  return { path, ...palette, name, hex: toHex(color), copies };
 }
 
 function sourceOf(value: unknown, color: DtcgColor): string {
@@ -58,9 +60,9 @@ function row(path: string, token: ResolvedToken): Row | null {
 type Kind = 'palette' | 'role' | 'other';
 
 function kindOf(path: string): Kind {
-  const [, group, step, ...deeper] = path.split('.');
+  const group = path.split('.')[1];
   if (ROLES.includes(group)) return 'role';
-  return step && !deeper.length ? 'palette' : 'other';
+  return palettePath(path) ? 'palette' : 'other';
 }
 
 const color = computed(() => {
@@ -86,6 +88,9 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
 </script>
 
 <template>
+  <p v-if="!color.hues.length" class="cd-hint">
+    No palette colors are defined yet. Colors used by roles or other tokens appear below.
+  </p>
   <template v-for="[hue, shades] in color.hues" :key="hue">
     <h3 :id="`hue-${hue}`">{{ hue }}</h3>
     <RovingFocusGroup as="ul" class="cd-scale" :aria-labelledby="`hue-${hue}`">

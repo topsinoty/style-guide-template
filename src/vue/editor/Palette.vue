@@ -152,7 +152,10 @@ function addNewColor() {
     </div>
     <AddShadeForm :ctx="ctx" :color="color" />
   </section>
-  <form class="cd-field-row" @submit.prevent="addNewColor">
+  <p v-if="!colors.length" class="cd-hint">
+    No palette colors yet. Add one here; role colors can still reference independent values.
+  </p>
+  <form class="cd-field-row cd-new-color" @submit.prevent="addNewColor">
     <label class="cd-field"
       ><span>New color name</span>
       <input

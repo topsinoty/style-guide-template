@@ -1,4 +1,4 @@
-import { anchoredScale } from './color.js';
+import { anchoredScale, oklch, toOklch } from './color.js';
 import { ROLES } from './contrast.js';
 import { foundation } from './edit.js';
 import { child, children, ensureChild, isHandSet, isNode, vendorData, withVendorData } from './tree.js';
@@ -161,11 +161,27 @@ export function addColor(doc: ResolverDoc, id: string, color: DtcgColor, vendor:
   return out;
 }
 
+function blackOrWhite(value: unknown): unknown {
+  const color = valueAs(VALUES.color, value);
+  if (!color) return value;
+  const [lightness, , , alpha] = toOklch(color);
+  return oklch(lightness >= 0.5 ? 1 : 0, 0, 0, alpha);
+}
+
+function monochromeRoles(doc: ResolverDoc) {
+  for (const [, tree] of treesOf(doc))
+    walkValues(tree, '', (token, path) => {
+      if (ROLES.includes(path.split('.')[1])) token.$value = blackOrWhite(token.$value);
+    });
+}
+
 export function removeColor(doc: ResolverDoc, id: string): ResolverDoc {
   const out = clone(doc);
   const colors = colorsOf(out);
   for (const [name, token] of children(child(colors, id))) repoint(out, id, name, token.$value);
-  foundation(out).color = without(colors, id);
+  const remaining = without(colors, id);
+  foundation(out).color = remaining;
+  if (!children(remaining).some(([key, group]) => isPaletteGroup(key, group))) monochromeRoles(out);
   return out;
 }
 

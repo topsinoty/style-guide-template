@@ -23,11 +23,11 @@ import Action from './Action.vue';
 import Guide from './guide/Guide.vue';
 import Editor from './editor/Editor.vue';
 import { sectionsOf } from './guide/sections.js';
-import { useSession } from './useSession.js';
+import { provideSession } from './useSession.js';
 import { deriveView } from './view.js';
 
 const props = defineProps<{ session: Session }>();
-const session = useSession(props.session);
+const session = provideSession(props.session);
 
 const { state: theme, store: themeChoice } = useColorMode({
   attribute: 'data-theme',

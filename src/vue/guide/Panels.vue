@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, shallowReactive, useTemplateRef } from 'vue';
 import { useDropZone, useFileDialog } from '@vueuse/core';
-import type { Session } from '../../app/session.js';
-import type { ContrastResult } from '../../lib/types.js';
+import { injectSession } from '../useSession.js';
 import Icon from '../Icon.vue';
 import Listbox from '../Listbox.vue';
 
-const props = defineProps<{ session: Session; contrast: ContrastResult[]; missing: string[] }>();
+defineProps<{ missing: string[] }>();
+const session = injectSession();
 const newGroup = '__new';
 const pendingTarget = ref<string | null>(null);
 const targets = shallowReactive(new WeakMap<File, string>());
 const dropZone = useTemplateRef('dropZone');
 const { isOverDropZone } = useDropZone(dropZone, (files) => {
-  if (files) void props.session.fillMissing(files);
+  if (files) void session.value.fillMissing(files);
 });
 const options = computed(() => [
-  ...props.session.meta.assetGroups.map((g) => ({ value: g.id, label: g.label ?? g.id })),
+  ...session.value.meta.assetGroups.map((g) => ({ value: g.id, label: g.label ?? g.id })),
   { value: newGroup, label: 'New group: Uploads' },
 ]);
 const target = computed({
@@ -23,16 +23,15 @@ const target = computed({
     options.value.find((o) => o.value === pendingTarget.value)?.value ?? options.value[0]?.value ?? newGroup,
   set: (value) => (pendingTarget.value = value),
 });
-const failures = computed(() => props.contrast.filter((r) => !r.pass).length);
 const warnings = computed(() =>
-  props.session.store.saveError
-    ? [...props.session.warnings, 'Your edits could not be saved in this browser. Save JSON to keep them.']
-    : props.session.warnings,
+  session.value.store.saveError
+    ? [...session.value.warnings, 'Your edits could not be saved in this browser. Save JSON to keep them.']
+    : session.value.warnings,
 );
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const targetFor = (file: File, candidates: string[]) => targets.get(file) ?? candidates[0];
 const missingDialog = useFileDialog({ reset: true });
-missingDialog.onChange((files) => files && void props.session.fillMissing([...files]));
+missingDialog.onChange((files) => files && void session.value.fillMissing([...files]));
 </script>
 
 <template>
@@ -96,42 +95,5 @@ missingDialog.onChange((files) => files && void props.session.fillMissing([...fi
         Choose files
       </button>
     </div>
-  </div>
-  <div class="cd-box cd-panel">
-    <h2>Contrast</h2>
-    <span class="cd-status" :class="failures ? 'is-warn' : 'is-pass'"
-      ><Icon :name="failures ? 'alert' : 'check'" />{{
-        failures
-          ? `${plural(failures, 'pair')} below the minimum`
-          : `All ${contrast.length} required pairs pass`
-      }}</span
-    >
-    <details>
-      <summary>Show all pairs</summary>
-      <table class="cd-roles">
-        <thead>
-          <tr>
-            <th>Theme</th>
-            <th>Pair</th>
-            <th>Ratio</th>
-            <th>Minimum</th>
-            <th>Result</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(pair, i) in contrast" :key="i">
-            <td>{{ pair.context }}</td>
-            <td>{{ pair.label }}</td>
-            <td>{{ pair.ratio }}:1</td>
-            <td>{{ pair.min }}:1</td>
-            <td>
-              <span class="cd-status" :class="pair.pass ? 'is-pass' : 'is-warn'"
-                ><Icon :name="pair.pass ? 'check' : 'alert'" />{{ pair.pass ? 'Pass' : 'Warning' }}</span
-              >
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
   </div>
 </template>
