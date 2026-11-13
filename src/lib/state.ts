@@ -94,6 +94,7 @@ export function createStore({
       store.flush();
     },
     reset() {
+      if (current === base) return;
       clearTimeout(timer);
       storage.removeItem(DRAFT);
       record();
