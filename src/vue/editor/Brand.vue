@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Session } from '../../app/session.js';
 import { errorMessage } from '../../lib/io.js';
 import type { EditorContext } from './context.js';
 import Choice from './Choice.vue';
@@ -10,7 +9,7 @@ defineEmits<{ load: []; save: []; export: [] }>();
 
 async function replace(path: string) {
   try {
-    ctx.session.store.load(await Session.fetchPreset(path));
+    ctx.session.store.load(await ctx.session.loadPreset(path));
   } catch (e) {
     ctx.session.warn(`Could not load the preset: ${errorMessage(e)}`);
   }

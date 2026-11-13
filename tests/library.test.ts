@@ -5,7 +5,7 @@ import { V } from './helpers.js';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import * as z from 'zod/mini';
-import { manifest as manifestSchema, resolverDoc, validateResolver } from '../src/lib/schema.js';
+import { manifest as manifestSchema, resolverDoc, validateResolver } from '../src/adapters/zod-validator.js';
 import { resolve } from '../src/lib/resolver.js';
 import { checkContrast, ROLES } from '../src/lib/contrast.js';
 import { brandMeta, missingAssets } from '../src/lib/assets.js';

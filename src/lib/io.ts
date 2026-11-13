@@ -1,11 +1,10 @@
 import { zipSync, unzipSync } from 'fflate';
 import { toResolver } from './document.js';
-import { validateBrandMeta, validateResolver } from './schema.js';
 import { ResolveError, resolve, contexts, defaultInputs } from './resolver.js';
 import { generateCss } from './css.js';
 import { checkContrast } from './contrast.js';
 import { brandMeta, withBrandMeta, resolveAsset } from './assets.js';
-import type { FontProvider } from '../ports.js';
+import type { FontProvider, Validator } from '../ports.js';
 import { extension, fileName, uniquePath } from './path.js';
 import { entriesOf, keysOf } from './records.js';
 import { holds, isNode } from './tree.js';
@@ -44,7 +43,11 @@ export const slug = (name: string) =>
 const baseName = (file: string) =>
   fileName(file).replace(/\.(resolver|tokens)\.json$|\.tokens$|\.json$/i, '');
 
-export function parseBrandJson(text: string, name: string): { doc: ResolverDoc | null; errors: Problem[] } {
+export function parseBrandJson(
+  text: string,
+  name: string,
+  validator: Validator,
+): { doc: ResolverDoc | null; errors: Problem[] } {
   let json: unknown;
   try {
     json = JSON.parse(text);
@@ -53,18 +56,19 @@ export function parseBrandJson(text: string, name: string): { doc: ResolverDoc |
   }
   if (!isNode(json)) return { doc: null, errors: [{ path: '', message: `${name} must hold a JSON object` }] };
   const doc = toResolver(json, baseName(name));
-  return { doc, errors: checkBrand(doc) };
+  return { doc, errors: checkBrand(doc, validator) };
 }
 
-export function checkBrand(doc: ResolverDoc): Problem[] {
-  const { errors } = validateResolver(doc);
-  if (errors.length) return errors;
+export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
+  const checked = validator.parseBrand(doc);
+  if (!checked.ok) return checked.problems;
+  const errors: Problem[] = [];
   if (!doc.sets?.foundation)
     return [{ path: 'sets', message: 'This site needs the brand tokens in a set named "foundation".' }];
   const ext = doc.sets.foundation.$extensions ?? {};
   for (const [key, meta] of entriesOf(ext)) {
     if (holds(meta, 'assetGroups') || holds(meta, 'fontFiles'))
-      errors.push(...validateBrandMeta(meta, `$extensions.${key}`));
+      errors.push(...validator.checkBrandMeta(meta, `$extensions.${key}`));
   }
   if (errors.length) return errors;
   try {
@@ -79,7 +83,10 @@ export function checkBrand(doc: ResolverDoc): Problem[] {
   return errors;
 }
 
-export function loadZip(bytes: Uint8Array): {
+export function loadZip(
+  bytes: Uint8Array,
+  validator: Validator,
+): {
   doc: ResolverDoc | null;
   files: SessionFiles;
   errors: Problem[];
@@ -103,7 +110,7 @@ export function loadZip(bytes: Uint8Array): {
       files: new Map(),
       errors: [{ path: '', message: 'The ZIP has no .resolver.json or .tokens.json at its root' }],
     };
-  const { doc, errors } = parseBrandJson(new TextDecoder().decode(entries[brand]), brand);
+  const { doc, errors } = parseBrandJson(new TextDecoder().decode(entries[brand]), brand, validator);
   const files: SessionFiles = new Map(
     entriesOf(entries).filter(
       ([n]) => n !== brand && n !== 'README.md' && !n.startsWith('css/') && !n.endsWith('/'),
