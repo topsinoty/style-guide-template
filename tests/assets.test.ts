@@ -115,7 +115,7 @@ test('srcs that are not plain relative paths are treated as missing', () => {
 });
 
 test('brand metadata is validated', async () => {
-  const { validateBrandMeta } = await import('../src/lib/schema.js');
+  const { validateBrandMeta } = await import('../src/adapters/zod-validator.js');
   assert.deepEqual(
     validateBrandMeta({
       assetGroups: [{ id: 'logos', label: 'L', items: [{ label: 'a', src: 'logos/a.svg' }] }],

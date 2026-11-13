@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as z from 'zod/mini';
-import { resolverDoc } from '../src/lib/schema.js';
+import { resolverDoc } from '../src/adapters/zod-validator.js';
 import { isNode } from '../src/lib/tree.js';
 import type { ResolverDoc, TokenNode, Tokens } from '../src/lib/types.js';
 

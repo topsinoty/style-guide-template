@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { zodValidator } from '../src/adapters/zod-validator.js';
 import { parseCssColor } from '../src/lib/color.js';
 import { checkBrand } from '../src/lib/io.js';
 import {
@@ -27,7 +28,7 @@ const shadeOf = (doc: ResolverDoc, id: string, name: string) =>
   present(colorOf(doc, id).shades.find((s) => s.name === name));
 const foundationAt = (doc: ResolverDoc, path: string) => nodeAt(doc.sets.foundation.sources[0], path);
 const darkTheme = (doc: ResolverDoc) => present(doc.modifiers?.theme?.contexts.dark[0]);
-const valid = (doc: ResolverDoc) => assert.deepEqual(checkBrand(doc), []);
+const valid = (doc: ResolverDoc) => assert.deepEqual(checkBrand(doc, zodValidator), []);
 
 test('preset palettes keep their numeric scale and 600 as the base', () => {
   const brand = colorOf(preset(), 'brand');

@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { zodValidator } from '../src/adapters/zod-validator.js';
 import { keysOf } from '../src/lib/records.js';
 import { setToken } from '../src/lib/edit.js';
 import { isNode, nodeAt } from '../src/lib/tree.js';
@@ -47,12 +48,12 @@ test('slug', () => {
 });
 
 test('invalid JSON reports it', () => {
-  assert.match(parseBrandJson('{', 'x.json').errors[0].message, /JSON/);
+  assert.match(parseBrandJson('{', 'x.json', zodValidator).errors[0].message, /JSON/);
 });
 
 test('schema and alias errors are reported with paths', () => {
   const doc = setToken(load(), 'color.primary.background', { $value: '{color.nope}' });
-  const r = parseBrandJson(JSON.stringify(doc), 'x.resolver.json');
+  const r = parseBrandJson(JSON.stringify(doc), 'x.resolver.json', zodValidator);
   assert.ok(
     r.errors.some((e) => e.path === 'color.primary.background'),
     JSON.stringify(r.errors),
@@ -60,7 +61,11 @@ test('schema and alias errors are reported with paths', () => {
 });
 
 test('a plain tokens file loads as a resolver named after the file', () => {
-  const r = parseBrandJson(JSON.stringify(load().sets.foundation.sources[0]), 'acme.tokens.json');
+  const r = parseBrandJson(
+    JSON.stringify(load().sets.foundation.sources[0]),
+    'acme.tokens.json',
+    zodValidator,
+  );
   assert.deepEqual(r.errors, []);
   assert.equal(present(r.doc).name, 'acme');
 });
@@ -107,7 +112,7 @@ test('theme.css points fonts at ../fonts', async () => {
 test('round trip', async () => {
   const doc = load();
   const { zip } = await buildExport(doc, ctx());
-  const back = loadZip(zip);
+  const back = loadZip(zip, zodValidator);
   assert.deepEqual(back.errors, []);
   const loaded = present(back.doc);
   assert.deepEqual(resolve(loaded), resolve(doc));
@@ -126,7 +131,7 @@ test('foreign tokens and extensions round-trip unchanged', async () => {
   const accent = { $root: { $value: '{color.brand.600}', $extensions: { 'org.tool.x': { k: 1 } } } };
   const doc = setToken(load(), 'color.accent', accent);
   present(doc.sets.foundation.$extensions)['org.tool.x'] = { keep: true };
-  const back = present(loadZip((await buildExport(doc, ctx())).zip).doc);
+  const back = present(loadZip((await buildExport(doc, ctx())).zip, zodValidator).doc);
   assert.deepEqual(nodeAt(back.sets.foundation.sources[0], 'color.accent'), accent);
   assert.deepEqual(back.sets.foundation.$extensions?.['org.tool.x'], { keep: true });
 });
@@ -174,7 +179,7 @@ test('a file that breaks in any theme is rejected at load', () => {
   present(doc.modifiers?.theme).contexts.dark = [
     { color: { page: { background: { $type: 'color', $value: '{color.nope}' } } } },
   ];
-  assert.ok(parseBrandJson(JSON.stringify(doc), 'x.resolver.json').errors.length);
+  assert.ok(parseBrandJson(JSON.stringify(doc), 'x.resolver.json', zodValidator).errors.length);
 });
 
 test('a file with broken brand metadata is rejected at load', () => {
@@ -182,17 +187,24 @@ test('a file with broken brand metadata is rejected at load', () => {
   const extensions = present(doc.sets.foundation.$extensions);
   const meta = extensions[V];
   extensions[V] = { ...(isNode(meta) ? meta : {}), fontFiles: [{ family: 'A' }] };
-  assert.ok(parseBrandJson(JSON.stringify(doc), 'x.resolver.json').errors.some((e) => /src/.test(e.message)));
+  assert.ok(
+    parseBrandJson(JSON.stringify(doc), 'x.resolver.json', zodValidator).errors.some((e) =>
+      /src/.test(e.message),
+    ),
+  );
 });
 
 test('a resolver without a foundation set is rejected with a clear message', () => {
   const doc = load();
   doc.sets = { base: doc.sets.foundation };
   doc.resolutionOrder[0] = { $ref: '#/sets/base' };
-  assert.match(parseBrandJson(JSON.stringify(doc), 'x.resolver.json').errors[0].message, /foundation/);
+  assert.match(
+    parseBrandJson(JSON.stringify(doc), 'x.resolver.json', zodValidator).errors[0].message,
+    /foundation/,
+  );
 });
 
 test('a corrupt ZIP is an error, not a throw', () => {
-  const r = loadZip(new Uint8Array([1, 2, 3]));
+  const r = loadZip(new Uint8Array([1, 2, 3]), zodValidator);
   assert.ok(r.errors.length);
 });

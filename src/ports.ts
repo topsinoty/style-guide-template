@@ -1,4 +1,12 @@
-import type { FileData, FontDetail, FontFile, FontListing, ResolverDoc } from './lib/types.js';
+import type {
+  FileData,
+  FontDetail,
+  FontFile,
+  FontListing,
+  Manifest,
+  Problem,
+  ResolverDoc,
+} from './lib/types.js';
 
 export type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -29,4 +37,12 @@ export interface ExportFormat {
   readonly key: string;
   readonly label: string;
   render(doc: ResolverDoc, vendor: string): string;
+}
+
+export type Parsed<T> = { ok: true; value: T } | { ok: false; problems: Problem[] };
+
+export interface Validator {
+  parseBrand(input: unknown): Parsed<ResolverDoc>;
+  parseManifest(input: unknown): Parsed<Manifest>;
+  checkBrandMeta(input: unknown, path: string): Problem[];
 }

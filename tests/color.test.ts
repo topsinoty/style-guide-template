@@ -2,7 +2,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { entriesOf, keysOf, valuesOf } from '../src/lib/records.js';
 import * as z from 'zod/mini';
-import { color } from '../src/lib/schema.js';
+import { color } from '../src/adapters/zod-validator.js';
 import { present } from './helpers.js';
 import {
   oklch,

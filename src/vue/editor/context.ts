@@ -25,7 +25,7 @@ export function editorContext(session: Session, theme: string, tokens: Tokens): 
 
   const edit = (fn: (doc: ResolverDoc) => ResolverDoc) => {
     const next = fn(store.get());
-    const [problem] = checkBrand(next);
+    const [problem] = checkBrand(next, session.validator);
     if (problem) session.warn(`Not applied: ${problemText(problem)}`);
     else store.set(next);
   };

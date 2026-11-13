@@ -1,8 +1,8 @@
-import * as z from 'zod/mini';
 import { HOSTED_URL } from '../config.js';
 import {
   adoptVendor,
   allSrcs,
+  readBrandMeta,
   brandMeta,
   matchDropped,
   missingAssets,
@@ -19,11 +19,10 @@ import {
   saveJson,
   slug,
 } from '../lib/io.js';
-import { brandMeta as brandMetaSchema, manifest as manifestSchema, resolverDoc } from '../lib/schema.js';
 import { createStore, type Store } from '../lib/state.js';
 import type { AssetContext, BrandMeta, Manifest, Problem, ResolverDoc, SessionFiles } from '../lib/types.js';
 import { uniquePath } from '../lib/path.js';
-import type { FileStore, FontProvider, KeyValueStore } from '../ports.js';
+import type { Parsed, FileStore, FontProvider, KeyValueStore, Validator } from '../ports.js';
 import { vendorKey } from '../lib/vendor-key.js';
 
 export interface Ambiguous {
@@ -41,10 +40,21 @@ async function fetchJson(url: string): Promise<unknown> {
   return res.json();
 }
 
+function accepted<T>(source: string, checked: Parsed<T>): T {
+  if (checked.ok) return checked.value;
+  throw new Error(`${source} is not valid: ${checked.problems.map(problemText).join('; ')}`);
+}
+
+async function fetchPreset(path: string, validator: Validator): Promise<ResolverDoc> {
+  const source = `library/${path}`;
+  return accepted(source, validator.parseBrand(await fetchJson(source)));
+}
+
 export interface SessionAdapters {
   drafts: KeyValueStore;
   files: FileStore;
   fonts: FontProvider;
+  validator: Validator;
 }
 
 export class Session {
@@ -61,22 +71,26 @@ export class Session {
     readonly manifest: Manifest,
     readonly preset: ResolverDoc,
     readonly fonts: FontProvider,
+    readonly validator: Validator,
   ) {
     this.library = new Set(manifest.files);
     this.ctx = { session: store.files, library: this.library, fonts };
     store.subscribe(() => this.#changed());
   }
 
-  static async open({ drafts, files, fonts }: SessionAdapters): Promise<Session> {
-    const manifest = z.parse(manifestSchema, await fetchJson('library/manifest.json'));
-    const preset = await Session.fetchPreset(manifest.brands[0].path);
+  static async open({ drafts, files, fonts, validator }: SessionAdapters): Promise<Session> {
+    const manifest = accepted(
+      'library/manifest.json',
+      validator.parseManifest(await fetchJson('library/manifest.json')),
+    );
+    const preset = await fetchPreset(manifest.brands[0].path, validator);
     const store = createStore({ doc: preset, storage: drafts, fileStore: files });
     await store.ready;
-    return new Session(store, manifest, preset, fonts);
+    return new Session(store, manifest, preset, fonts, validator);
   }
 
-  static async fetchPreset(path: string): Promise<ResolverDoc> {
-    return z.parse(resolverDoc, await fetchJson(`library/${path}`));
+  loadPreset(path: string): Promise<ResolverDoc> {
+    return fetchPreset(path, this.validator);
   }
 
   subscribe(fn: () => void) {
@@ -229,8 +243,8 @@ export class Session {
   async #receiveBrand(file: File) {
     const { doc, errors, files } =
       classify(file.name) === 'zip'
-        ? loadZip(new Uint8Array(await file.arrayBuffer()))
-        : { ...parseBrandJson(await file.text(), file.name), files: undefined };
+        ? loadZip(new Uint8Array(await file.arrayBuffer()), this.validator)
+        : { ...parseBrandJson(await file.text(), file.name, this.validator), files: undefined };
     if (doc && !errors.length) await this.#loadBrand(doc, files);
     else this.warn(...describe(file.name, errors));
   }
@@ -264,9 +278,9 @@ export class Session {
   prune() {
     const used = new Set<string>();
     for (const draft of this.store.drafts()) {
-      const meta = z.safeParse(brandMetaSchema, draft.sets.foundation?.$extensions?.[this.vendor] ?? {});
-      if (!meta.success) return;
-      for (const { src } of allSrcs(meta.data)) used.add(src);
+      const own = draft.sets.foundation?.$extensions?.[this.vendor] ?? {};
+      if (this.validator.checkBrandMeta(own, 'brand').length) return;
+      for (const { src } of allSrcs(readBrandMeta(own))) used.add(src);
     }
     return this.store.prune(used);
   }

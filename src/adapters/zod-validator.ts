@@ -1,4 +1,5 @@
 import * as z from 'zod/mini';
+import type { Parsed, Validator } from '../ports.js';
 import type {
   AssetGroup,
   AssetItem,
@@ -10,11 +11,11 @@ import type {
   Problem,
   ResolverDoc,
   TokenNode,
-} from './types.js';
-import { entriesOf, keysOf, valuesOf } from './records.js';
-import { isSafeSrc } from './path.js';
-import { child, deepMerge, isNode } from './tree.js';
-import { COLOR_SPACES, FONT_STYLES, STROKE_STYLES, WEIGHT_KEYWORDS, isAlias } from './values.js';
+} from '../lib/types.js';
+import { entriesOf, keysOf, valuesOf } from '../lib/records.js';
+import { isSafeSrc } from '../lib/path.js';
+import { child, deepMerge, isNode } from '../lib/tree.js';
+import { COLOR_SPACES, FONT_STYLES, STROKE_STYLES, WEIGHT_KEYWORDS, isAlias } from '../lib/values.js';
 
 const TOKEN_KEYS = new Set(['$type', '$value', '$description', '$extensions', '$deprecated']);
 const GROUP_KEYS = new Set(['$type', '$description', '$extensions', '$deprecated', '$extends', '$root']);
@@ -172,9 +173,9 @@ export const resolverDoc: z.ZodMiniType<ResolverDoc> = z.object({
 
 const mergeSources = (list: TokenNode[]) => list.reduce((acc, s) => deepMerge(acc, s), {});
 
-export function validateResolver(input: unknown): { ok: boolean; errors: Problem[] } {
+function parseBrand(input: unknown): Parsed<ResolverDoc> {
   const parsed = z.safeParse(resolverDoc, input);
-  if (!parsed.success) return { ok: false, errors: problems(parsed.error) };
+  if (!parsed.success) return { ok: false, problems: problems(parsed.error) };
   const doc = parsed.data;
   const modifiers = doc.modifiers ?? {};
   const errors: Problem[] = [];
@@ -200,7 +201,12 @@ export function validateResolver(input: unknown): { ok: boolean; errors: Problem
       );
     }
   }
-  return { ok: errors.length === 0, errors };
+  return errors.length ? { ok: false, problems: errors } : { ok: true, value: doc };
+}
+
+export function validateResolver(input: unknown): { ok: boolean; errors: Problem[] } {
+  const checked = parseBrand(input);
+  return checked.ok ? { ok: true, errors: [] } : { ok: false, errors: checked.problems };
 }
 
 export const fontStyle: z.ZodMiniType<FontStyle> = z.enum(FONT_STYLES, {
@@ -265,3 +271,14 @@ export const manifest: z.ZodMiniType<Manifest> = z.object({
     .array(z.object({ name: z.string(), path: z.string() }))
     .check(z.minLength(1, 'the manifest lists no brands')),
 });
+
+function parseManifest(input: unknown): Parsed<Manifest> {
+  const parsed = z.safeParse(manifest, input);
+  return parsed.success ? { ok: true, value: parsed.data } : { ok: false, problems: problems(parsed.error) };
+}
+
+export const zodValidator: Validator = {
+  parseBrand,
+  parseManifest,
+  checkBrandMeta: validateBrandMeta,
+};

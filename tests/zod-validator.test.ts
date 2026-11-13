@@ -4,7 +4,7 @@ import { keysOf } from '../src/lib/records.js';
 import type { ResolverDoc } from '../src/lib/types.js';
 import { load, present, removeAt, setAt } from './helpers.js';
 import { isResolver, toResolver } from '../src/lib/document.js';
-import { validateResolver } from '../src/lib/schema.js';
+import { validateResolver } from '../src/adapters/zod-validator.js';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 

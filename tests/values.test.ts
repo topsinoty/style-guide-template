@@ -2,7 +2,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import * as z from 'zod/mini';
 import { flatten, mergedTree, defaultInputs } from '../src/lib/resolver.js';
-import { VALUES } from '../src/lib/schema.js';
+import { VALUES } from '../src/adapters/zod-validator.js';
 import {
   isAlias,
   isBorder,
