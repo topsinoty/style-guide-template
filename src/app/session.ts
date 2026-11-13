@@ -130,9 +130,9 @@ export class Session {
     this.warnings = [
       ...this.warnings,
       `This brand could not be shown (${error instanceof Error ? error.message : String(error)}). ` +
-        'Showing the default brand; your draft is under Edit > Restore previous draft.',
+        'Showing the default brand instead. Press Undo to go back to your draft.',
     ];
-    this.store.load(this.preset, undefined, { record: false });
+    this.store.load(this.preset);
   }
 
   #takenPaths() {

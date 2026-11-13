@@ -5,7 +5,6 @@ import type { ResolverDoc, SessionFiles } from './types.js';
 export type Store = ReturnType<typeof createStore>;
 
 const DRAFT = 'styleguide:draft';
-const PREVIOUS = 'styleguide:previous';
 const BASE = 'styleguide:base';
 const HISTORY = 50;
 const noError: unknown = null;
@@ -86,27 +85,16 @@ export function createStore({
         store.saveError = e;
       }
     },
-    load(next: ResolverDoc, newFiles?: SessionFiles, { record: undoable = true } = {}) {
-      storage.setItem(PREVIOUS, JSON.stringify(current));
+    load(next: ResolverDoc, newFiles?: SessionFiles) {
       base = next;
       storage.setItem(BASE, JSON.stringify(base));
       if (newFiles) store.addFiles(newFiles);
-      if (undoable) record();
+      record();
       show(next);
       store.flush();
     },
-    hasPrevious: () => storage.getItem(PREVIOUS) !== null,
-    restorePrevious() {
-      const prev = read(storage, PREVIOUS);
-      if (!prev) return false;
-      storage.setItem(PREVIOUS, JSON.stringify(current));
-      store.set(prev);
-      store.flush();
-      return true;
-    },
-    clearDraft() {
+    reset() {
       clearTimeout(timer);
-      storage.setItem(PREVIOUS, JSON.stringify(current));
       storage.removeItem(DRAFT);
       record();
       current = base;
@@ -117,7 +105,7 @@ export function createStore({
       for (const path of unused) files.delete(path);
       await Promise.allSettled(unused.map((path) => fileStore.delete(path)));
     },
-    drafts: () => [current, base, read(storage, PREVIOUS)].filter((d): d is ResolverDoc => d !== null),
+    drafts: () => [current, base, ...past, ...future],
     async addFiles(map: SessionFiles) {
       for (const [path, data] of map) files.set(path, data);
       for (const fn of subs) fn(current);

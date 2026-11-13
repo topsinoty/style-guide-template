@@ -25,12 +25,10 @@ async function startOver(path: string) {
     @commit="(value) => value && ctx.edit((doc) => ({ ...doc, name: value }))"
   />
   <Choice label="Start over from" :options="presets" value="" @update:value="startOver" />
-  <div v-if="ctx.session.store.hasPrevious()" class="cd-field-row">
-    <button type="button" class="btn btn-secondary btn-small" @click="ctx.session.store.restorePrevious()">
-      Restore what you had
+  <div class="cd-field-row">
+    <button type="button" class="btn btn-secondary btn-small" @click="ctx.session.store.reset()">
+      Reset
     </button>
   </div>
-  <p class="cd-hint">
-    Starting over keeps what you had, so you can restore it. Undo (Ctrl+Z) also steps back.
-  </p>
+  <p class="cd-hint">Reset discards your edits since the last load. Undo (Ctrl+Z) brings them back.</p>
 </template>
