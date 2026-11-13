@@ -1,9 +1,16 @@
-import * as z from 'zod/mini';
 import { holds, isNode } from './tree.js';
-import { fileName } from './path.js';
+import { fileName, isSafeSrc } from './path.js';
+import { isFontStyle } from './values.js';
 import { entriesOf, keysOf, without } from './records.js';
-import { brandMeta as brandMetaSchema, isSafeSrc } from './schema.js';
-import type { AssetContext, AssetItem, BrandMeta, FontFile, ResolverDoc, SessionFiles } from './types.js';
+import type {
+  AssetContext,
+  AssetGroup,
+  AssetItem,
+  BrandMeta,
+  FontFile,
+  ResolverDoc,
+  SessionFiles,
+} from './types.js';
 
 export type AssetSource = 'session' | 'library' | 'provider' | 'missing';
 export type SrcEntry =
@@ -20,9 +27,58 @@ function metaKey(doc: ResolverDoc, vendor: string): string | null {
   return others.length === 1 ? others[0] : null;
 }
 
+const optionalString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+
+function readItem(value: unknown): AssetItem | null {
+  if (!isNode(value) || !isSafeSrc(value.src)) return null;
+  return {
+    ...value,
+    src: value.src,
+    label: optionalString(value.label),
+    description: optionalString(value.description),
+    provider: optionalString(value.provider),
+  };
+}
+
+function readFontFile(value: unknown): FontFile | null {
+  const item = readItem(value);
+  if (!item || !isNode(value) || typeof value.family !== 'string' || !value.family) return null;
+  const { weight, style } = value;
+  return {
+    ...item,
+    family: value.family,
+    weight: typeof weight === 'number' && weight >= 1 && weight <= 1000 ? weight : 400,
+    style: isFontStyle(style) ? style : 'normal',
+    subset: optionalString(value.subset),
+    unicodeRange: optionalString(value.unicodeRange),
+    fontsourceId: optionalString(value.fontsourceId),
+    version: optionalString(value.version),
+  };
+}
+
+function readGroup(value: unknown): AssetGroup | null {
+  if (!isNode(value) || typeof value.id !== 'string' || !Array.isArray(value.items)) return null;
+  return {
+    ...value,
+    id: value.id,
+    label: optionalString(value.label),
+    items: value.items.flatMap((item) => readItem(item) ?? []),
+  };
+}
+
+export function readBrandMeta(value: unknown): BrandMeta {
+  const meta = isNode(value) ? value : {};
+  const list = (key: string) => (Array.isArray(meta[key]) ? meta[key] : []);
+  return {
+    ...meta,
+    assetGroups: list('assetGroups').flatMap((group) => readGroup(group) ?? []),
+    fontFiles: list('fontFiles').flatMap((file) => readFontFile(file) ?? []),
+  };
+}
+
 export function brandMeta(doc: ResolverDoc, vendor: string): BrandMeta {
   const key = metaKey(doc, vendor);
-  return z.parse(brandMetaSchema, (key && doc.sets.foundation.$extensions?.[key]) || {});
+  return readBrandMeta(key ? doc.sets.foundation.$extensions?.[key] : undefined);
 }
 
 export function withBrandMeta(doc: ResolverDoc, vendor: string, meta: BrandMeta): ResolverDoc {

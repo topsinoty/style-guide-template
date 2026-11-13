@@ -1,5 +1,6 @@
 import { zipSync, unzipSync } from 'fflate';
-import { validateBrandMeta, validateResolver, toResolver } from './schema.js';
+import { toResolver } from './document.js';
+import { validateBrandMeta, validateResolver } from './schema.js';
 import { ResolveError, resolve, contexts, defaultInputs } from './resolver.js';
 import { generateCss } from './css.js';
 import { checkContrast } from './contrast.js';

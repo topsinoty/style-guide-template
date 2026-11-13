@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 import { keysOf } from '../src/lib/records.js';
 import * as z from 'zod/mini';
 import { fixture, present } from './helpers.js';
-import { fontDetail } from '../src/lib/schema.js';
-import { fontFiles, fontsource, parseList } from '../src/adapters/fontsource.js';
+import { fontDetail, fontFiles, fontsource, parseList } from '../src/adapters/fontsource.js';
 import { memoryKeyValueStore } from '../src/adapters/memory.js';
 
 const detail = z.parse(fontDetail, fixture('fontsource-merriweather.json'));

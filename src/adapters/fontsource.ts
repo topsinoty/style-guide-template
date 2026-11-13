@@ -1,6 +1,6 @@
 import * as z from 'zod/mini';
 import type { FontPicks, FontProvider, KeyValueStore } from '../ports.js';
-import { fontDetail, fontListing, isFontStyle } from '../lib/schema.js';
+import { isFontStyle } from '../lib/values.js';
 import type { FontDetail, FontFile, FontListing } from '../lib/types.js';
 
 type Fetch = (url: string) => Promise<Pick<Response, 'ok' | 'status' | 'json'>>;
@@ -11,6 +11,27 @@ const CACHE_KEY = 'styleguide:fontsource-list';
 const DAY = 24 * 60 * 60 * 1000;
 
 const cachedListing = z.object({ at: z.number(), list: z.unknown() });
+
+const listingShape = {
+  id: z.string(),
+  family: z.string(),
+  category: z.string(),
+  weights: z.array(z.number()),
+  styles: z.array(z.string()),
+  defSubset: z.string(),
+  license: z.string(),
+};
+
+const fontListing: z.ZodMiniType<FontListing> = z.object(listingShape);
+
+const variant = z.object({ url: z.optional(z.object({ woff2: z.optional(z.string()) })) });
+export const fontDetail: z.ZodMiniType<FontDetail> = z.object({
+  ...listingShape,
+  subsets: z.array(z.string()),
+  npmVersion: z.string(),
+  unicodeRange: z.optional(z.record(z.string(), z.string())),
+  variants: z.optional(z.record(z.string(), z.record(z.string(), z.record(z.string(), variant)))),
+});
 
 export const parseList = (json: unknown): FontListing[] =>
   (Array.isArray(json) ? json : []).flatMap((f) => {

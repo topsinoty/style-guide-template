@@ -19,3 +19,9 @@ export function uniquePath(path: string, taken: Set<string>): string {
   }
   return candidate;
 }
+
+export const isSafeSrc = (src: unknown): src is string =>
+  typeof src === 'string' &&
+  src !== '' &&
+  !/^[a-z][a-z0-9+.-]*:|^\/|\\/i.test(src) &&
+  !src.split('/').includes('..');

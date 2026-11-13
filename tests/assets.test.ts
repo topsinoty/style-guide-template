@@ -153,3 +153,26 @@ test('adoptVendor moves every foreign extension (tokens and groups) to this site
   assert.ok(brandMeta(out, V).assetGroups.length);
   assert.equal(JSON.stringify(out).includes('com.other.site'), false);
 });
+
+test('readBrandMeta applies defaults, keeps unknown fields and skips unusable entries', async () => {
+  const { readBrandMeta } = await import('../src/lib/assets.js');
+  const meta = readBrandMeta({
+    note: 'from another tool',
+    assetGroups: [
+      { id: 'logos', items: [{ src: 'logos/a.svg', extra: 1 }, { src: '../escape.svg' }] },
+      'junk',
+    ],
+    fontFiles: [{ family: 'Inter', src: 'fonts/inter.woff2' }, { src: 'fonts/no-family.woff2' }],
+  });
+  assert.equal(meta.note, 'from another tool');
+  assert.deepEqual(
+    meta.assetGroups.map((g) => g.items.map((i) => i.src)),
+    [['logos/a.svg']],
+  );
+  assert.equal(meta.assetGroups[0].items[0].extra, 1);
+  assert.deepEqual(
+    meta.fontFiles.map((f) => [f.family, f.weight, f.style]),
+    [['Inter', 400, 'normal']],
+  );
+  assert.deepEqual(readBrandMeta(undefined), { assetGroups: [], fontFiles: [] });
+});
