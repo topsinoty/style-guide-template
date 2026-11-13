@@ -1,80 +1,83 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import {
+  ComboboxAnchor,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
   ComboboxItem,
   ComboboxPortal,
   ComboboxRoot,
-  ComboboxTrigger,
   ComboboxViewport,
 } from 'reka-ui';
-import Icon from '../Icon.vue';
-import type { ColorOption } from './role-color.js';
+import { parseCssColor } from '../../lib/color.js';
+import { optionFor, type ColorOption } from './role-color.js';
 
-const props = defineProps<{ label: string; text: string; options: ColorOption[]; swatch: string }>();
+const props = defineProps<{ label: string; text: string; hex: string; options: ColorOption[] }>();
 const emit = defineEmits<{ commit: [text: string] }>();
 
 const search = ref(props.text);
-const open = ref(false);
+const picked = ref(props.hex);
 
 watch(
   () => props.text,
   (text) => (search.value = text),
 );
+watch(
+  () => props.hex,
+  (hex) => (picked.value = hex),
+);
 
-const matches = computed(() => {
-  const query = search.value.trim().toLowerCase();
-  return props.options.filter((option) => option.label.toLowerCase().includes(query));
+const query = computed(() => (search.value === props.text ? '' : search.value.trim()));
+
+const matches = computed(() =>
+  props.options.filter((option) => option.label.toLowerCase().includes(query.value.toLowerCase())),
+);
+
+const custom = computed(() => {
+  const typed = query.value;
+  if (!typed || optionFor(typed, props.options) || !parseCssColor(typed)) return null;
+  return typed;
 });
 
-function commitTyped() {
-  const typed = search.value;
-  search.value = props.text;
-  if (typed.trim() !== props.text) emit('commit', typed);
-}
-
 function choose(value: unknown) {
-  const option = props.options.find((item) => item.value === value);
-  if (option) emit('commit', option.value);
-  open.value = false;
-}
-
-function enter() {
-  if (matches.value.length) return;
-  commitTyped();
-  open.value = false;
+  if (typeof value === 'string') emit('commit', value);
+  search.value = props.text;
 }
 </script>
 
 <template>
   <ComboboxRoot
-    v-model:open="open"
     class="cd-role-color"
     :ignore-filter="true"
+    :open-on-focus="true"
     :open-on-click="true"
     @update:model-value="choose"
   >
-    <span class="cd-role-swatch" aria-hidden="true" :style="{ background: swatch }"></span>
-    <ComboboxInput
-      v-model="search"
-      class="cd-combobox-input"
-      :display-value="() => text"
-      :aria-label="label"
-      placeholder="Palette shade or any CSS color"
-      @blur="commitTyped"
-      @keydown.enter="enter"
+    <input
+      v-model="picked"
+      type="color"
+      class="cd-role-swatch"
+      :aria-label="`Pick a custom ${label} color`"
+      @change="emit('commit', picked)"
     />
-    <ComboboxTrigger class="cd-combobox-trigger" :aria-label="`Show ${label} choices`">
-      <Icon name="chevron" />
-    </ComboboxTrigger>
+    <ComboboxAnchor class="cd-combobox-anchor">
+      <ComboboxInput
+        v-model="search"
+        class="cd-combobox-input"
+        :display-value="() => text"
+        :aria-label="label"
+        placeholder="Search shades or type a CSS color"
+        @blur="search = text"
+      />
+    </ComboboxAnchor>
     <ComboboxPortal>
       <ComboboxContent position="popper" :side-offset="4" :collision-padding="8" class="cd-combobox-popup">
-        <ComboboxEmpty class="cd-combobox-empty"
-          >No palette match. Press Enter to use it as a color.</ComboboxEmpty
-        >
         <ComboboxViewport>
+          <ComboboxItem v-if="custom" :value="custom" :text-value="custom" class="cd-listbox-option">
+            <span class="cd-combobox-option-swatch" aria-hidden="true" :style="{ background: custom }"></span>
+            <span>Use {{ custom }} as a custom color</span>
+          </ComboboxItem>
           <ComboboxItem
             v-for="option in matches"
             :key="option.value"
@@ -83,13 +86,14 @@ function enter() {
             class="cd-listbox-option"
           >
             <span
-              class="cd-role-swatch cd-combobox-option-swatch"
+              class="cd-combobox-option-swatch"
               aria-hidden="true"
               :style="{ background: option.swatch }"
             ></span>
             <span>{{ option.label }}</span>
           </ComboboxItem>
         </ComboboxViewport>
+        <ComboboxEmpty class="cd-combobox-empty">No shade matches. Type a CSS color to use it.</ComboboxEmpty>
       </ComboboxContent>
     </ComboboxPortal>
   </ComboboxRoot>
