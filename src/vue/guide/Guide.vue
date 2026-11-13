@@ -11,6 +11,7 @@ import AssetImage from './AssetImage.vue';
 import Code from './Code.vue';
 import Colors from './Colors.vue';
 import FileCard from './FileCard.vue';
+import ContrastStatus from './ContrastStatus.vue';
 import Panels from './Panels.vue';
 import Scale from './Scale.vue';
 import Typography from './Typography.vue';
@@ -73,7 +74,7 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
   <main :inert="covered || undefined">
     <h1>{{ doc.name ?? 'Style Guide' }}</h1>
     <div class="cd-panels" aria-live="polite">
-      <Panels :session="session" :contrast="checkContrast(doc)" :missing="missingAssets(meta, session.ctx)" />
+      <Panels :missing="missingAssets(meta, session.ctx)" />
     </div>
     <section
       v-for="section in sections"
@@ -158,5 +159,6 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
         </template>
       </div>
     </section>
+    <ContrastStatus :contrast="checkContrast(doc)" />
   </main>
 </template>

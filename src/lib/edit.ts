@@ -1,6 +1,14 @@
 import { slug } from './io.js';
 import { uniquePath } from './path.js';
-import type { AssetGroup, AssetItem, BrandMeta, FontFile, ResolverDoc, TokenNode } from './types.js';
+import type {
+  AssetGroup,
+  AssetItem,
+  BrandMeta,
+  DtcgColor,
+  FontFile,
+  ResolverDoc,
+  TokenNode,
+} from './types.js';
 import { ensureChild, nodeAt } from './tree.js';
 
 const clone = <T>(x: T): T => structuredClone(x);
@@ -19,19 +27,24 @@ export function setToken(doc: ResolverDoc, path: string, token: TokenNode): Reso
   return out;
 }
 
-export function setRole(doc: ResolverDoc, theme: string, rolePath: string, alias: string): ResolverDoc {
+export function setRole(
+  doc: ResolverDoc,
+  theme: string,
+  rolePath: string,
+  value: string | DtcgColor,
+): ResolverDoc {
   const out = clone(doc);
   const mod = out.modifiers?.theme;
   if (!mod || theme === (mod.default ?? 'light')) {
     setIn(foundation(out), `color.${rolePath}`, {
       ...nodeAt(foundation(out), `color.${rolePath}`),
-      $value: alias,
+      $value: value,
     });
     return out;
   }
   const ctx = (mod.contexts[theme] ??= []);
   if (!ctx.length) ctx.push({});
-  setIn(ctx[0], `color.${rolePath}`, { $type: 'color', $value: alias });
+  setIn(ctx[0], `color.${rolePath}`, { $type: 'color', $value: value });
   return out;
 }
 

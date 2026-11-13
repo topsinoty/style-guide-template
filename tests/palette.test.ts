@@ -16,7 +16,9 @@ import {
   setShade,
 } from '../src/lib/palette.js';
 import type { ResolverDoc } from '../src/lib/types.js';
+import { VALUES } from '../src/lib/schema.js';
 import { nodeAt } from '../src/lib/tree.js';
+import { valueAs } from '../src/lib/values.js';
 import { present, preset, V } from './helpers.js';
 
 const teal = present(parseCssColor('teal'));
@@ -124,6 +126,25 @@ test('removing a color inlines all of its shades', () => {
   assert.ok(!paletteColors(doc, V).some((c) => c.id === 'brand'));
   assert.deepEqual(referencesTo(doc, 'brand'), []);
   valid(doc);
+});
+
+test('removing the last palette color leaves roles in black and white', () => {
+  let doc = preset();
+  for (const { id } of paletteColors(doc, V)) doc = removeColor(doc, id);
+  assert.deepEqual(paletteColors(doc, V), []);
+  const background = foundationAt(doc, 'color.primary.background')?.$value;
+  const foreground = foundationAt(doc, 'color.primary.foreground')?.$value;
+  const lightness = (value: unknown) => present(valueAs(VALUES.color, value)).components[0];
+  assert.deepEqual(
+    [lightness(background), lightness(foreground)].sort((a, b) => Number(a) - Number(b)),
+    [0, 1],
+  );
+  valid(doc);
+});
+
+test('removing one of several colors keeps the other roles in color', () => {
+  const doc = removeColor(preset(), 'red');
+  assert.equal(foundationAt(doc, 'color.primary.background')?.$value, '{color.brand.600}');
 });
 
 test('any shade can become the base', () => {
