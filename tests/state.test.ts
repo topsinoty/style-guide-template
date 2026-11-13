@@ -61,6 +61,14 @@ test('quota exceeded is reported, the file stays in the session', async () => {
   assert.ok(s.files.has('photos/big.jpg'));
 });
 
+test('resetting again changes nothing, so one undo goes back to the edit', () => {
+  const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
+  s.update(edit);
+  for (let i = 0; i < 50; i++) s.reset();
+  s.undo();
+  assert.deepEqual(s.get(), edit(a));
+});
+
 test('drafts include undo history, so its files are kept', () => {
   const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
   s.update(edit);
