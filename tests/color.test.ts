@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { entriesOf, keysOf, valuesOf } from '../src/lib/records.js';
 import * as z from 'zod/mini';
 import { color } from '../src/lib/schema.js';
 import { present } from './helpers.js';
@@ -64,22 +65,10 @@ test('strings', () => {
 
 test('shade scale', () => {
   const s = shadeScale(260, 0.18);
-  assert.deepEqual(Object.keys(s), [
-    '50',
-    '100',
-    '200',
-    '300',
-    '400',
-    '500',
-    '600',
-    '700',
-    '800',
-    '900',
-    '950',
-  ]);
+  assert.deepEqual(keysOf(s), ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']);
   assert.equal(s['50'].components[0], 0.97);
   assert.equal(s['950'].components[0], 0.15);
-  for (const v of Object.values(s)) assert.ok(inGamut(v));
+  for (const v of valuesOf(s)) assert.ok(inGamut(v));
 });
 
 test('parseCssColor reads hex, rgb and oklch', async () => {
@@ -117,7 +106,7 @@ test('every DTCG color space converts', async () => {
     lch: [54.29, 106.84, 40.85],
     oklab: [0.628, 0.2249, 0.1258],
   };
-  for (const [colorSpace, components] of Object.entries(red))
+  for (const [colorSpace, components] of entriesOf(red))
     assert.equal(toHex(space(colorSpace, components)), '#ff0000', colorSpace);
 });
 
@@ -128,7 +117,7 @@ test('anchoredScale keeps the typed color exactly as the nearest shade', async (
   assert.equal(anchor, '300');
   assert.equal(toHex(scale[anchor]), '#f0941d');
   assert.deepEqual(scale[anchor].components, typed.components);
-  const ls = Object.values(scale).map((s) => Number(s.components[0]));
+  const ls = valuesOf(scale).map((s) => Number(s.components[0]));
   assert.deepEqual(
     [...ls].sort((a, b) => b - a),
     ls,
@@ -154,7 +143,7 @@ test('every DTCG color space converts (white is white everywhere)', async () => 
     'xyz-d65': [0.95047, 1, 1.08883],
     'xyz-d50': [0.96422, 1, 0.82521],
   };
-  for (const [colorSpace, components] of Object.entries(white))
+  for (const [colorSpace, components] of entriesOf(white))
     assert.equal(toHex(space(colorSpace, components)), '#ffffff', colorSpace);
 });
 

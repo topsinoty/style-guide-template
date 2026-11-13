@@ -1,11 +1,12 @@
 import { zipSync, unzipSync } from 'fflate';
 import { validateBrandMeta, validateResolver, toResolver } from './schema.js';
-import { resolve, contexts, defaultInputs } from './resolver.js';
+import { ResolveError, resolve, contexts, defaultInputs } from './resolver.js';
 import { generateCss } from './css.js';
 import { checkContrast } from './contrast.js';
 import { brandMeta, withBrandMeta, resolveAsset } from './assets.js';
 import type { FontProvider } from '../ports.js';
 import { extension, fileName, uniquePath } from './path.js';
+import { entriesOf, keysOf } from './records.js';
 import { holds, isNode } from './tree.js';
 import type {
   AssetItem,
@@ -60,7 +61,7 @@ export function checkBrand(doc: ResolverDoc): Problem[] {
   if (!doc.sets?.foundation)
     return [{ path: 'sets', message: 'This site needs the brand tokens in a set named "foundation".' }];
   const ext = doc.sets.foundation.$extensions ?? {};
-  for (const [key, meta] of Object.entries(ext)) {
+  for (const [key, meta] of entriesOf(ext)) {
     if (holds(meta, 'assetGroups') || holds(meta, 'fontFiles'))
       errors.push(...validateBrandMeta(meta, `$extensions.${key}`));
   }
@@ -68,11 +69,11 @@ export function checkBrand(doc: ResolverDoc): Problem[] {
   try {
     const inputs = defaultInputs(doc);
     for (const c of contexts(doc)) resolve(doc, { ...inputs, [c.modifier]: c.context });
-    const vendor = Object.keys(ext).find((k) => holds(ext[k], 'fontFiles'));
+    const vendor = keysOf(ext).find((k) => holds(ext[k], 'fontFiles'));
     generateCss(doc, { vendor, fontSrc: (f) => f.src });
     checkContrast(doc);
   } catch (e) {
-    errors.push({ path: (e as { path?: string }).path ?? '', message: errorMessage(e) });
+    errors.push({ path: e instanceof ResolveError ? e.path : '', message: errorMessage(e) });
   }
   return errors;
 }
@@ -92,7 +93,7 @@ export function loadZip(bytes: Uint8Array): {
       errors: [{ path: '', message: `Not a readable ZIP file (${errorMessage(e)})` }],
     };
   }
-  const names = Object.keys(entries).filter((n) => !n.includes('/'));
+  const names = keysOf(entries).filter((n) => !n.includes('/'));
   const brand =
     names.find((n) => classify(n) === 'resolver') ?? names.find((n) => /\.tokens(\.json)?$/i.test(n));
   if (!brand)
@@ -103,7 +104,7 @@ export function loadZip(bytes: Uint8Array): {
     };
   const { doc, errors } = parseBrandJson(new TextDecoder().decode(entries[brand]), brand);
   const files: SessionFiles = new Map(
-    Object.entries(entries).filter(
+    entriesOf(entries).filter(
       ([n]) => n !== brand && n !== 'README.md' && !n.startsWith('css/') && !n.endsWith('/'),
     ),
   );

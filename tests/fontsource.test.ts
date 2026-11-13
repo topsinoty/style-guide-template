@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { keysOf } from '../src/lib/records.js';
 import * as z from 'zod/mini';
 import { fixture, present } from './helpers.js';
 import { fontDetail } from '../src/lib/schema.js';
@@ -17,7 +18,7 @@ const latin = { weights: [400, 700], styles: ['normal'], subsets: ['latin'] };
 test('parseList keeps what the picker needs', () => {
   const m = present(parseList(fixture('fontsource-list.json')).find((f) => f.id === 'merriweather'));
   assert.deepEqual(
-    Object.keys(m).sort((a, b) => a.localeCompare(b)),
+    keysOf(m).sort((a, b) => a.localeCompare(b)),
     ['category', 'defSubset', 'family', 'id', 'license', 'styles', 'weights'],
   );
   assert.equal(m.family, 'Merriweather');

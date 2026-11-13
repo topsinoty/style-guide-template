@@ -1,4 +1,5 @@
 import type { TokenNode, VendorData } from './types.js';
+import { entriesOf, keysOf } from './records.js';
 
 export const isNode = (value: unknown): value is TokenNode =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -11,7 +12,7 @@ export const child = (parent: TokenNode | undefined, key: string): TokenNode | u
 export const nodeAt = (tree: TokenNode, path: string): TokenNode | undefined =>
   path.split('.').reduce<TokenNode | undefined>((node, key) => child(node, key), tree);
 
-export const childKeys = (node?: TokenNode) => Object.keys(node ?? {}).filter((key) => !key.startsWith('$'));
+export const childKeys = (node?: TokenNode) => keysOf(node ?? {}).filter((key) => !key.startsWith('$'));
 
 export const children = (node?: TokenNode): [string, TokenNode][] =>
   childKeys(node).flatMap((key) => {
@@ -41,4 +42,14 @@ export function ensureChild(parent: TokenNode, key: string, created: TokenNode =
   if (existing) return existing;
   parent[key] = created;
   return created;
+}
+
+export function deepMerge(target: TokenNode, source: TokenNode): TokenNode {
+  const out = { ...target };
+  for (const [key, value] of entriesOf(source)) {
+    const existing = out[key];
+    if (!isNode(value) || !isNode(existing)) out[key] = value;
+    else out[key] = '$value' in value ? { ...existing, ...value } : deepMerge(existing, value);
+  }
+  return out;
 }

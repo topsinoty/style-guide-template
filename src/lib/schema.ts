@@ -1,6 +1,7 @@
 import * as z from 'zod/mini';
 import type { Problem, TokenNode } from './types.js';
-import { child, isNode } from './tree.js';
+import { entriesOf, keysOf, valuesOf } from './records.js';
+import { child, deepMerge, isNode } from './tree.js';
 
 export const RESOLVER_SCHEMA = 'https://www.designtokens.org/schemas/2025.10/resolver.json';
 
@@ -121,7 +122,9 @@ export const VALUES = {
   gradient: z.array(z.looseObject({})),
 } satisfies Record<string, z.core.$ZodType>;
 
-const isValueType = (type: string): type is keyof typeof VALUES => Object.hasOwn(VALUES, type);
+const valueTypes = new Set(keysOf(VALUES));
+
+const isValueType = (type: string): type is keyof typeof VALUES => valueTypes.has(type);
 
 function checkValue(type: keyof typeof VALUES, value: unknown, path: string): Problem[] {
   if (isAlias(value)) return [];
@@ -133,18 +136,8 @@ function checkValue(type: keyof typeof VALUES, value: unknown, path: string): Pr
   }));
 }
 
-export function deepMerge(target: TokenNode, source: TokenNode): TokenNode {
-  const out = { ...target };
-  for (const [key, value] of Object.entries(source)) {
-    const existing = out[key];
-    if (!isNode(value) || !isNode(existing)) out[key] = value;
-    else out[key] = '$value' in value ? { ...existing, ...value } : deepMerge(existing, value);
-  }
-  return out;
-}
-
 function validateToken(token: TokenNode, path: string, groupType?: string): Problem[] {
-  const errors: Problem[] = Object.keys(token)
+  const errors: Problem[] = keysOf(token)
     .filter((key) => key.startsWith('$') && !TOKEN_KEYS.has(key))
     .map((key) => ({ path, message: `unknown reserved key ${key}` }));
   const type = token.$type ?? groupType;
@@ -175,7 +168,7 @@ export function validateTokens(tree: TokenNode, path = '', inherited?: string, o
   const errors: Problem[] = [];
   if (tree.$type !== undefined && !isValueType(tree.$type))
     errors.push({ path, message: `unknown $type "${tree.$type}"` });
-  for (const [key, node] of Object.entries(tree))
+  for (const [key, node] of entriesOf(tree))
     errors.push(...validateEntry(key, node, join(path, key), groupType, only));
   return errors;
 }
@@ -221,16 +214,16 @@ export function validateResolver(input: unknown): { ok: boolean; errors: Problem
       errors.push({ path: `resolutionOrder.${i}`, message: `${$ref} does not point to a set or modifier` });
     }
   });
-  const base = mergeSources(Object.values(doc.sets).flatMap((s) => s.sources));
+  const base = mergeSources(valuesOf(doc.sets).flatMap((s) => s.sources));
   errors.push(...validateTokens(base));
-  for (const [name, mod] of Object.entries(modifiers)) {
+  for (const [name, mod] of entriesOf(modifiers)) {
     if (mod.default !== undefined && !(mod.default in mod.contexts)) {
       errors.push({
         path: `modifiers.${name}.default`,
         message: `default "${mod.default}" is not a context`,
       });
     }
-    for (const [context, list] of Object.entries(mod.contexts)) {
+    for (const [context, list] of entriesOf(mod.contexts)) {
       const own = mergeSources(list);
       errors.push(
         ...validateTokens(deepMerge(base, own), `modifiers.${name}.contexts.${context}`, undefined, own),

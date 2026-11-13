@@ -11,7 +11,9 @@ const memFiles = (fail = false) => {
   return {
     ...files,
     put: async () => {
-      throw Object.assign(new Error('quota'), { name: 'QuotaExceededError' });
+      const quota = new Error('quota');
+      quota.name = 'QuotaExceededError';
+      throw quota;
     },
   };
 };

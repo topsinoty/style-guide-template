@@ -11,8 +11,8 @@ const newGroup = '__new';
 const pendingTarget = ref<string | null>(null);
 const targets = shallowReactive(new WeakMap<File, string>());
 const dropZone = useTemplateRef('dropZone');
-const { isOverDropZone } = useDropZone(dropZone, (files) => {
-  if (files) void session.value.fillMissing(files);
+const { isOverDropZone } = useDropZone(dropZone, async (files) => {
+  if (files) await session.value.fillMissing(files);
 });
 const options = computed(() => [
   ...session.value.meta.assetGroups.map((g) => ({ value: g.id, label: g.label ?? g.id })),
@@ -31,7 +31,9 @@ const warnings = computed(() =>
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const targetFor = (file: File, candidates: string[]) => targets.get(file) ?? candidates[0];
 const missingDialog = useFileDialog({ reset: true });
-missingDialog.onChange((files) => files && void session.value.fillMissing([...files]));
+missingDialog.onChange(async (files) => {
+  if (files) await session.value.fillMissing([...files]);
+});
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 import { converter, parse, type Color } from 'culori';
 import type { DtcgColor } from './types.js';
+import { keysOf } from './records.js';
 
 const SHADES = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
 const round = (n: number, d = 4) => Math.round(n * 10 ** d) / 10 ** d;
@@ -154,7 +155,7 @@ export function anchoredScale(color: DtcgColor): { scale: Record<string, DtcgCol
   const [l, c, h] = toOklch(color);
   const scale = shadeScale(h, c);
   const lightness = (k: string) => channels(scale[k])[0];
-  const shades = Object.keys(scale);
+  const shades = keysOf(scale);
   const anchor = shades.reduce(
     (best, k) => (Math.abs(lightness(k) - l) < Math.abs(lightness(best) - l) ? k : best),
     shades[0],

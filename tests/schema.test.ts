@@ -1,5 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
+import { keysOf } from '../src/lib/records.js';
 import type { ResolverDoc } from '../src/lib/types.js';
 import { load, present, removeAt, setAt } from './helpers.js';
 import { validateResolver, toResolver, isResolver } from '../src/lib/schema.js';
@@ -75,7 +76,7 @@ test('plain tokens become a resolver', () => {
   assert.equal(isResolver(r), true);
   assert.equal(r.version, '2025.10');
   assert.equal(r.name, 'X');
-  assert.deepEqual(Object.keys(present(r.modifiers).theme.contexts), ['light', 'dark']);
+  assert.deepEqual(keysOf(present(r.modifiers).theme.contexts), ['light', 'dark']);
   assert.deepEqual(r.sets.foundation.sources, [{ color: { $type: 'color' } }]);
   assert.equal(validateResolver(r).ok, true);
 });

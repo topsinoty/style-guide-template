@@ -1,5 +1,6 @@
 import * as z from 'zod/mini';
 import { child, isHandSet, vendorData, withVendorData } from './tree.js';
+import { entriesOf, mapValues } from './records.js';
 import type { Dimension, TokenNode } from './types.js';
 
 const scaleSpec = z.object({
@@ -18,19 +19,17 @@ export const scaleOf = (group: TokenNode | undefined, vendor: string): ScaleSpec
 const round = (n: number) => Math.round(n * 1e4) / 1e4;
 
 export function generateScale({ base, steps, ratio }: ScaleSpec): Record<string, Dimension> {
-  return Object.fromEntries(
-    Object.entries(steps).map(([name, step]) => [
-      name,
-      { value: round(ratio ? base.value * ratio ** step : base.value * step), unit: base.unit },
-    ]),
-  );
+  return mapValues(steps, (step) => ({
+    value: round(ratio ? base.value * ratio ** step : base.value * step),
+    unit: base.unit,
+  }));
 }
 
 export function applyScale(group: TokenNode, vendor: string): TokenNode {
   const out = structuredClone(group);
   const scale = scaleOf(out, vendor);
   if (!scale) return out;
-  for (const [name, value] of Object.entries(generateScale(scale))) {
+  for (const [name, value] of entriesOf(generateScale(scale))) {
     const token = child(out, name);
     if (isHandSet(token, vendor)) continue;
     out[name] = { ...token, $value: value };

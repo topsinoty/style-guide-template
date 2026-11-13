@@ -1,5 +1,5 @@
-import { deepMerge } from './schema.js';
-import { isNode } from './tree.js';
+import { entriesOf, keysOf, mapValues, recordOf } from './records.js';
+import { deepMerge, isNode } from './tree.js';
 import type { FlatToken, ResolverDoc, TokenNode, Tokens } from './types.js';
 
 export class ResolveError extends Error {
@@ -11,15 +11,13 @@ export class ResolveError extends Error {
   }
 }
 
-const isObj = (v: unknown): v is TokenNode => v !== null && typeof v === 'object' && !Array.isArray(v);
-
 export const aliasTarget = (v: unknown): string | null =>
   typeof v === 'string' && /^\{[^{}]+\}$/.test(v) ? v.slice(1, -1) : null;
 
 export function contexts(doc: ResolverDoc): Array<{ modifier: string; context: string; isDefault: boolean }> {
-  return Object.entries(doc.modifiers ?? {}).flatMap(([modifier, m]) => {
-    const def = m.default ?? Object.keys(m.contexts)[0];
-    return Object.keys(m.contexts).map((context) => ({
+  return entriesOf(doc.modifiers ?? {}).flatMap(([modifier, m]) => {
+    const def = m.default ?? keysOf(m.contexts)[0];
+    return keysOf(m.contexts).map((context) => ({
       modifier,
       context,
       isDefault: context === def,
@@ -28,7 +26,7 @@ export function contexts(doc: ResolverDoc): Array<{ modifier: string; context: s
 }
 
 export const defaultInputs = (doc: ResolverDoc): Record<string, string> =>
-  Object.fromEntries(
+  recordOf(
     contexts(doc)
       .filter((c) => c.isDefault)
       .map((c) => [c.modifier, c.context]),
@@ -56,8 +54,8 @@ export function flatten(
   out = new Map<string, FlatToken>(),
 ): Map<string, FlatToken> {
   const type = tree.$type ?? inherited;
-  for (const [key, node] of Object.entries(tree)) {
-    if ((key.startsWith('$') && key !== '$root') || !isObj(node)) continue;
+  for (const [key, node] of entriesOf(tree)) {
+    if ((key.startsWith('$') && key !== '$root') || !isNode(node)) continue;
     const p = path ? `${path}.${key}` : key;
     if ('$value' in node) {
       out.set(p, {
@@ -107,9 +105,9 @@ export function resolve(doc: ResolverDoc, inputs = defaultInputs(doc)): Tokens {
   const resolveValue = (v: unknown, stack: string[]): unknown => {
     const target = aliasTarget(v);
     if (target) return resolveToken(target, stack);
-    if (isObj(v) && typeof v.$ref === 'string') return resolveRef(v.$ref, stack);
+    if (isNode(v) && typeof v.$ref === 'string') return resolveRef(v.$ref, stack);
     if (Array.isArray(v)) return v.map((x) => resolveValue(x, stack));
-    if (isObj(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, resolveValue(x, stack)]));
+    if (isNode(v)) return mapValues(v, (x) => resolveValue(x, stack));
     return v;
   };
 
