@@ -11,6 +11,7 @@ import Type from './Type.vue';
 import Scales from './Scales.vue';
 import Shadow from './Shadow.vue';
 import Assets from './Assets.vue';
+import OtherTokens from './OtherTokens.vue';
 
 const props = defineProps<{ session: Session; tokens: Tokens; theme: string }>();
 const emit = defineEmits<{ theme: [theme: string] }>();
@@ -25,6 +26,7 @@ const areas = [
   { name: 'Scales', component: Scales },
   { name: 'Shadow', component: Shadow },
   { name: 'Assets', component: Assets },
+  { name: 'Other tokens', component: OtherTokens },
 ];
 </script>
 

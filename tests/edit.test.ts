@@ -23,6 +23,28 @@ test('setToken writes a path, creating groups', () => {
   assert.deepEqual(nodeAt(E.foundation(doc), 'radius.lg')?.$value, { value: 12, unit: 'px' });
 });
 
+test('removeToken deletes only that token', () => {
+  const doc = E.removeToken(
+    E.setToken(load(), 'duration.slow', { $type: 'duration', $value: { value: 400, unit: 'ms' } }),
+    'duration.slow',
+  );
+  assert.equal(nodeAt(E.foundation(doc), 'duration.slow'), undefined);
+  assert.ok(nodeAt(E.foundation(doc), 'duration.fast'));
+});
+
+test('moveItemToTop puts the item first and keeps the rest in order', () => {
+  const items = ['a', 'b', 'c'].map((name) => ({ label: name, src: `logos/${name}.svg` }));
+  const meta = E.moveItemToTop(
+    { assetGroups: [{ id: 'logos', items }], fontFiles: [] },
+    'logos',
+    'logos/c.svg',
+  );
+  assert.deepEqual(
+    meta.assetGroups[0].items.map((i) => i.label),
+    ['c', 'a', 'b'],
+  );
+});
+
 test('asset groups: add with a unique id, rename, move, remove', () => {
   let meta: BrandMeta = { assetGroups: [{ id: 'logos', label: 'Logos', items: [] }], fontFiles: [] };
   meta = E.addGroup(meta, 'Logos');

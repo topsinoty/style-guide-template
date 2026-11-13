@@ -167,6 +167,7 @@ export class Session {
     const { map, entries } = this.#place(files, groupId, (file, src) => ({ label: stem(file.name), src }));
     await this.#persist(map);
     this.setMeta((m) => E.addItems(m, groupId, entries));
+    return entries.map((entry) => entry.src);
   }
 
   async addFontUploads(files: File[]) {

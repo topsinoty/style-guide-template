@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, shallowReactive, useTemplateRef } from 'vue';
 import { useDropZone, useFileDialog } from '@vueuse/core';
+import {
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+} from 'reka-ui';
 import { injectSession } from '../useSession.js';
 import Icon from '../Icon.vue';
 import Listbox from '../Listbox.vue';
@@ -48,27 +57,33 @@ missingDialog.onChange(async (files) => {
       Dismiss
     </button>
   </div>
-  <div v-if="session.pending.length" class="cd-box cd-panel">
-    <h2>{{ plural(session.pending.length, 'file') }} to add</h2>
-    <ul>
-      <li v-for="file in session.pending" :key="file.name">{{ file.name }}</li>
-    </ul>
-    <div class="cd-field-row">
-      <div class="cd-field">
-        <span>Add to group</span><Listbox v-model:value="target" label="Asset group" :options="options" />
-      </div>
-      <button
-        type="button"
-        class="btn btn-small"
-        @click="session.addPending(target === newGroup ? null : target)"
-      >
-        Add files
-      </button>
-      <button type="button" class="btn btn-secondary btn-small" @click="session.discardPending()">
-        Discard
-      </button>
-    </div>
-  </div>
+  <DialogRoot :open="session.pending.length > 0" @update:open="(open) => open || session.discardPending()">
+    <DialogPortal>
+      <DialogOverlay class="cd-confirm-overlay" />
+      <DialogContent class="cd-confirm">
+        <DialogTitle as="h2">Add {{ plural(session.pending.length, 'file') }}</DialogTitle>
+        <DialogDescription>Choose the asset group they belong to.</DialogDescription>
+        <ul class="cd-confirm-items">
+          <li v-for="file in session.pending" :key="file.name">
+            <code>{{ file.name }}</code>
+          </li>
+        </ul>
+        <div class="cd-field">
+          <span>Group</span><Listbox v-model:value="target" label="Asset group" :options="options" />
+        </div>
+        <div class="cd-field-row">
+          <DialogClose class="btn btn-secondary btn-small">Discard</DialogClose>
+          <button
+            type="button"
+            class="btn btn-small"
+            @click="session.addPending(target === newGroup ? null : target)"
+          >
+            Add files
+          </button>
+        </div>
+      </DialogContent>
+    </DialogPortal>
+  </DialogRoot>
   <div v-if="missing.length" class="cd-box cd-panel">
     <h2>Missing files</h2>
     <p>This brand refers to files that are not loaded. Drop them here; they are matched by file name.</p>

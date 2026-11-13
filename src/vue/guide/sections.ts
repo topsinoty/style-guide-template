@@ -1,9 +1,13 @@
+import { colorKind } from './color-path.js';
 import type { BrandMeta, Tokens } from '../../lib/types.js';
 
 const builtIn = new Set(['logos', 'favicons', 'icons']);
 const shownInOwnSection = ['color.', 'spacing.', 'radius.', 'shadow.', 'font-size.', 'typography.', 'font.'];
 
 export const isOtherToken = (path: string) => !shownInOwnSection.some((prefix) => path.startsWith(prefix));
+
+export const isOtherColor = (path: string, type: string) =>
+  type === 'color' && path.startsWith('color.') && colorKind(path) === 'other';
 
 export interface Section {
   id: string;
