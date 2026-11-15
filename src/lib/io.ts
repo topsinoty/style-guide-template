@@ -1,5 +1,5 @@
 import { zipSync, unzipSync } from 'fflate';
-import { toResolver } from './document.js';
+import { inlineResolver, toResolver } from './document.js';
 import { ResolveError, resolve, contexts, defaultInputs } from './resolver.js';
 import { generateCss } from './css.js';
 import { checkContrast } from './contrast.js';
@@ -119,7 +119,7 @@ export function loadZip(
   return { doc, files, errors };
 }
 
-export const saveJson = (doc: ResolverDoc) => `${JSON.stringify(doc, null, 2)}\n`;
+export const saveJson = (doc: ResolverDoc) => `${JSON.stringify(inlineResolver(doc), null, 2)}\n`;
 
 export function exportLayout(meta: BrandMeta): Map<string, string> {
   const layout = new Map<string, string>();

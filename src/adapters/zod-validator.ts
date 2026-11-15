@@ -14,6 +14,7 @@ import type {
 } from '../lib/types.js';
 import { entriesOf, keysOf, valuesOf } from '../lib/records.js';
 import { isSafeSrc } from '../lib/path.js';
+import { hoistResolver } from '../lib/document.js';
 import { child, deepMerge, isNode } from '../lib/tree.js';
 import { COLOR_SPACES, FONT_STYLES, STROKE_STYLES, WEIGHT_KEYWORDS, isAlias } from '../lib/values.js';
 
@@ -174,7 +175,7 @@ export const resolverDoc: z.ZodMiniType<ResolverDoc> = z.object({
 const mergeSources = (list: TokenNode[]) => list.reduce((acc, s) => deepMerge(acc, s), {});
 
 function parseBrand(input: unknown): Parsed<ResolverDoc> {
-  const parsed = z.safeParse(resolverDoc, input);
+  const parsed = z.safeParse(resolverDoc, isNode(input) ? hoistResolver(input) : input);
   if (!parsed.success) return { ok: false, problems: problems(parsed.error) };
   const doc = parsed.data;
   const modifiers = doc.modifiers ?? {};

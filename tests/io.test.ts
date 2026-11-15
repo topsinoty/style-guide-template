@@ -5,7 +5,7 @@ import { keysOf } from '../src/lib/records.js';
 import { setToken } from '../src/lib/edit.js';
 import { isNode, nodeAt } from '../src/lib/tree.js';
 import { fontsource } from '../src/adapters/fontsource.js';
-import { present, load, preset, V } from './helpers.js';
+import { present, load, preset, token, V } from './helpers.js';
 import { unzipSync } from 'fflate';
 import {
   classify,
@@ -73,9 +73,43 @@ test('a plain tokens file loads as a resolver named after the file', () => {
   assert.equal(present(r.doc).name, 'acme');
 });
 
-test('saveJson', () => {
-  const s = saveJson({ version: '2025.10', sets: {}, resolutionOrder: [] });
-  assert.equal(s, '{\n  "version": "2025.10",\n  "sets": {},\n  "resolutionOrder": []\n}\n');
+test('saveJson writes sets and modifiers inline in resolutionOrder', () => {
+  const saved: unknown = JSON.parse(saveJson(preset()));
+  assert.ok(isNode(saved) && Array.isArray(saved.resolutionOrder));
+  assert.equal(saved.sets, undefined);
+  assert.equal(saved.modifiers, undefined);
+  const [set, modifier] = saved.resolutionOrder;
+  assert.ok(isNode(set) && isNode(modifier));
+  assert.deepEqual(
+    [set.type, set.name, modifier.type, modifier.name],
+    ['set', 'foundation', 'modifier', 'theme'],
+  );
+  assert.ok(Array.isArray(set.sources));
+  assert.ok(isNode(modifier.contexts) && 'dark' in modifier.contexts);
+});
+
+test('a saved brand loads back as the same document', () => {
+  const doc = preset();
+  const loaded = parseBrandJson(saveJson(doc), 'default.resolver.json', zodValidator);
+  assert.deepEqual(loaded.errors, []);
+  assert.deepEqual(loaded.doc, doc);
+});
+
+test('a resolver with only inline sets and modifiers loads', () => {
+  const text = JSON.stringify({
+    version: '2025.10',
+    resolutionOrder: [
+      { type: 'set', name: 'foundation', sources: [{ size: { $type: 'number', one: { $value: 1 } } }] },
+      { type: 'modifier', name: 'theme', contexts: { light: [], dark: [] }, default: 'light' },
+    ],
+  });
+  const { doc, errors } = parseBrandJson(text, 'inline.resolver.json', zodValidator);
+  assert.deepEqual(errors, []);
+  assert.deepEqual(present(doc).resolutionOrder, [
+    { $ref: '#/sets/foundation' },
+    { $ref: '#/modifiers/theme' },
+  ]);
+  assert.equal(token(resolve(present(doc)), 'size.one').value, 1);
 });
 
 test('export layout: one folder per group, fonts in fonts/, duplicates numbered', () => {
