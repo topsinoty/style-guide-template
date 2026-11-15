@@ -156,6 +156,16 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
                     :name="cssName(path)"
                     :type="token.type"
                   />
+                  <span
+                    v-else-if="token.type === 'color'"
+                    class="cd-preview-swatch"
+                    :style="{ background: `var(${cssName(path)})` }"
+                  ></span>
+                  <span
+                    v-else-if="token.type === 'dimension'"
+                    class="cd-preview-bar"
+                    :style="{ width: `var(${cssName(path)})` }"
+                  ></span>
                 </td>
                 <td>{{ token.description }}</td>
               </tr>

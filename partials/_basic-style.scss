@@ -127,7 +127,7 @@ nav {
 		display: inline-flex;
 		align-items: center;
 		min-height: chrome(2.75);
-		font-size: var(--font-size-sm);
+		font-size: chrome(0.875);
 		padding: 0 0.2em;
 		transition:
 			color var(--duration-fast),
@@ -417,6 +417,22 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	&:hover {
 		background: $scrollbar-color;
 	}
+}
+
+.cd-preview-swatch {
+	display: block;
+	width: chrome(6);
+	height: chrome(1.5);
+	border-radius: var(--radius-sm, chrome(0.25));
+	box-shadow: inset 0 0 0 var(--hairline) var(--color-card-border);
+}
+
+.cd-preview-bar {
+	display: block;
+	max-width: chrome(12);
+	height: chrome(0.5);
+	border-radius: 999px;
+	background: var(--color-primary-background);
 }
 
 .cd-motion {

@@ -44,17 +44,17 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: var(--spacing-xs);
+	gap: chrome(0.25);
 	min-width: chrome(2.75);
 	min-height: chrome(2.75);
-	padding: 0 var(--spacing-sm);
+	padding: 0 chrome(0.5);
 	border: none;
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-sm, chrome(0.25));
 	background: transparent;
 	color: var(--color-page-foreground);
-	font-size: var(--font-size-sm);
+	font-size: chrome(0.875);
 	cursor: pointer;
-	transition: background-color var(--duration-fast);
+	transition: background-color var(--duration-fast, 150ms);
 
 	@include hover {
 		background: var(--color-secondary-background-hover);
@@ -85,17 +85,17 @@
 	width: chrome(2);
 	padding: var(--hairline);
 	border: var(--hairline) solid currentcolor;
-	border-radius: var(--radius-sm);
+	border-radius: 999px;
 }
 
 .cd-switch-thumb {
 	width: chrome(0.75);
 	height: chrome(0.75);
-	border-radius: var(--radius-sm);
+	border-radius: 999px;
 	background: currentcolor;
 
 	@media (prefers-reduced-motion: no-preference) {
-		transition: transform var(--duration-fast);
+		transition: transform var(--duration-fast, 150ms);
 	}
 
 	&[data-state='checked'] {
