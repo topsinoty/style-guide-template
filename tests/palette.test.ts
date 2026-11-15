@@ -9,6 +9,7 @@ import {
   blankBrand,
   generateShades,
   handSetShades,
+  moveColor,
   paletteColors,
   referencesTo,
   removeColor,
@@ -19,10 +20,10 @@ import {
   setShade,
 } from '../src/lib/palette.js';
 import type { ResolverDoc } from '../src/lib/types.js';
-import { nodeAt, withVendorData } from '../src/lib/tree.js';
+import { child, children, nodeAt, withVendorData } from '../src/lib/tree.js';
 import { resolve } from '../src/lib/resolver.js';
 import { checkContrast, ROLES } from '../src/lib/contrast.js';
-import { setToken } from '../src/lib/edit.js';
+import { foundation, setToken } from '../src/lib/edit.js';
 import { setStep } from '../src/lib/scale.js';
 import { narrow, isColor } from '../src/lib/values.js';
 import { present, preset, V } from './helpers.js';
@@ -291,4 +292,20 @@ test('a blank brand keeps only role colors, pointing at a black and white palett
     checkContrast(blank).filter((result) => result.ratio < 21),
     [],
   );
+});
+
+test('moveColor swaps a palette color with its neighbour and leaves roles in place', () => {
+  const doc = preset();
+  const keys = (d: ResolverDoc) => children(child(foundation(d), 'color')).map(([key]) => key);
+  const hues = new Set(['brand', 'neutral', 'red', 'green', 'amber']);
+  const moved = keys(moveColor(doc, 'neutral', -1));
+  assert.deepEqual(
+    moved.filter((k) => hues.has(k)),
+    ['neutral', 'brand', 'red', 'green', 'amber'],
+  );
+  assert.deepEqual(
+    moved.filter((k) => !hues.has(k)),
+    keys(doc).filter((k) => !hues.has(k)),
+  );
+  assert.equal(moveColor(doc, 'brand', -1), doc);
 });

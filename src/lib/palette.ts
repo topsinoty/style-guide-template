@@ -1,7 +1,7 @@
 import { anchoredScale, contrastRatio, isDark, oklch, toOklch } from './color.js';
 import { ROLES } from './contrast.js';
-import { foundation } from './edit.js';
-import { entriesOf, isEmpty, keysOf, mapValues, renameKey, valuesOf, without } from './records.js';
+import { foundation, move } from './edit.js';
+import { entriesOf, isEmpty, keysOf, mapValues, recordOf, renameKey, valuesOf, without } from './records.js';
 import { defaultInputs, resolve } from './resolver.js';
 import { child, children, ensureChild, isHandSet, isNode, vendorData, withVendorData } from './tree.js';
 import type { DtcgColor, ResolverDoc, TokenNode } from './types.js';
@@ -167,6 +167,25 @@ function monochromeRoles(doc: ResolverDoc) {
     walkValues(tree, '', (token, path) => {
       if (ROLES.includes(path.split('.')[1])) token.$value = blackOrWhite(token.$value);
     });
+}
+
+export function moveColor(doc: ResolverDoc, id: string, dir: number): ResolverDoc {
+  const colors = child(foundation(doc), 'color');
+  const ids = children(colors)
+    .filter(([key, group]) => isPaletteGroup(key, group))
+    .map(([key]) => key);
+  const order = move(ids, ids.indexOf(id), dir);
+  if (!colors || order === ids) return doc;
+  const out = clone(doc);
+  const slots = [...order];
+  foundation(out).color = recordOf(
+    entriesOf(colors).map(([key, value]) => {
+      if (!ids.includes(key)) return [key, value];
+      const next = slots.shift() ?? key;
+      return [next, colors[next]];
+    }),
+  );
+  return out;
 }
 
 export function renameColor(doc: ResolverDoc, from: string, to: string): ResolverDoc {

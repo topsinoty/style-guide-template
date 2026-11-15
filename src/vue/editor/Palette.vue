@@ -8,6 +8,7 @@ import {
   addColor,
   generateShades,
   handSetShades,
+  moveColor,
   paletteColors,
   paletteId,
   referencesTo,
@@ -151,7 +152,12 @@ function addNewColor() {
   <p v-if="!colors.length" class="cd-hint">
     No palette colors yet. Add one below; roles can still use any CSS color.
   </p>
-  <section v-for="color in colors" :key="color.id" class="ed-group" :aria-label="`${cap(color.id)} color`">
+  <section
+    v-for="(color, i) in colors"
+    :key="color.id"
+    class="ed-group"
+    :aria-label="`${cap(color.id)} color`"
+  >
     <div class="ed-group-head">
       <h4>{{ cap(color.id) }}</h4>
       <span class="cd-hint"
@@ -177,6 +183,18 @@ function addNewColor() {
           </form>
         </PopoverContent>
       </PopoverRoot>
+      <IconButton
+        name="move-up"
+        :label="`Move ${color.id} up`"
+        :disabled="i === 0"
+        @click="ctx.edit((doc) => moveColor(doc, color.id, -1))"
+      />
+      <IconButton
+        name="move-down"
+        :label="`Move ${color.id} down`"
+        :disabled="i === colors.length - 1"
+        @click="ctx.edit((doc) => moveColor(doc, color.id, 1))"
+      />
       <IconButton name="trash" :label="`Remove ${color.id}`" @click="removeWholeColor(color.id)" />
     </div>
     <ol class="cd-mini-scale" :aria-label="`${color.id} shades`">
