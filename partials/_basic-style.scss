@@ -533,19 +533,42 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 
 	&.is-open {
 		position: fixed;
-		inset: 0;
-		z-index: 30;
+		inset: chrome(1.5);
+		z-index: 61;
 		overflow: auto;
 		margin: 0;
-		border: 0;
-		border-radius: 0;
-		padding: chrome(3) max(chrome(3), 5vw);
+		padding: 0 chrome(2) chrome(2);
+		box-shadow: var(--shadow-lg, 0 chrome(1) chrome(3) rgb(0 0 0 / 0.3));
 	}
+}
+
+.cd-card-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	background: rgb(0 0 0 / 0.55);
+}
+
+.cd-card-head {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: chrome(1);
+	margin: 0 chrome(-2) chrome(1.5);
+	padding: chrome(1) chrome(2);
+	border-bottom: var(--hairline) solid var(--color-card-border);
+	background: inherit;
+	font: 600 chrome(1) / 1.4 var(--font-body);
+	letter-spacing: normal;
+	text-transform: none;
 }
 
 .cd-logos > .cd-card.is-open {
 	display: grid;
-	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+	grid-template: auto minmax(0, 1fr) / minmax(0, 1fr);
 
 	img {
 		width: 100%;
@@ -559,12 +582,6 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	top: chrome(0.5);
 	right: chrome(0.5);
 	z-index: 1;
-
-	.cd-card.is-open > & {
-		position: fixed;
-		top: chrome(1);
-		right: chrome(1);
-	}
 	display: grid;
 	place-items: center;
 	width: chrome(2);
@@ -579,7 +596,6 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	transition: opacity var(--duration-fast);
 
 	.cd-card:hover > &,
-	.cd-card.is-open > &,
 	&:focus-visible {
 		opacity: 1;
 	}
