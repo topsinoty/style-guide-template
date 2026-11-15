@@ -38,7 +38,7 @@ const warnings = computed(() =>
   session.value.store.saveError
     ? [
         ...session.value.warnings,
-        'Your edits could not be saved in this browser. Save JSON to keep them.',
+        'Your edits could not be saved in this browser. Use Save to keep them.',
       ]
     : session.value.warnings,
 );

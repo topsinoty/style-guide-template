@@ -65,10 +65,12 @@ const emit = defineEmits<{ tour: [] }>();
               copy.
             </li>
             <li>
-              <strong>Save JSON</strong> downloads the brand file.
-              <strong>Export ZIP</strong> downloads a brand kit: the brand file,
+              <strong>Save</strong> offers three downloads: the brand file as
+              JSON; a brand kit ZIP with the brand file,
               <code>css/theme.css</code>, the fonts with their licenses, every
-              asset group in its own folder, and a README.
+              asset group in its own folder, and a README; or the brand book as
+              a PDF, through the print dialog. Printing the page gives the same
+              layout.
             </li>
           </ul>
 
@@ -123,7 +125,7 @@ const emit = defineEmits<{ tour: [] }>();
               </li>
               <li>
                 Edits are kept in this browser, separately for each site
-                address, until you load or start another brand. Save JSON to
+                address, until you load or start another brand. Save the JSON to
                 keep a copy.
               </li>
               <li>

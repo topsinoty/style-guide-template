@@ -29,6 +29,11 @@ import {
   DialogRoot,
   DialogTitle,
   DialogTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
   SwitchRoot,
   SwitchThumb,
 } from 'reka-ui';
@@ -50,6 +55,7 @@ import { urlFor } from './urls';
 import Action from './Action.vue';
 import Icon from './Icon.vue';
 import Guide from './guide/Guide.vue';
+import PrintBook from './guide/PrintBook.vue';
 import Editor from './editor/Editor.vue';
 import Help from './Help.vue';
 import Tour from './tour/Tour.vue';
@@ -254,6 +260,11 @@ async function exportKit() {
   }
 }
 
+async function print() {
+  await document.fonts.ready;
+  globalThis.print();
+}
+
 const loadDialog = useFileDialog({ reset: true });
 
 loadDialog.onChange((files) => {
@@ -411,21 +422,37 @@ function onNavWheel(e: WheelEvent) {
             title="Load a brand file, ZIP, fonts or assets"
             @click="loadDialog.open()"
           />
-          <Action
-            id="save-btn"
-            icon="save"
-            label="Save JSON"
-            title="Save the brand file as JSON"
-            @click="save"
-          />
-          <Action
-            id="export-btn"
-            icon="export"
-            label="Export ZIP"
-            title="Export the brand kit as a ZIP"
-            :busy="exporting"
-            @click="exportKit"
-          />
+          <DropdownMenuRoot>
+            <DropdownMenuTrigger as-child>
+              <Action
+                id="save-btn"
+                icon="save"
+                label="Save"
+                title="Save the brand as JSON, a ZIP kit or a PDF"
+                :busy="exporting"
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuContent
+                align="end"
+                :side-offset="4"
+                :collision-padding="8"
+                class="cd-listbox-popup"
+              >
+                <DropdownMenuItem class="cd-listbox-option" @select="save"
+                  >Brand file (JSON)</DropdownMenuItem
+                >
+                <DropdownMenuItem class="cd-listbox-option" @select="exportKit"
+                  >Brand kit (ZIP)</DropdownMenuItem
+                >
+                <DropdownMenuItem
+                  class="cd-listbox-option"
+                  @select="print().catch(report)"
+                  >Brand book (PDF)</DropdownMenuItem
+                >
+              </DropdownMenuContent>
+            </DropdownMenuPortal>
+          </DropdownMenuRoot>
           <Action
             id="help-btn"
             icon="help"
@@ -444,6 +471,7 @@ function onNavWheel(e: WheelEvent) {
         :covered="editing && !wide"
         :inset="headerHeight"
       />
+      <Teleport to="body"><PrintBook :session="session" /></Teleport>
       <Help
         v-model:open="helping"
         :editable="session.editable"
