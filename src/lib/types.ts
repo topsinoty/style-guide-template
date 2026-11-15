@@ -63,6 +63,8 @@ export interface AssetItem {
   label?: string;
   description?: string;
   provider?: string;
+  background?: string;
+  wide?: boolean;
   [key: string]: unknown;
 }
 

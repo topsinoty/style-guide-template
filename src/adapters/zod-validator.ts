@@ -222,6 +222,8 @@ const assetItemShape = {
   label: z.optional(z.string()),
   description: z.optional(z.string()),
   provider: z.optional(z.string()),
+  background: z.optional(z.string()),
+  wide: z.optional(z.boolean()),
 };
 const assetItem: z.ZodMiniType<AssetItem> = z.looseObject(assetItemShape);
 const assetGroup: z.ZodMiniType<AssetGroup> = z.looseObject({

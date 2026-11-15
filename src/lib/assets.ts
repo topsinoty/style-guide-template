@@ -41,6 +41,8 @@ function readItem(value: unknown): AssetItem | null {
     label: optionalString(value.label),
     description: optionalString(value.description),
     provider: optionalString(value.provider),
+    background: optionalString(value.background),
+    wide: value.wide === true ? true : undefined,
   };
 }
 

@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { AssetContext, AssetItem } from '../../lib/types.js';
 import { extension, fileName } from '../../lib/path.js';
 import { downloadUrl, urlFor } from '../urls.js';
-import { formatSize, isImage } from './parts.js';
+import { cssBackground, formatSize, isImage } from './parts.js';
 import Icon from '../Icon.vue';
 
 const props = defineProps<{ item: AssetItem; ctx: AssetContext }>();
@@ -22,7 +22,12 @@ const href = computed(() => (data.value ? downloadUrl(props.item.src, data.value
 <template>
   <figure class="cd-file">
     <template v-if="url">
-      <img v-if="isImage(ext)" :src="url" :alt="item.label ?? name" />
+      <img
+        v-if="isImage(ext)"
+        :src="url"
+        :alt="item.label ?? name"
+        :style="{ background: cssBackground(item.background) }"
+      />
       <div v-else class="cd-file-card" aria-hidden="true">{{ ext }}</div>
       <figcaption>
         <b>{{ item.label ?? name }}</b>

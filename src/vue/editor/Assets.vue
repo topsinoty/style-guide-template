@@ -2,13 +2,19 @@
 import AddPanel from './AddPanel.vue';
 import { computed, ref, shallowReactive } from 'vue';
 import { mainLogo } from '../../lib/assets.js';
+import { toHex } from '../../lib/color.js';
 import * as E from '../../lib/edit.js';
+import { paletteColors } from '../../lib/palette.js';
 import { extension, fileName } from '../../lib/path.js';
 import type { AssetGroup, AssetItem } from '../../lib/types.js';
+import { isColor, narrow } from '../../lib/values.js';
+import { COLOR_ERROR } from '../ColorInput.vue';
 import { urlFor } from '../urls.js';
 import Listbox from '../Listbox.vue';
 import IconButton from './IconButton.vue';
 import ItemRow from './ItemRow.vue';
+import { colorOptions, roleEntry, roleText } from './role-color.js';
+import RoleColorCombobox from './RoleColorCombobox.vue';
 import TextField from './TextField.vue';
 import UploadButton from './UploadButton.vue';
 import type { EditorContext } from './context.js';
@@ -22,6 +28,24 @@ const image = /\.(svg|png|jpe?g|gif|webp|avif|ico)$/i;
 const logo = computed(() => mainLogo(props.ctx.meta));
 const pick = (group: AssetGroup) => picks.get(group.id) ?? '';
 const groupName = (group: AssetGroup) => group.label ?? group.id;
+const shades = computed(() => colorOptions(paletteColors(props.ctx.doc, props.ctx.vendor)));
+
+function hexOf(background: string | undefined) {
+  const ref = background && /^\{(.+)\}$/.exec(background);
+  const color = narrow(ref ? props.ctx.tokens.get(ref[1])?.value : undefined, isColor);
+  if (color) return toHex(color);
+  return background?.startsWith('#') ? background : '#ffffff';
+}
+
+function setBackground(group: AssetGroup, item: AssetItem, text: string) {
+  if (!text.trim())
+    return props.ctx.setMeta((m) => E.updateItem(m, group.id, item.src, { background: undefined }));
+  const value = roleEntry(text, shades.value);
+  if (!value) return props.ctx.session.warn(`${text.trim()}: ${COLOR_ERROR}`);
+  const background = typeof value === 'string' ? value : toHex(value);
+  props.ctx.setMeta((m) => E.updateItem(m, group.id, item.src, { background }));
+}
+
 const count = (n: number) => (n === 1 ? '1 file' : `${n} files`);
 
 function addFromLibrary(group: AssetGroup) {
@@ -126,6 +150,26 @@ const rowKey = (group: AssetGroup, item: AssetItem) => `${group.id}/${item.src}`
             ctx.setMeta((m) => E.updateItem(m, group.id, item.src, { description: $event || undefined }))
           "
         />
+        <div class="cd-field">
+          <span>Background</span>
+          <RoleColorCombobox
+            :label="`Background of ${item.label || fileName(item.src)}`"
+            :text="roleText(item.background, shades)"
+            :hex="hexOf(item.background)"
+            :options="shades"
+            @commit="setBackground(group, item, $event)"
+          />
+        </div>
+        <label v-if="group.id === 'logos'" class="ed-check"
+          ><input
+            type="checkbox"
+            :checked="item.wide === true"
+            @change="
+              ctx.setMeta((m) => E.updateItem(m, group.id, item.src, { wide: !item.wide || undefined }))
+            "
+          />
+          Full width</label
+        >
         <div class="cd-field-row">
           <span class="cd-hint ed-grow"
             ><code>{{ item.src }}</code></span

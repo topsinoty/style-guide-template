@@ -1,3 +1,4 @@
+import { cssName } from '../../lib/css.js';
 import { isNode } from '../../lib/tree.js';
 
 export function dim(value: unknown): string {
@@ -20,3 +21,8 @@ export function formatSize(bytes: number) {
 }
 
 export const cap = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
+export function cssBackground(value: string | undefined): string | undefined {
+  const ref = value && /^\{(.+)\}$/.exec(value);
+  return ref ? `var(${cssName(ref[1])})` : value || undefined;
+}

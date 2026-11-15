@@ -16,6 +16,7 @@ import Panels from './Panels.vue';
 import Prose from './Prose.vue';
 import Scale from './Scale.vue';
 import Typography from './Typography.vue';
+import { cssBackground } from './parts.js';
 import { isOtherToken, visibleSections } from './sections.js';
 import MotionPreview from './MotionPreview.vue';
 import Inspector from './Inspector.vue';
@@ -105,7 +106,13 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
       <div v-if="!section.text" class="cd-section-body">
         <template v-if="section.id === 'branding'">
           <ul class="cd-logos">
-            <li v-for="item in itemsOf('logos')" :key="item.src" class="cd-box">
+            <li
+              v-for="item in itemsOf('logos')"
+              :key="item.src"
+              class="cd-box"
+              :class="{ 'cd-logo-wide': item.wide }"
+              :style="{ background: cssBackground(item.background) }"
+            >
               <AssetImage :item="item" :ctx="session.ctx" />
             </li>
           </ul>

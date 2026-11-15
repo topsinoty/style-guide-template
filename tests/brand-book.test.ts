@@ -220,3 +220,15 @@ test('standard text styles fill the chosen elements with the fonts and sizes the
   });
   assert.equal(narrow(nodeAt(group, 'code')?.$value, isTypography)?.fontFamily, '{font.body}');
 });
+
+test('an asset keeps its background and full-width setting through validation', () => {
+  const logo = { src: 'logos/a.svg', background: '{color.neutral.950}', wide: true };
+  const doc = withBrandMeta(load(), V, meta({ assetGroups: [{ id: 'logos', items: [logo] }] }));
+  assert.deepEqual(checkBrand(doc, zodValidator), []);
+  assert.deepEqual(brandMeta(doc, V).assetGroups[0].items[0], {
+    ...logo,
+    label: undefined,
+    description: undefined,
+    provider: undefined,
+  });
+});
