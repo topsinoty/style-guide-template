@@ -4,11 +4,11 @@ import type { PaletteColor } from '../../lib/palette.js';
 import type { DtcgColor } from '../../lib/types.js';
 import { narrow, isColor } from '../../lib/values.js';
 
-export interface ColorOption {
+export type ColorOption = {
   value: string;
   label: string;
   swatch: string;
-}
+};
 
 export function colorOptions(colors: PaletteColor[]): ColorOption[] {
   return colors.flatMap((color) =>
@@ -24,15 +24,23 @@ export function colorOptions(colors: PaletteColor[]): ColorOption[] {
 }
 
 export const optionFor = (text: string, options: ColorOption[]) =>
-  options.find((option) => option.value === text || option.label.toLowerCase() === text.toLowerCase());
+  options.find(
+    (option) =>
+      option.value === text ||
+      option.label.toLowerCase() === text.toLowerCase(),
+  );
 
 export function roleText(value: unknown, options: ColorOption[]): string {
-  if (typeof value === 'string') return optionFor(value, options)?.label ?? value;
+  if (typeof value === 'string')
+    return optionFor(value, options)?.label ?? value;
   const color = narrow(value, isColor);
   return color ? toHex(color) : '';
 }
 
-export function roleEntry(text: string, options: ColorOption[]): string | DtcgColor | null {
+export function roleEntry(
+  text: string,
+  options: ColorOption[],
+): string | DtcgColor | null {
   const entered = text.trim();
   if (!entered) return null;
   return optionFor(entered, options)?.value ?? parseCssColor(entered);

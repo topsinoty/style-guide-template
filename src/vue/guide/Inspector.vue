@@ -4,11 +4,19 @@ import { useEventListener } from '@vueuse/core';
 import { elementStyles, ELEMENTS } from '../../lib/elements.js';
 import type { ResolverDoc } from '../../lib/types.js';
 
-const props = defineProps<{ doc: ResolverDoc; vendor: string; root?: HTMLElement | null }>();
+const props = defineProps<{
+  doc: ResolverDoc;
+  vendor: string;
+  root?: HTMLElement | null;
+}>();
 const TEXT = 'h1, h2, h3, h4, h5, h6, p, small, code, li, a, th, td';
 const target = ref<HTMLElement>();
 const box = ref({ top: 0, left: 0, width: 0, height: 0 });
-const styles = computed(() => elementStyles(props.doc.sets.foundation.sources[0], props.vendor));
+const styles = computed(() =>
+  elementStyles(props.doc.sets.foundation.sources[0], props.vendor),
+);
+
+const px = (value: string) => `${Math.round(Number.parseFloat(value))}px`;
 
 const info = computed(() => {
   const el = target.value;
@@ -19,14 +27,19 @@ const info = computed(() => {
   const family = css.fontFamily.split(',')[0].replaceAll('"', '');
   return {
     tag,
-    style: style ? (ELEMENTS.find((e) => e.value === tag)?.label ?? tag) + ` · ${style}` : null,
-    font: `${family} ${css.fontWeight} · ${Math.round(Number.parseFloat(css.fontSize))}px / ${css.lineHeight === 'normal' ? 'normal' : Math.round(Number.parseFloat(css.lineHeight)) + 'px'}`,
+    style: style
+      ? `${ELEMENTS.find((e) => e.value === tag)?.label ?? tag} · ${style}`
+      : null,
+    font: `${family} ${css.fontWeight} · ${px(css.fontSize)} / ${css.lineHeight === 'normal' ? 'normal' : px(css.lineHeight)}`,
   };
 });
 
 function visibleRect(el: HTMLElement) {
   let { top, left, right, bottom } = el.getBoundingClientRect();
-  top = Math.max(top, document.querySelector('header')?.getBoundingClientRect().bottom ?? 0);
+  top = Math.max(
+    top,
+    document.querySelector('header')?.getBoundingClientRect().bottom ?? 0,
+  );
   for (let parent = el.parentElement; parent; parent = parent.parentElement) {
     const { overflowX, overflowY } = getComputedStyle(parent);
     if (overflowX === 'visible' && overflowY === 'visible') continue;
@@ -40,11 +53,17 @@ function visibleRect(el: HTMLElement) {
 }
 
 const hasText = (el: HTMLElement) =>
-  [...el.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+  [...el.childNodes].some(
+    (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
+  );
 
 function show(el: Element | null | undefined) {
   const found = el?.closest('.cd-code') ? null : el?.closest(TEXT);
-  if (!(found instanceof HTMLElement) || !props.root?.contains(found) || !hasText(found)) {
+  if (
+    !(found instanceof HTMLElement) ||
+    !props.root?.contains(found) ||
+    !hasText(found)
+  ) {
     target.value = undefined;
     return;
   }
@@ -57,7 +76,8 @@ useEventListener(
   () => props.root,
   'pointerover',
   (e: PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.target instanceof Element) show(e.target);
+    if (e.pointerType === 'mouse' && e.target instanceof Element)
+      show(e.target);
   },
 );
 useEventListener(

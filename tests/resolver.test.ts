@@ -5,13 +5,22 @@ import { nodeAt } from '../src/lib/tree.js';
 import { narrow, isColor, isTypography } from '../src/lib/values.js';
 import type { ResolverDoc, Tokens } from '../src/lib/types.js';
 import { load, present, token } from './helpers.js';
-import { ResolveError, resolve, contexts, defaultInputs, aliasTarget, flatten } from '../src/lib/resolver.js';
+import {
+  ResolveError,
+  resolve,
+  contexts,
+  defaultInputs,
+  aliasTarget,
+  flatten,
+} from '../src/lib/resolver.js';
 import { toHex } from '../src/lib/color.js';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 
-const colorAt = (doc: ResolverDoc, path: string) => present(narrow(nodeAt(tree(doc), path)?.$value, isColor));
-const colorOf = (tokens: Tokens, path: string) => present(narrow(token(tokens, path).resolved, isColor));
+const colorAt = (doc: ResolverDoc, path: string) =>
+  present(narrow(nodeAt(tree(doc), path)?.$value, isColor));
+const colorOf = (tokens: Tokens, path: string) =>
+  present(narrow(token(tokens, path).resolved, isColor));
 
 test('dark overrides light', () => {
   const doc = load();
@@ -19,7 +28,10 @@ test('dark overrides light', () => {
     toHex(colorOf(resolve(doc, { theme: 'dark' }), 'color.page.background')),
     colorAt(doc, 'color.neutral.950').hex,
   );
-  assert.equal(toHex(colorOf(resolve(doc), 'color.page.background')), colorAt(doc, 'color.neutral.50').hex);
+  assert.equal(
+    toHex(colorOf(resolve(doc), 'color.page.background')),
+    colorAt(doc, 'color.neutral.50').hex,
+  );
 });
 
 test('raw value keeps the alias, type is inherited', () => {
@@ -31,17 +43,30 @@ test('raw value keeps the alias, type is inherited', () => {
 test('chained alias', () => {
   let doc = load();
   doc = setToken(doc, 'color.link', { $value: '{color.primary.background}' });
-  assert.equal(colorOf(resolve(doc), 'color.link').hex, colorAt(doc, 'color.brand.600').hex);
+  assert.equal(
+    colorOf(resolve(doc), 'color.link').hex,
+    colorAt(doc, 'color.brand.600').hex,
+  );
 });
 
 test('$ref pointer resolves like a curly alias', () => {
   let doc = load();
-  doc = setToken(doc, 'color.ref', { $value: { $ref: '#/color/brand/600/$value' } });
-  assert.deepEqual(token(resolve(doc), 'color.ref').resolved, colorAt(doc, 'color.brand.600'));
+  doc = setToken(doc, 'color.ref', {
+    $value: { $ref: '#/color/brand/600/$value' },
+  });
+  assert.deepEqual(
+    token(resolve(doc), 'color.ref').resolved,
+    colorAt(doc, 'color.brand.600'),
+  );
 });
 
 test('composite alias', () => {
-  const t = present(narrow(token(resolve(load()), 'typography.heading-1').resolved, isTypography));
+  const t = present(
+    narrow(
+      token(resolve(load()), 'typography.heading-1').resolved,
+      isTypography,
+    ),
+  );
   assert.deepEqual(t.fontSize, { value: 3.0518, unit: 'rem' });
   assert.deepEqual(t.fontFamily, ['Merriweather', 'serif']);
 });
@@ -64,7 +89,9 @@ test('missing target throws with path', () => {
 
 test('$root keeps its segment in the key', () => {
   let doc = load();
-  doc = setToken(doc, 'color.accent', { $root: { $value: '{color.brand.600}' } });
+  doc = setToken(doc, 'color.accent', {
+    $root: { $value: '{color.brand.600}' },
+  });
   assert.ok(flatten(tree(doc)).has('color.accent.$root'));
 });
 
@@ -90,5 +117,8 @@ test('an unknown context falls back to the default one', () => {
   const doc = load();
   delete present(doc.modifiers?.theme).contexts.dark;
   assert.doesNotThrow(() => resolve(doc, { theme: 'dark' }));
-  assert.equal(token(resolve(doc, { theme: 'dark' }), 'color.page.background').value, '{color.neutral.50}');
+  assert.equal(
+    token(resolve(doc, { theme: 'dark' }), 'color.page.background').value,
+    '{color.neutral.50}',
+  );
 });

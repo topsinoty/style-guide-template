@@ -11,6 +11,7 @@ import { zodValidator } from './adapters/zod-validator.js';
 import { readMode } from './app/mode.js';
 import { Session } from './app/session.js';
 import App from './vue/App.vue';
+import { provideSession } from './vue/useSession.js';
 
 const mode = readMode(location.search, import.meta.env.VITE_PUBLIC_BRAND);
 const stores = {
@@ -31,4 +32,6 @@ const session = await Session.open({
 });
 const mount = document.createElement('div');
 document.body.prepend(mount);
-createApp(App, { session, mode }).mount(mount);
+const app = createApp(App, { mode });
+provideSession(app, session);
+app.mount(mount);

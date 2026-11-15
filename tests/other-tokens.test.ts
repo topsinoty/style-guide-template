@@ -4,7 +4,10 @@ import { tokenValue } from '../src/vue/editor/other-tokens.js';
 
 test('measures need a unit their type allows', () => {
   assert.deepEqual(tokenValue('duration', '200ms'), { value: 200, unit: 'ms' });
-  assert.deepEqual(tokenValue('dimension', '1.5 rem'), { value: 1.5, unit: 'rem' });
+  assert.deepEqual(tokenValue('dimension', '1.5 rem'), {
+    value: 1.5,
+    unit: 'rem',
+  });
   assert.equal(tokenValue('duration', '200px'), null);
   assert.equal(tokenValue('dimension', '12'), null);
 });

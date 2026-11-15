@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import * as E from '../../lib/edit.js';
 import type { TextSection } from '../../lib/types.js';
 import {
@@ -19,16 +19,22 @@ import { elementPreview } from './preview.js';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const sections = computed(() => sectionsOf(props.ctx.meta, props.ctx.tokens));
-const h2 = computed(() => elementPreview(props.ctx.tree, props.ctx.vendor, 'h2'));
+const h2 = computed(() =>
+  elementPreview(props.ctx.tree, props.ctx.vendor, 'h2'),
+);
 const p = computed(() => elementPreview(props.ctx.tree, props.ctx.vendor, 'p'));
 const newTitle = ref('');
 const opened = ref<string>();
 
 const edit = (id: string, patch: Partial<TextSection>, typingKey?: string) =>
-  props.ctx.setMeta((m) => editSection(m, props.ctx.tokens, id, patch), typingKey);
+  props.ctx.setMeta(
+    (m) => editSection(m, props.ctx.tokens, id, patch),
+    typingKey,
+  );
 
 function rename(section: Section, title: string) {
-  if (section.group) props.ctx.setMeta((m) => E.renameGroup(m, section.group ?? '', title));
+  if (section.group)
+    props.ctx.setMeta((m) => E.renameGroup(m, section.group ?? '', title));
   else edit(section.id, { title });
 }
 
@@ -47,11 +53,13 @@ function add() {
   newTitle.value = '';
   return true;
 }
+const uid = useId();
 </script>
 
 <template>
   <p class="cd-hint">
-    The guide shows these in order. Open one to write its rules: how to use it, what to avoid, real examples.
+    The guide shows these in order. Open one to write its rules: how to use it,
+    what to avoid, real examples.
   </p>
   <ul class="ed-list">
     <ItemRow
@@ -64,7 +72,9 @@ function add() {
       :count="sections.length"
       :remove-label="section.text ? `Remove ${section.title}` : undefined"
       @update:open="(open) => (opened = open ? section.id : undefined)"
-      @move="(dir) => ctx.setMeta((m) => moveSection(m, ctx.tokens, section.id, dir))"
+      @move="
+        (dir) => ctx.setMeta((m) => moveSection(m, ctx.tokens, section.id, dir))
+      "
       @remove="ctx.setMeta((m) => removeSection(m, ctx.tokens, section.id))"
     >
       <template #badge>
@@ -93,12 +103,22 @@ function add() {
   <AddPanel label="Add a text section">
     <template #default="{ close }">
       <form class="ed-add" @submit.prevent="add() && close()">
-        <label class="cd-field"
+        <label :for="`${uid}-new`" class="cd-field"
           ><span>New text section</span
-          ><input v-model="newTitle" type="text" placeholder="e.g. Voice and tone"
+          ><input
+            :id="`${uid}-new`"
+            v-model="newTitle"
+            type="text"
+            placeholder="e.g. Voice and tone"
         /></label>
         <button type="submit" class="btn">Add section</button>
-        <button type="button" class="btn btn-secondary btn-quiet" @click="close">Cancel</button>
+        <button
+          type="button"
+          class="btn btn-secondary btn-quiet"
+          @click="close"
+        >
+          Cancel
+        </button>
       </form>
     </template>
   </AddPanel>

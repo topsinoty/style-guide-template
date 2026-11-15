@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { valueAt } from '../../lib/records.js';
+import { computed, reactive, useId } from 'vue';
 import {
   addScaleStep,
   applyScale,
@@ -19,9 +20,12 @@ import IconButton from './IconButton.vue';
 import NameForm from './NameForm.vue';
 import NumberField from './NumberField.vue';
 
-const props = withDefaults(defineProps<{ ctx: EditorContext; keys?: string[] }>(), {
-  keys: () => ['spacing', 'radius'],
-});
+const props = withDefaults(
+  defineProps<{ ctx: EditorContext; keys?: string[] }>(),
+  {
+    keys: () => ['spacing', 'radius'],
+  },
+);
 
 const SCALES = [
   ['spacing', 'Spacing'],
@@ -38,9 +42,14 @@ const scales = computed(() =>
     const steps = children(group).map(([step, token]) => ({
       step,
       length: narrow(token.$value, isSize),
-      byHand: isHandSet(token, props.ctx.vendor) || !spec || !(step in spec.steps),
+      byHand:
+        isHandSet(token, props.ctx.vendor) || !spec || !(step in spec.steps),
     }));
-    const unit = spec?.base.unit ?? steps.find((s) => s.length)?.length?.unit ?? pendingUnit[key] ?? 'px';
+    const unit =
+      spec?.base.unit ??
+      steps.find((s) => s.length)?.length?.unit ??
+      valueAt(pendingUnit, key) ??
+      'px';
     return [{ key, label, spec, steps, unit }];
   }),
 );
@@ -48,7 +57,10 @@ const scales = computed(() =>
 function setBase(key: string, value: number, unit: string) {
   if (!Number.isFinite(value) || value < 0) return;
   const group = child(props.ctx.tree, key) ?? { $type: 'dimension' };
-  const spec = scaleOf(group, props.ctx.vendor) ?? { base: { value, unit }, steps: {} };
+  const spec = scaleOf(group, props.ctx.vendor) ?? {
+    base: { value, unit },
+    steps: {},
+  };
   const next = withVendorData(group, props.ctx.vendor, {
     scale: { ...spec, base: { ...spec.base, value } },
   });
@@ -62,19 +74,45 @@ function setRootSize(value: number) {
   );
 }
 
-const STANDARD: Record<string, { linear: Record<string, number>; ratio?: Record<string, number> }> = {
-  spacing: { linear: { xs: 1, sm: 2, md: 4, lg: 6, xl: 8, '2xl': 12, '3xl': 16 } },
+const STANDARD: Record<
+  string,
+  { linear: Record<string, number>; ratio?: Record<string, number> }
+> = {
+  spacing: {
+    linear: { xs: 1, sm: 2, md: 4, lg: 6, xl: 8, '2xl': 12, '3xl': 16 },
+  },
   radius: { linear: { none: 0, sm: 1, md: 2, lg: 3, xl: 4, full: 9999 } },
   'font-size': {
-    linear: { xs: 0.75, sm: 0.875, md: 1, lg: 1.125, xl: 1.25, '2xl': 1.5, '3xl': 1.875, '4xl': 2.25 },
-    ratio: { xs: -2, sm: -1, md: 0, lg: 1, xl: 2, '2xl': 3, '3xl': 4, '4xl': 5 },
+    linear: {
+      xs: 0.75,
+      sm: 0.875,
+      md: 1,
+      lg: 1.125,
+      xl: 1.25,
+      '2xl': 1.5,
+      '3xl': 1.875,
+      '4xl': 2.25,
+    },
+    ratio: {
+      xs: -2,
+      sm: -1,
+      md: 0,
+      lg: 1,
+      xl: 2,
+      '2xl': 3,
+      '3xl': 4,
+      '4xl': 5,
+    },
   },
 };
 
 function useStandard(key: string, spec: ScaleSpec | null) {
-  if (!spec) return props.ctx.session.warn('Set the base first.');
+  if (!spec) {
+    props.ctx.session.warn('Set the base first.');
+    return;
+  }
   const set = STANDARD[key];
-  regenerate(key, { steps: (spec.ratio && set.ratio) || set.linear });
+  regenerate(key, { steps: spec.ratio ? set.ratio : set.linear });
 }
 
 const UNIT_OPTIONS = [
@@ -86,21 +124,31 @@ function setUnit(key: string, unit: string) {
   pendingUnit[key] = unit;
   const group = child(props.ctx.tree, key);
   if (group && (unit === 'px' || unit === 'rem'))
-    props.ctx.setToken(key, setScaleUnit(group, unit, props.ctx.vendor, props.ctx.meta.rootSize));
+    props.ctx.setToken(
+      key,
+      setScaleUnit(group, unit, props.ctx.vendor, props.ctx.meta.rootSize),
+    );
 }
 
 function setRatio(key: string, value: number) {
   const spec = scaleOf(child(props.ctx.tree, key), props.ctx.vendor);
-  if (!spec) return props.ctx.session.warn('Set the base first.');
+  if (!spec) {
+    props.ctx.session.warn('Set the base first.');
+    return;
+  }
   const ratio = value > 0 && value !== 1 ? value : undefined;
   // Steps mean multipliers without a ratio and exponents with one; convert so every size stays put.
   const multiplier = (step: number) => (spec.ratio ? spec.ratio ** step : step);
   const next = mapValues(spec.steps, (step) => {
     const m = multiplier(step);
-    return ratio ? Math.round((Math.log(m) / Math.log(ratio)) * 1e4) / 1e4 : Math.round(m * 1e4) / 1e4;
+    return ratio
+      ? Math.round((Math.log(m) / Math.log(ratio)) * 1e4) / 1e4
+      : Math.round(m * 1e4) / 1e4;
   });
-  if (valuesOf(next).some((n) => !Number.isFinite(n)))
-    return props.ctx.session.warn('A ratio needs every step above zero.');
+  if (valuesOf(next).some((n) => !Number.isFinite(n))) {
+    props.ctx.session.warn('A ratio needs every step above zero.');
+    return;
+  }
   regenerate(key, { ratio, steps: next });
 }
 
@@ -108,7 +156,9 @@ function regenerate(key: string, patch: Partial<ScaleSpec>) {
   const group = child(props.ctx.tree, key);
   const spec = scaleOf(group, props.ctx.vendor);
   if (!group || !spec) return;
-  const next = withVendorData(group, props.ctx.vendor, { scale: { ...spec, ...patch } });
+  const next = withVendorData(group, props.ctx.vendor, {
+    scale: { ...spec, ...patch },
+  });
   props.ctx.setToken(key, applyScale(next, props.ctx.vendor));
 }
 
@@ -118,9 +168,14 @@ const valueProblem = (key: string) => {
   const spec = scaleOf(child(props.ctx.tree, key), props.ctx.vendor);
   if (!spec) return 'Set the base first.';
   const value = newValues[key];
-  const valid = typeof value === 'number' && Number.isFinite(value) && (spec.ratio ? true : value >= 0);
-  if (valid) return undefined;
-  return spec.ratio ? 'Enter a finite exponent.' : 'Enter a non-negative multiplier.';
+  const valid =
+    typeof value === 'number' &&
+    Number.isFinite(value) &&
+    (spec.ratio ? true : value >= 0);
+  if (valid) return;
+  return spec.ratio
+    ? 'Enter a finite exponent.'
+    : 'Enter a non-negative multiplier.';
 };
 
 function addStep(key: string, step: string) {
@@ -140,20 +195,25 @@ function setValue(key: string, step: string, value: number) {
   const group = child(props.ctx.tree, key);
   const length = narrow(child(group, step)?.$value, isSize);
   if (!group || !length) return;
-  props.ctx.setToken(key, setStep(group, step, { ...length, value }, props.ctx.vendor));
+  props.ctx.setToken(
+    key,
+    setStep(group, step, { ...length, value }, props.ctx.vendor),
+  );
 }
 
 function setFromInput(key: string, step: string, event: Event) {
-  if (!(event.target instanceof HTMLInputElement) || event.target.value === '') return;
+  if (!(event.target instanceof HTMLInputElement) || event.target.value === '')
+    return;
   const value = Number(event.target.value);
   if (Number.isFinite(value)) setValue(key, step, value);
 }
+const uid = useId();
 </script>
 
 <template>
   <p v-if="keys.includes('spacing')" class="cd-hint">
-    Each scale grows from its base. Change the base to regenerate every step; edit a step to set it by hand
-    (marked with a dot).
+    Each scale grows from its base. Change the base to regenerate every step;
+    edit a step to set it by hand (marked with a dot).
   </p>
   <div v-if="keys.includes('spacing')" class="ed-grid-3">
     <NumberField
@@ -164,7 +224,8 @@ function setFromInput(key: string, step: string, event: Event) {
       @commit="setRootSize"
     />
     <p class="cd-hint ed-span-2">
-      Sets the page's root size. 16 is the browser default; 10 makes rem easy to read (1.6rem is 16px).
+      Sets the page's root size. 16 is the browser default; 10 makes rem easy to
+      read (1.6rem is 16px).
     </p>
   </div>
   <div
@@ -177,8 +238,18 @@ function setFromInput(key: string, step: string, event: Event) {
       <h4>{{ label }}</h4>
     </div>
     <div class="ed-grid-3">
-      <NumberField label="Base" :value="spec?.base.value" :min="0" @commit="setBase(key, $event, unit)" />
-      <Choice label="Unit" :options="UNIT_OPTIONS" :value="unit" @update:value="setUnit(key, $event)" />
+      <NumberField
+        label="Base"
+        :value="spec?.base.value"
+        :min="0"
+        @commit="setBase(key, $event, unit)"
+      />
+      <Choice
+        label="Unit"
+        :options="UNIT_OPTIONS"
+        :value="unit"
+        @update:value="setUnit(key, $event)"
+      />
       <NumberField
         v-if="key === 'font-size'"
         label="Ratio"
@@ -197,9 +268,12 @@ function setFromInput(key: string, step: string, event: Event) {
             ><span v-if="byHand" class="ed-dot" title="Set by hand"></span
             ><span v-if="byHand" class="cd-sr-only">set by hand</span></span
           >
-          <label class="ed-unit-input"
-            ><span class="cd-sr-only">{{ label }} {{ step }} in {{ unit }}</span>
+          <label :for="`${uid}-${key}-${step}`" class="ed-unit-input"
+            ><span class="cd-sr-only"
+              >{{ label }} {{ step }} in {{ unit }}</span
+            >
             <input
+              :id="`${uid}-${key}-${step}`"
               type="number"
               step="any"
               :value="length.value"
@@ -222,9 +296,16 @@ function setFromInput(key: string, step: string, event: Event) {
             : 'Set a base to start.'
         }}
       </p>
-      <button v-if="spec" type="button" class="btn btn-secondary" @click="useStandard(key, spec)">
+      <button
+        v-if="spec"
+        type="button"
+        class="btn btn-secondary"
+        @click="useStandard(key, spec)"
+      >
         Use standard steps ({{
-          keysOf((spec.ratio && STANDARD[key].ratio) || STANDARD[key].linear).join(', ')
+          keysOf(
+            (spec.ratio && STANDARD[key].ratio) || STANDARD[key].linear,
+          ).join(', ')
         }})
       </button>
     </div>
@@ -236,9 +317,14 @@ function setFromInput(key: string, step: string, event: Event) {
       :check="() => valueProblem(key)"
       @add="addStep(key, $event)"
     >
-      <label class="cd-field"
+      <label :for="`${uid}-${key}-new`" class="cd-field"
         ><span>{{ spec?.ratio ? 'Exponent' : 'Times base' }}</span
-        ><input v-model.number="newValues[key]" type="number" :min="spec?.ratio ? undefined : 0" step="any"
+        ><input
+          :id="`${uid}-${key}-new`"
+          v-model.number="newValues[key]"
+          type="number"
+          :min="spec?.ratio ? undefined : 0"
+          step="any"
       /></label>
     </NameForm>
   </div>

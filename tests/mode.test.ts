@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { readMode } from '../src/app/mode.js';
 import { Session } from '../src/app/session.js';
-import { memoryFileStore, readOnlyFileStore, readOnlyKeyValueStore } from '../src/adapters/memory.js';
+import {
+  memoryFileStore,
+  readOnlyFileStore,
+  readOnlyKeyValueStore,
+} from '../src/adapters/memory.js';
 import { zodValidator } from '../src/adapters/zod-validator.js';
 import { fontsource } from '../src/adapters/fontsource.js';
 import type { KeyValueStore } from '../src/ports.js';
@@ -11,15 +15,24 @@ import type { KeyValueStore } from '../src/ports.js';
 test('the address picks the mode, and a hosted brand always wins', () => {
   assert.deepEqual(readMode(''), { kind: 'private' });
   assert.deepEqual(readMode('?view'), { kind: 'preview' });
-  assert.deepEqual(readMode('?brand=brands/a.json'), { kind: 'public', brand: 'brands/a.json' });
-  assert.deepEqual(readMode('?view', 'brands/b.json'), { kind: 'public', brand: 'brands/b.json' });
+  assert.deepEqual(readMode('?brand=brands/a.json'), {
+    kind: 'public',
+    brand: 'brands/a.json',
+  });
+  assert.deepEqual(readMode('?view', 'brands/b.json'), {
+    kind: 'public',
+    brand: 'brands/b.json',
+  });
 });
 
 test('a read-only session can show and change a brand without writing to the draft store', async () => {
-  vi.stubGlobal('fetch', async (url: string) => ({
-    ok: true,
-    json: async () => JSON.parse(readFileSync(`public/${url}`, 'utf8')),
-  }));
+  vi.stubGlobal('fetch', (url: string) =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve(JSON.parse(readFileSync(`public/${url}`, 'utf8'))),
+    }),
+  );
   const writes: string[] = [];
   const backing: KeyValueStore = {
     getItem: () => null,
@@ -43,6 +56,7 @@ test('a read-only session can show and change a brand without writing to the dra
   await session.prune();
   assert.equal(session.editable, false);
   assert.deepEqual(writes, []);
-  assert.equal((await files.getAll()).size, 0);
+  const saved = await files.getAll();
+  assert.equal(saved.size, 0);
   vi.unstubAllGlobals();
 });

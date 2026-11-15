@@ -10,24 +10,34 @@ import {
 } from 'reka-ui';
 import Icon from './Icon.vue';
 
-export interface ListboxOption {
+export type ListboxOption = {
   value: string;
   label: string;
   swatch?: string;
-}
-const props = defineProps<{ label: string; options: ListboxOption[]; placeholder?: string }>();
+};
+const props = defineProps<{
+  label: string;
+  options: ListboxOption[];
+  placeholder?: string;
+}>();
 const value = defineModel<string>('value', { required: true });
 const open = ref(false);
 function choose(next: unknown) {
   if (typeof next === 'string') value.value = next;
 }
 
-const selected = computed(() => props.options.find((o) => o.value === value.value));
+const selected = computed(() =>
+  props.options.find((o) => o.value === value.value),
+);
 </script>
 
 <template>
   <div class="cd-listbox">
-    <SelectRoot v-model:open="open" :model-value="value ?? ''" @update:model-value="choose">
+    <SelectRoot
+      v-model:open="open"
+      :model-value="value ?? ''"
+      @update:model-value="choose"
+    >
       <SelectTrigger class="cd-listbox-trigger" :aria-label="label">
         <span
           ><span

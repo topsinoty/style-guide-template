@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 import * as E from '../../lib/edit.js';
 import { paletteId } from '../../lib/palette.js';
 import type { EditorContext } from './context.js';
@@ -19,7 +19,8 @@ function rename(from: string, event: Event) {
   }
   if (themes.value.includes(to)) {
     event.target.value = from;
-    return props.ctx.session.warn(`There is already a theme named ${to}.`);
+    props.ctx.session.warn(`There is already a theme named ${to}.`);
+    return;
   }
   props.ctx.edit((doc) => E.renameTheme(doc, from, to));
   if (props.ctx.theme === from) props.ctx.setTheme(to);
@@ -29,20 +30,25 @@ function add(name: string) {
   props.ctx.edit((doc) => E.addTheme(doc, name));
   props.ctx.setTheme(name);
 }
+const uid = useId();
 </script>
 
 <template>
   <p class="cd-hint">
-    Light and dark, or print and web. The default holds every color; another theme starts as a copy of
+    Light and dark, or print and web. The default holds every color; another
+    theme starts as a copy of
     {{ fallback ?? 'it' }} and keeps only what you change.
   </p>
   <ul v-if="themes.length" class="ed-list">
     <li v-for="theme in themes" :key="theme" class="ed-row-head">
+      <label :for="`${uid}-${theme}`" class="cd-sr-only"
+        >Name of the {{ theme }} theme</label
+      >
       <input
+        :id="`${uid}-${theme}`"
         class="ed-inline-input"
         type="text"
         :value="theme"
-        :aria-label="`Name of the ${theme} theme`"
         @change="rename(theme, $event)"
       />
       <span v-if="theme === fallback" class="ed-badge">Default</span>
@@ -54,5 +60,11 @@ function add(name: string) {
       />
     </li>
   </ul>
-  <NameForm label="New theme" action="Add theme" placeholder="print" :taken="themes" @add="add" />
+  <NameForm
+    label="New theme"
+    action="Add theme"
+    placeholder="print"
+    :taken="themes"
+    @add="add"
+  />
 </template>

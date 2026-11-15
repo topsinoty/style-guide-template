@@ -6,7 +6,7 @@ export function memoryKeyValueStore(): KeyValueStore {
   return {
     getItem: (key) => values.get(key) ?? null,
     setItem(key, value) {
-      values.set(key, String(value));
+      values.set(key, value);
     },
     removeItem(key) {
       values.delete(key);
@@ -15,14 +15,22 @@ export function memoryKeyValueStore(): KeyValueStore {
 }
 
 export function readOnlyKeyValueStore(source: KeyValueStore): KeyValueStore {
-  return { getItem: (key) => source.getItem(key), setItem() {}, removeItem() {} };
+  return {
+    getItem: (key) => source.getItem(key),
+    setItem() {
+      // read-only
+    },
+    removeItem() {
+      // read-only
+    },
+  };
 }
 
 export function readOnlyFileStore(source: FileStore): FileStore {
   return {
-    put: async () => {},
-    delete: async () => {},
-    clear: async () => {},
+    put: () => Promise.resolve(),
+    delete: () => Promise.resolve(),
+    clear: () => Promise.resolve(),
     getAll: () => source.getAll(),
   };
 }
@@ -30,11 +38,15 @@ export function readOnlyFileStore(source: FileStore): FileStore {
 export function memoryFileStore(): FileStore {
   const files = new Map<string, FileData>();
   return {
-    async put(path, data) {
+    put(path, data) {
       files.set(path, data);
+      return Promise.resolve();
     },
-    delete: async (path) => files.delete(path),
-    clear: async () => files.clear(),
-    getAll: async () => new Map(files),
+    delete: (path) => Promise.resolve(files.delete(path)),
+    clear() {
+      files.clear();
+      return Promise.resolve();
+    },
+    getAll: () => Promise.resolve(new Map(files)),
   };
 }

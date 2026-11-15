@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref, useId } from 'vue';
 import * as E from '../../lib/edit.js';
 import { child, children } from '../../lib/tree.js';
-import { narrow, isFontFamily, isSize, isTypography } from '../../lib/values.js';
+import {
+  narrow,
+  isFontFamily,
+  isSize,
+  isTypography,
+} from '../../lib/values.js';
 import { cap, dim } from '../guide/parts.js';
 import FontPicker from '../FontPicker.vue';
 import Choice from './Choice.vue';
@@ -17,16 +22,30 @@ import Listbox from '../Listbox.vue';
 import Icon from '../Icon.vue';
 import { cssName } from '../../lib/css.js';
 import { sortFontFiles } from '../../lib/fonts.js';
-import { ELEMENTS, addStandardStyles, elementOf, elementStyles, setElement } from '../../lib/elements.js';
+import {
+  ELEMENTS,
+  addStandardStyles,
+  elementOf,
+  elementStyles,
+  setElement,
+} from '../../lib/elements.js';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const draftWeights = reactive<Record<string, number | undefined>>({});
 const newFontFamily = ref('sans-serif');
 const catalogOpen = ref(false);
-const generic = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'system-ui']);
+const generic = new Set([
+  'sans-serif',
+  'serif',
+  'monospace',
+  'cursive',
+  'system-ui',
+]);
 
-const familiesOf = (value: unknown) => [narrow(value, isFontFamily) ?? []].flat();
-const aliasOrEmpty = (value: unknown) => (typeof value === 'string' ? value : '');
+const familiesOf = (value: unknown) =>
+  [narrow(value, isFontFamily) ?? []].flat();
+const aliasOrEmpty = (value: unknown) =>
+  typeof value === 'string' ? value : '';
 
 const fonts = computed(() =>
   children(child(props.ctx.tree, 'font')).map(([name, token]) => ({
@@ -46,7 +65,10 @@ const families = computed(() => {
 });
 
 const fontOptions = computed(() =>
-  fonts.value.map((font) => ({ value: `{font.${font.name}}`, label: font.label })),
+  fonts.value.map((font) => ({
+    value: `{font.${font.name}}`,
+    label: font.label,
+  })),
 );
 
 const sizeOptions = computed(() =>
@@ -67,8 +89,10 @@ const styles = computed(() =>
         element: elementOf(name, token, props.ctx.vendor) ?? '',
         fontFamily: aliasOrEmpty(style.fontFamily),
         fontSize: aliasOrEmpty(style.fontSize),
-        fontWeight: typeof style.fontWeight === 'number' ? style.fontWeight : undefined,
-        lineHeight: typeof style.lineHeight === 'number' ? style.lineHeight : undefined,
+        fontWeight:
+          typeof style.fontWeight === 'number' ? style.fontWeight : undefined,
+        lineHeight:
+          typeof style.lineHeight === 'number' ? style.lineHeight : undefined,
         letterSpacing: narrow(style.letterSpacing, isSize)?.value,
       },
     ];
@@ -87,7 +111,8 @@ const styleSummary = (style: (typeof styles.value)[number]) =>
     style.lineHeight,
   ].join(' · ');
 const sampleStyle = (name: string) => {
-  const v = (field: string) => `var(${cssName('typography.' + name)}-${field})`;
+  const base = cssName(`typography.${name}`);
+  const v = (field: string) => `var(${base}-${field})`;
   return { fontFamily: v('font-family'), fontWeight: v('font-weight') };
 };
 
@@ -95,7 +120,11 @@ const elementOptions = [{ value: '', label: 'Nothing' }, ...ELEMENTS];
 
 function applyTo(name: string, element: string) {
   const group = child(props.ctx.tree, 'typography');
-  if (group) props.ctx.setToken('typography', setElement(group, name, element, props.ctx.vendor));
+  if (group)
+    props.ctx.setToken(
+      'typography',
+      setElement(group, name, element, props.ctx.vendor),
+    );
 }
 
 function put(name: string, patch: Record<string, unknown>) {
@@ -132,18 +161,22 @@ async function pickFonts(files: Parameters<typeof E.addFontFiles>[1]) {
 }
 
 function styleProblem() {
-  if (!fontOptions.value.length) return 'Text styles need a font. Add one under Font families above.';
+  if (!fontOptions.value.length)
+    return 'Text styles need a font. Add one under Font families above.';
   if (!sizeOptions.value.length)
     return 'Text styles need a font size. Set the Font size base above, then add steps.';
-  return undefined;
 }
 
 function addStyle(name: string) {
   if (styleProblem()) return;
-  const font = (role: string) => fontOptions.value.find((o) => o.value === `{font.${role}}`);
+  const font = (role: string) =>
+    fontOptions.value.find((o) => o.value === `{font.${role}}`);
   const heading = elementOf(name, undefined, props.ctx.vendor)?.startsWith('h');
-  const family = (heading ? font('heading') : font('body')) ?? fontOptions.value[0];
-  const size = sizeOptions.value.find((o) => o.value === '{font-size.md}') ?? sizeOptions.value[0];
+  const family =
+    (heading ? font('heading') : font('body')) ?? fontOptions.value[0];
+  const size =
+    sizeOptions.value.find((o) => o.value === '{font-size.md}') ??
+    sizeOptions.value[0];
   opened.value = name;
   props.ctx.setToken(`typography.${name}`, {
     $type: 'typography',
@@ -167,9 +200,11 @@ function addStandard(elements: string[]) {
   const next = addStandardStyles(
     child(props.ctx.tree, 'typography') ?? { $type: 'typography' },
     elements,
-    fonts.value.map((f) => f.name),
-    children(child(props.ctx.tree, 'font-size')).map(([size]) => size),
-    props.ctx.vendor,
+    {
+      fonts: fonts.value.map((f) => f.name),
+      sizes: children(child(props.ctx.tree, 'font-size')).map(([size]) => size),
+      vendor: props.ctx.vendor,
+    },
   );
   props.ctx.setToken('typography', next);
   const added = children(next)
@@ -179,12 +214,15 @@ function addStandard(elements: string[]) {
 }
 
 function updateWeight(name: string, event: Event) {
-  if (event.currentTarget instanceof HTMLInputElement) draftWeights[name] = Number(event.currentTarget.value);
+  if (event.currentTarget instanceof HTMLInputElement)
+    draftWeights[name] = Number(event.currentTarget.value);
 }
 
 function commitWeight(name: string, event: Event) {
   if (!(event.currentTarget instanceof HTMLInputElement)) return;
-  props.ctx.patchValue(`typography.${name}`, { fontWeight: Number(event.currentTarget.value) });
+  props.ctx.patchValue(`typography.${name}`, {
+    fontWeight: Number(event.currentTarget.value),
+  });
   draftWeights[name] = undefined;
 }
 
@@ -202,17 +240,22 @@ function setFont(name: string, family: string) {
 function fontInUse(name: string): boolean {
   return styles.value.some((style) => style.fontFamily === `{font.${name}}`);
 }
+const uid = useId();
 </script>
 
 <template>
   <div class="ed-group">
     <h4>Font files</h4>
     <p class="cd-hint">
-      Upload files or pick from {{ ctx.session.fonts.name }}. A file's name gives its family, weight and
-      style.
+      Upload files or pick from {{ ctx.session.fonts.name }}. A file's name
+      gives its family, weight and style.
     </p>
     <div class="cd-field-row">
-      <UploadButton label="Upload font files" accept=".woff2,.woff,.ttf,.otf" @files="uploadFonts" />
+      <UploadButton
+        label="Upload font files"
+        accept=".woff2,.woff,.ttf,.otf"
+        @files="uploadFonts"
+      />
       <button
         type="button"
         class="btn btn-secondary"
@@ -224,18 +267,27 @@ function fontInUse(name: string): boolean {
       </button>
     </div>
     <div v-if="catalogOpen" id="cd-font-catalog">
-      <FontPicker :provider="ctx.session.fonts" @pick="pickFonts" @close="catalogOpen = false" />
+      <FontPicker
+        :provider="ctx.session.fonts"
+        @pick="pickFonts"
+        @close="catalogOpen = false"
+      />
     </div>
     <ul v-if="ctx.meta.fontFiles.length" class="ed-list">
       <li v-for="file in sortedFiles" :key="file.src" class="ed-row-head">
         <span class="ed-row-text ed-row-pad">
           <span
             class="ed-row-title"
-            :style="{ fontFamily: `'${file.family}'`, fontWeight: file.weight, fontStyle: file.style }"
+            :style="{
+              fontFamily: `'${file.family}'`,
+              fontWeight: file.weight,
+              fontStyle: file.style,
+            }"
             >{{ file.family }}</span
           >
           <span class="ed-row-meta"
-            >{{ file.weight }} {{ file.style }}{{ file.subset ? `, ${file.subset}` : '' }}</span
+            >{{ file.weight }} {{ file.style
+            }}{{ file.subset ? `, ${file.subset}` : '' }}</span
           >
         </span>
         <IconButton
@@ -245,13 +297,16 @@ function fontInUse(name: string): boolean {
         />
       </li>
     </ul>
-    <p v-else class="cd-hint">No font files yet. Families without files fall back to the system font.</p>
+    <p v-else class="cd-hint">
+      No font files yet. Families without files fall back to the system font.
+    </p>
   </div>
 
   <div class="ed-group">
     <h4>Font families</h4>
     <p class="cd-hint">
-      Name each role a font plays, then pick its family. Text styles below use these names.
+      Name each role a font plays, then pick its family. Text styles below use
+      these names.
     </p>
     <div v-if="fonts.length" class="ed-kv ed-kv-action">
       <template v-for="font in fonts" :key="font.name">
@@ -266,7 +321,11 @@ function fontInUse(name: string): boolean {
           name="trash"
           :label="`Remove ${font.label}`"
           :disabled="fontInUse(font.name)"
-          :title="fontInUse(font.name) ? 'A text style uses this font. Change it first.' : undefined"
+          :title="
+            fontInUse(font.name)
+              ? 'A text style uses this font. Change it first.'
+              : undefined
+          "
           @click="ctx.edit((doc) => E.removeToken(doc, `font.${font.name}`))"
         />
       </template>
@@ -279,7 +338,11 @@ function fontInUse(name: string): boolean {
       :taken="fonts.map((font) => font.name)"
       @add="addFont"
     >
-      <Choice v-model:value="newFontFamily" label="Family" :options="families" />
+      <Choice
+        v-model:value="newFontFamily"
+        label="Family"
+        :options="families"
+      />
     </NameForm>
   </div>
 
@@ -296,10 +359,17 @@ function fontInUse(name: string): boolean {
         :meta="styleSummary(style)"
         :remove-label="`Remove the ${style.title} style`"
         @update:open="(open) => (opened = open ? style.name : undefined)"
-        @remove="ctx.edit((doc) => E.removeToken(doc, `typography.${style.name}`))"
+        @remove="
+          ctx.edit((doc) => E.removeToken(doc, `typography.${style.name}`))
+        "
       >
         <template #lead>
-          <span class="ed-type-sample" :style="sampleStyle(style.name)" aria-hidden="true">Aa</span>
+          <span
+            class="ed-type-sample"
+            :style="sampleStyle(style.name)"
+            aria-hidden="true"
+            >Aa</span
+          >
         </template>
         <Choice
           label="Applies to"
@@ -320,9 +390,13 @@ function fontInUse(name: string): boolean {
             :value="style.fontSize"
             @update:value="put(style.name, { fontSize: $event })"
           />
-          <label class="cd-field">
-            <span>Weight {{ draftWeights[style.name] ?? style.fontWeight ?? 400 }}</span>
+          <label :for="`${uid}-${style.name}-weight`" class="cd-field">
+            <span
+              >Weight
+              {{ draftWeights[style.name] ?? style.fontWeight ?? 400 }}</span
+            >
             <input
+              :id="`${uid}-${style.name}-weight`"
               type="range"
               min="100"
               max="900"
@@ -336,12 +410,16 @@ function fontInUse(name: string): boolean {
             label="Line height"
             :value="style.lineHeight"
             :min="0"
-            @commit="(value) => value > 0 && put(style.name, { lineHeight: value })"
+            @commit="
+              (value) => value > 0 && put(style.name, { lineHeight: value })
+            "
           />
           <NumberField
             label="Letter spacing (px)"
             :value="style.letterSpacing ?? 0"
-            @commit="put(style.name, { letterSpacing: { value: $event, unit: 'px' } })"
+            @commit="
+              put(style.name, { letterSpacing: { value: $event, unit: 'px' } })
+            "
           />
         </div>
       </ItemRow>
@@ -375,7 +453,11 @@ function fontInUse(name: string): boolean {
         class="btn"
         @click="addStandard(unstyled.map((e) => e.value))"
       >
-        {{ styles.length ? `Add all ${unstyled.length}` : 'Use standard text styles' }}
+        {{
+          styles.length
+            ? `Add all ${unstyled.length}`
+            : 'Use standard text styles'
+        }}
       </button>
     </div>
     <NameForm

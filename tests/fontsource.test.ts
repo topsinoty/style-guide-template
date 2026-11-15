@@ -3,19 +3,29 @@ import assert from 'node:assert/strict';
 import { keysOf } from '../src/lib/records.js';
 import * as z from 'zod/mini';
 import { fixture, present } from './helpers.js';
-import { fontDetail, fontFiles, fontsource, parseList } from '../src/adapters/fontsource.js';
+import {
+  fontDetail,
+  fontFiles,
+  fontsource,
+  parseList,
+} from '../src/adapters/fontsource.js';
 import { memoryKeyValueStore } from '../src/adapters/memory.js';
 
 const detail = z.parse(fontDetail, fixture('fontsource-merriweather.json'));
-const listResponse = async () => ({
-  ok: true,
-  status: 200,
-  json: async () => fixture('fontsource-list.json'),
-});
+const listResponse = () =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve(fixture('fontsource-list.json')),
+  });
 const latin = { weights: [400, 700], styles: ['normal'], subsets: ['latin'] };
 
 test('parseList keeps what the picker needs', () => {
-  const m = present(parseList(fixture('fontsource-list.json')).find((f) => f.id === 'merriweather'));
+  const m = present(
+    parseList(fixture('fontsource-list.json')).find(
+      (f) => f.id === 'merriweather',
+    ),
+  );
   assert.deepEqual(
     keysOf(m).sort((a, b) => a.localeCompare(b)),
     ['category', 'defSubset', 'family', 'id', 'license', 'styles', 'weights'],
@@ -33,7 +43,10 @@ test('files for chosen weights and styles', () => {
     [files[0].provider, files[0].fontsourceId, files[0].family],
     ['fontsource', 'merriweather', 'Merriweather'],
   );
-  assert.equal(fontsource().fileUrl(files[0]), detail.variants?.['400']?.normal?.latin?.url?.woff2);
+  assert.equal(
+    fontsource().fileUrl(files[0]),
+    'https://cdn.jsdelivr.net/fontsource/fonts/merriweather@5.3.0/latin-400-normal.woff2',
+  );
 });
 
 test('missing variants are skipped', () => {
@@ -41,7 +54,11 @@ test('missing variants are skipped', () => {
 });
 
 test('extra subsets are opt-in', () => {
-  const files = fontFiles(detail, { ...latin, weights: [400], subsets: ['latin', 'cyrillic'] });
+  const files = fontFiles(detail, {
+    ...latin,
+    weights: [400],
+    subsets: ['latin', 'cyrillic'],
+  });
   assert.deepEqual(
     files.map((x) => x.subset),
     ['latin', 'cyrillic'],
@@ -99,5 +116,8 @@ test('previewUrl falls back to the first weight and style a font has', () => {
     defSubset: 'latin',
     license: 'OFL',
   };
-  assert.match(fontsource().previewUrl(font), /\/x@latest\/latin-300-italic\.woff2$/);
+  assert.match(
+    fontsource().previewUrl(font),
+    /\/x@latest\/latin-300-italic\.woff2$/,
+  );
 });

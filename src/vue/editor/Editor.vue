@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStorage } from '@vueuse/core';
-import { TabsContent, TabsIndicator, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
+import {
+  TabsContent,
+  TabsIndicator,
+  TabsList,
+  TabsRoot,
+  TabsTrigger,
+} from 'reka-ui';
 import type { Session } from '../../app/session.js';
 import type { Tokens } from '../../lib/types.js';
 import { editorContext } from './context.js';
@@ -21,10 +27,16 @@ import UsageNotes from './UsageNotes.vue';
 import Contrast from './Contrast.vue';
 import { areaId, scrollToArea } from './areas.js';
 
-const props = defineProps<{ session: Session; tokens: Tokens; theme: string }>();
+const props = defineProps<{
+  session: Session;
+  tokens: Tokens;
+  theme: string;
+}>();
 const emit = defineEmits<{ theme: [theme: string] }>();
 const ctx = computed(() =>
-  editorContext(props.session, props.theme, props.tokens, (theme) => emit('theme', theme)),
+  editorContext(props.session, props.theme, props.tokens, (theme) =>
+    emit('theme', theme),
+  ),
 );
 
 const groups = [
@@ -63,9 +75,13 @@ const active = computed({
   get: () => (groups.some((g) => g.name === tab.value) ? tab.value : 'Brand'),
   set: (value) => (tab.value = value),
 });
-const current = computed(() => groups.find((g) => g.name === active.value) ?? groups[0]);
+const current = computed(
+  () => groups.find((g) => g.name === active.value) ?? groups[0],
+);
 function jump(name: string) {
-  scrollToArea(name)?.querySelector<HTMLElement>('input, textarea, button')?.focus({ preventScroll: true });
+  scrollToArea(name)
+    ?.querySelector<HTMLElement>('input, textarea, button')
+    ?.focus({ preventScroll: true });
 }
 </script>
 
@@ -73,16 +89,33 @@ function jump(name: string) {
   <TabsRoot v-model="active">
     <div class="ed-sticky">
       <TabsList class="ed-tabs" aria-label="What to edit">
-        <TabsTrigger v-for="group in groups" :key="group.name" :value="group.name">{{
-          group.name
-        }}</TabsTrigger>
+        <TabsTrigger
+          v-for="group in groups"
+          :key="group.name"
+          :value="group.name"
+          >{{ group.name }}</TabsTrigger
+        >
         <TabsIndicator class="ed-tab-indicator" />
       </TabsList>
       <ThemeBar v-if="current.themed" :ctx="ctx" />
     </div>
-    <TabsContent v-for="group in groups" :key="group.name" :value="group.name" class="ed-panel">
-      <nav v-if="group.areas.length > 1" class="ed-jump" :aria-label="`${group.name} areas`">
-        <button v-for="area in group.areas" :key="area.name" type="button" @click="jump(area.name)">
+    <TabsContent
+      v-for="group in groups"
+      :key="group.name"
+      :value="group.name"
+      class="ed-panel"
+    >
+      <nav
+        v-if="group.areas.length > 1"
+        class="ed-jump"
+        :aria-label="`${group.name} areas`"
+      >
+        <button
+          v-for="area in group.areas"
+          :key="area.name"
+          type="button"
+          @click="jump(area.name)"
+        >
           {{ area.name }}
         </button>
       </nav>

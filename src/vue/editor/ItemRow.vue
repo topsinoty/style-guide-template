@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from 'reka-ui';
+import {
+  CollapsibleContent,
+  CollapsibleRoot,
+  CollapsibleTrigger,
+} from 'reka-ui';
 import Icon from '../Icon.vue';
 import IconButton from './IconButton.vue';
 
@@ -12,7 +16,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ move: [dir: number]; remove: [] }>();
 const open = defineModel<boolean>('open', { default: false });
-const movable = () => props.index !== undefined && props.count !== undefined && props.count > 1;
+const movable = () =>
+  props.index !== undefined && props.count !== undefined && props.count > 1;
 </script>
 
 <template>
@@ -43,7 +48,12 @@ const movable = () => props.index !== undefined && props.count !== undefined && 
             @click="emit('move', 1)"
           />
         </template>
-        <IconButton v-if="removeLabel" name="trash" :label="removeLabel" @click="emit('remove')" />
+        <IconButton
+          v-if="removeLabel"
+          name="trash"
+          :label="removeLabel"
+          @click="emit('remove')"
+        />
       </div>
     </div>
     <CollapsibleContent class="ed-row-body">

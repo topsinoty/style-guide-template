@@ -1,4 +1,5 @@
 import { uniquePath } from './path.js';
+import { valueAt } from './records.js';
 import { child, children, vendorData, withVendorData } from './tree.js';
 import type { TokenNode } from './types.js';
 
@@ -22,13 +23,20 @@ const inferred = (name: string) => {
   return name === 'body' || name === 'paragraph' ? 'p' : undefined;
 };
 
-export function elementOf(name: string, token: TokenNode | undefined, vendor: string): string | undefined {
+export function elementOf(
+  name: string,
+  token: TokenNode | undefined,
+  vendor: string,
+): string | undefined {
   const set = vendorData(token, vendor).element;
   if (typeof set === 'string') return KNOWN.has(set) ? set : undefined;
   return inferred(name);
 }
 
-export function elementStyles(tree: TokenNode | undefined, vendor: string): Map<string, string> {
+export function elementStyles(
+  tree: TokenNode | undefined,
+  vendor: string,
+): Map<string, string> {
   const out = new Map<string, string>();
   for (const [name, token] of children(child(tree, 'typography'))) {
     const element = elementOf(name, token, vendor);
@@ -37,7 +45,12 @@ export function elementStyles(tree: TokenNode | undefined, vendor: string): Map<
   return out;
 }
 
-export function setElement(group: TokenNode, name: string, element: string, vendor: string): TokenNode {
+export function setElement(
+  group: TokenNode,
+  name: string,
+  element: string,
+  vendor: string,
+): TokenNode {
   const out = structuredClone(group);
   for (const [other, token] of children(out)) {
     if (other === name) out[other] = withVendorData(token, vendor, { element });
@@ -49,17 +62,71 @@ export function setElement(group: TokenNode, name: string, element: string, vend
 
 const STANDARD: Record<
   string,
-  { name: string; font: string; size: string; weight: number; lineHeight: number }
+  {
+    name: string;
+    font: string;
+    size: string;
+    weight: number;
+    lineHeight: number;
+  }
 > = {
-  h1: { name: 'heading-1', font: 'heading', size: '3xl', weight: 700, lineHeight: 1.2 },
-  h2: { name: 'heading-2', font: 'heading', size: '2xl', weight: 700, lineHeight: 1.25 },
-  h3: { name: 'heading-3', font: 'heading', size: 'xl', weight: 600, lineHeight: 1.3 },
-  h4: { name: 'heading-4', font: 'heading', size: 'lg', weight: 600, lineHeight: 1.4 },
-  h5: { name: 'heading-5', font: 'heading', size: 'md', weight: 600, lineHeight: 1.5 },
-  h6: { name: 'heading-6', font: 'heading', size: 'sm', weight: 600, lineHeight: 1.5 },
+  h1: {
+    name: 'heading-1',
+    font: 'heading',
+    size: '3xl',
+    weight: 700,
+    lineHeight: 1.2,
+  },
+  h2: {
+    name: 'heading-2',
+    font: 'heading',
+    size: '2xl',
+    weight: 700,
+    lineHeight: 1.25,
+  },
+  h3: {
+    name: 'heading-3',
+    font: 'heading',
+    size: 'xl',
+    weight: 600,
+    lineHeight: 1.3,
+  },
+  h4: {
+    name: 'heading-4',
+    font: 'heading',
+    size: 'lg',
+    weight: 600,
+    lineHeight: 1.4,
+  },
+  h5: {
+    name: 'heading-5',
+    font: 'heading',
+    size: 'md',
+    weight: 600,
+    lineHeight: 1.5,
+  },
+  h6: {
+    name: 'heading-6',
+    font: 'heading',
+    size: 'sm',
+    weight: 600,
+    lineHeight: 1.5,
+  },
   p: { name: 'body', font: 'body', size: 'md', weight: 400, lineHeight: 1.6 },
-  small: { name: 'small', font: 'body', size: 'sm', weight: 400, lineHeight: 1.5 },
-  code: { name: 'code', font: 'code', size: 'sm', weight: 400, lineHeight: 1.5 },
+  small: {
+    name: 'small',
+    font: 'body',
+    size: 'sm',
+    weight: 400,
+    lineHeight: 1.5,
+  },
+  code: {
+    name: 'code',
+    font: 'code',
+    size: 'sm',
+    weight: 400,
+    lineHeight: 1.5,
+  },
 };
 
 const FONT_FALLBACK: Record<string, string[]> = {
@@ -71,19 +138,25 @@ const FONT_FALLBACK: Record<string, string[]> = {
 export function addStandardStyles(
   group: TokenNode,
   elements: string[],
-  fonts: string[],
-  sizes: string[],
-  vendor: string,
+  {
+    fonts,
+    sizes,
+    vendor,
+  }: { fonts: string[]; sizes: string[]; vendor: string },
 ): TokenNode {
-  const pick = (wanted: string[], from: string[]) => wanted.find((w) => from.includes(w)) ?? from[0];
+  const pick = (wanted: string[], from: string[]) =>
+    wanted.find((w) => from.includes(w)) ?? from[0];
   let out = structuredClone(group);
   for (const element of elements) {
-    const spec = STANDARD[element];
+    const spec = valueAt(STANDARD, element);
     if (!spec) continue;
     const font = pick(FONT_FALLBACK[spec.font], fonts);
     const size = pick([spec.size, 'md'], sizes);
     if (!font || !size) continue;
-    const name = uniquePath(spec.name, new Set(children(out).map(([key]) => key)));
+    const name = uniquePath(
+      spec.name,
+      new Set(children(out).map(([key]) => key)),
+    );
     out[name] = {
       $type: 'typography',
       $value: {

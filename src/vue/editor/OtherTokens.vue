@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { toHex } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
 import * as E from '../../lib/edit.js';
 import { paletteColors } from '../../lib/palette.js';
 import { narrow, isColor } from '../../lib/values.js';
-import { COLOR_ERROR } from '../ColorInput.vue';
+import { COLOR_ERROR } from '../../lib/color.js';
 import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections.js';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context.js';
 import IconButton from './IconButton.vue';
-import { NEW_TOKEN_TYPES, UNITS, tokenValue, valueExample } from './other-tokens.js';
+import {
+  NEW_TOKEN_TYPES,
+  UNITS,
+  tokenValue,
+  valueExample,
+} from './other-tokens.js';
 import { colorOptions, roleEntry, roleText } from './role-color.js';
 import RoleColorCombobox from './RoleColorCombobox.vue';
 import Listbox from '../Listbox.vue';
@@ -19,7 +24,9 @@ import ThemeBar from './ThemeBar.vue';
 
 const props = defineProps<{ ctx: EditorContext }>();
 
-const shades = computed(() => colorOptions(paletteColors(props.ctx.doc, props.ctx.vendor)));
+const shades = computed(() =>
+  colorOptions(paletteColors(props.ctx.doc, props.ctx.vendor)),
+);
 
 const isMeasure = (value: unknown): value is { value: number; unit: string } =>
   typeof value === 'object' &&
@@ -31,7 +38,10 @@ const isMeasure = (value: unknown): value is { value: number; unit: string } =>
 
 const rows = computed(() =>
   [...props.ctx.tokens]
-    .filter(([path, token]) => isOtherColor(path, token.type ?? '') || isOtherToken(path))
+    .filter(
+      ([path, token]) =>
+        isOtherColor(path, token.type ?? '') || isOtherToken(path),
+    )
     .map(([path, token]) => ({
       path,
       label: cssName(path),
@@ -42,13 +52,22 @@ const rows = computed(() =>
 );
 
 const setValue = (path: string, type: string, value: unknown) =>
-  props.ctx.setToken(path, { ...props.ctx.fresh(path), $type: type, $value: value });
+  props.ctx.setToken(path, {
+    ...props.ctx.fresh(path),
+    $type: type,
+    $value: value,
+  });
 
 function setColor(path: string, text: string) {
   const value = roleEntry(text, shades.value);
-  if (!value) return props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
+  if (!value) {
+    props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
+    return;
+  }
   if (path.startsWith('color.'))
-    props.ctx.edit((doc) => E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value));
+    props.ctx.edit((doc) =>
+      E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value),
+    );
   else setValue(path, 'color', value);
 }
 
@@ -60,18 +79,26 @@ function setNumber(path: string, event: Event) {
   if (Number.isFinite(value)) props.ctx.patchValue(path, { value });
 }
 
-function setText(row: { path: string; type: string; value: unknown }, event: Event) {
+function setText(
+  row: { path: string; type: string; value: unknown },
+  event: Event,
+) {
   const text = inputValue(event);
   if (typeof row.value === 'number') {
     const value = Number.parseFloat(text);
     if (Number.isFinite(value)) setValue(row.path, row.type, value);
     return;
   }
-  if (typeof row.value === 'string') return setValue(row.path, row.type, text);
+  if (typeof row.value === 'string') {
+    setValue(row.path, row.type, text);
+    return;
+  }
   try {
     setValue(row.path, row.type, JSON.parse(text));
   } catch {
-    props.ctx.session.warn(`${cssName(row.path)}: the value is not valid JSON.`);
+    props.ctx.session.warn(
+      `${cssName(row.path)}: the value is not valid JSON.`,
+    );
   }
 }
 
@@ -89,9 +116,9 @@ function nameProblem(path: string) {
   if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(path))
     return 'Use lowercase words joined by dots, like duration.slow.';
   const editor = ownEditor(path);
-  if (editor) return `${path.split('.')[0]} tokens belong to ${editor}, not Other tokens.`;
+  if (editor)
+    return `${path.split('.')[0]} tokens belong to ${editor}, not Other tokens.`;
   if (props.ctx.tokens.has(path)) return `${path} already exists.`;
-  return undefined;
 }
 
 function add() {
@@ -99,19 +126,29 @@ function add() {
   const value = tokenValue(newType.value, newValue.value);
   error.value =
     nameProblem(path) ??
-    (value === null ? `That is not a ${newType.value}. Try ${valueExample(newType.value)}.` : undefined);
+    (value === null
+      ? `That is not a ${newType.value}. Try ${valueExample(newType.value)}.`
+      : undefined);
   if (error.value) return false;
   setValue(path, newType.value, value);
   newName.value = '';
   newValue.value = '';
   return true;
 }
+const uid = useId();
 </script>
 
 <template>
-  <p class="cd-hint">Tokens outside the palette, scales and type: durations, easing, extra colors.</p>
+  <p class="cd-hint">
+    Tokens outside the palette, scales and type: durations, easing, extra
+    colors.
+  </p>
   <ThemeBar v-if="rows.some((row) => row.type === 'color')" :ctx="ctx" />
-  <ul v-if="rows.length" class="ed-table ed-token-table" aria-label="Other tokens">
+  <ul
+    v-if="rows.length"
+    class="ed-table ed-token-table"
+    aria-label="Other tokens"
+  >
     <li v-for="row in rows" :key="row.path">
       <span class="ed-table-name"
         ><code>{{ row.label }}</code
@@ -125,21 +162,32 @@ function add() {
         :options="shades"
         @commit="setColor(row.path, $event)"
       />
-      <span v-else-if="isMeasure(row.value) && UNITS[row.type]" class="ed-unit-input">
-        <label
+      <span
+        v-else-if="isMeasure(row.value) && UNITS[row.type]"
+        class="ed-unit-input"
+      >
+        <label :for="`${uid}-${row.path}`"
           ><span class="cd-sr-only">{{ row.label }}</span
-          ><input type="number" step="any" :value="row.value.value" @change="setNumber(row.path, $event)"
+          ><input
+            :id="`${uid}-${row.path}`"
+            type="number"
+            step="any"
+            :value="row.value.value"
+            @change="setNumber(row.path, $event)"
         /></label>
         <Listbox
           :label="`${row.label} unit`"
-          :options="UNITS[row.type].map((unit) => ({ value: unit, label: unit }))"
+          :options="
+            UNITS[row.type].map((unit) => ({ value: unit, label: unit }))
+          "
           :value="row.value.unit"
           @update:value="ctx.patchValue(row.path, { unit: $event })"
         />
       </span>
-      <label v-else
+      <label v-else :for="`${uid}-${row.path}`"
         ><span class="cd-sr-only">{{ row.label }}</span
         ><input
+          :id="`${uid}-${row.path}`"
           :type="typeof row.value === 'number' ? 'number' : 'text'"
           step="any"
           :value="
@@ -161,14 +209,24 @@ function add() {
     <template #default="{ close }">
       <form class="ed-add ed-add-stack" @submit.prevent="add() && close()">
         <div class="ed-grid-2 ed-span-all">
-          <label class="cd-field"
-            ><span>New token name</span><input v-model="newName" type="text" placeholder="e.g. duration.slow"
+          <label :for="`${uid}-new-name`" class="cd-field"
+            ><span>New token name</span
+            ><input
+              :id="`${uid}-new-name`"
+              v-model="newName"
+              type="text"
+              placeholder="e.g. duration.slow"
           /></label>
-          <Choice v-model:value="newType" label="Type" :options="NEW_TOKEN_TYPES" />
+          <Choice
+            v-model:value="newType"
+            label="Type"
+            :options="NEW_TOKEN_TYPES"
+          />
         </div>
-        <label class="cd-field"
+        <label :for="`${uid}-new-value`" class="cd-field"
           ><span>Value</span
           ><input
+            :id="`${uid}-new-value`"
             v-model="newValue"
             type="text"
             :placeholder="valueExample(newType)"
@@ -176,8 +234,16 @@ function add() {
             :aria-describedby="error ? 'cd-add-token-error' : undefined"
         /></label>
         <button type="submit" class="btn">Add token</button>
-        <button type="button" class="btn btn-secondary btn-quiet" @click="close">Cancel</button>
-        <p v-if="error" id="cd-add-token-error" class="cd-error" role="alert">{{ error }}</p>
+        <button
+          type="button"
+          class="btn btn-secondary btn-quiet"
+          @click="close"
+        >
+          Cancel
+        </button>
+        <p v-if="error" id="cd-add-token-error" class="cd-error" role="alert">
+          {{ error }}
+        </p>
       </form>
     </template>
   </AddPanel>

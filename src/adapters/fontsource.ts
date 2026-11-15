@@ -24,13 +24,17 @@ const listingShape = {
 
 const fontListing: z.ZodMiniType<FontListing> = z.object(listingShape);
 
-const variant = z.object({ url: z.optional(z.object({ woff2: z.optional(z.string()) })) });
+const variant = z.object({
+  url: z.optional(z.object({ woff2: z.optional(z.string()) })),
+});
 export const fontDetail: z.ZodMiniType<FontDetail> = z.object({
   ...listingShape,
   subsets: z.array(z.string()),
   npmVersion: z.string(),
   unicodeRange: z.optional(z.record(z.string(), z.string())),
-  variants: z.optional(z.record(z.string(), z.record(z.string(), z.record(z.string(), variant)))),
+  variants: z.optional(
+    z.record(z.string(), z.record(z.string(), z.record(z.string(), variant))),
+  ),
 });
 
 export const parseList = (json: unknown): FontListing[] =>
@@ -39,11 +43,17 @@ export const parseList = (json: unknown): FontListing[] =>
     return r.success ? [r.data] : [];
   });
 
-export function fontFiles(detail: FontDetail, { weights, styles, subsets }: FontPicks): FontFile[] {
+export function fontFiles(
+  detail: FontDetail,
+  { weights, styles, subsets }: FontPicks,
+): FontFile[] {
   return weights.flatMap((weight) =>
     styles.filter(isFontStyle).flatMap((style) =>
       subsets
-        .filter((subset) => detail.variants?.[weight]?.[style]?.[subset]?.url?.woff2)
+        .filter(
+          (subset) =>
+            detail.variants?.[String(weight)]?.[style]?.[subset]?.url?.woff2,
+        )
         .map((subset) => ({
           family: detail.family,
           weight,
@@ -68,7 +78,9 @@ const previewUrl = (font: FontListing) =>
     version: 'latest',
     subset: font.defSubset,
     weight: font.weights.includes(400) ? 400 : font.weights[0],
-    style: font.styles.includes('normal') ? 'normal' : font.styles.find(isFontStyle),
+    style: font.styles.includes('normal')
+      ? 'normal'
+      : font.styles.find(isFontStyle),
   });
 
 const licenseUrl = (file: Partial<FontFile>) =>
@@ -76,17 +88,26 @@ const licenseUrl = (file: Partial<FontFile>) =>
 
 function cachedList(cache: KeyValueStore | undefined): FontListing[] | null {
   try {
-    const cached = z.safeParse(cachedListing, JSON.parse(cache?.getItem(CACHE_KEY) ?? 'null'));
-    return cached.success && Date.now() - cached.data.at < DAY ? parseList(cached.data.list) : null;
+    const cached = z.safeParse(
+      cachedListing,
+      JSON.parse(cache?.getItem(CACHE_KEY) ?? 'null'),
+    );
+    return cached.success && Date.now() - cached.data.at < DAY
+      ? parseList(cached.data.list)
+      : null;
   } catch {
     return null;
   }
 }
 
-export function fontsource({ fetch: fetchFn = fetch, cache }: { fetch?: Fetch; cache?: KeyValueStore } = {}) {
+export function fontsource({
+  fetch: fetchFn = fetch,
+  cache,
+}: { fetch?: Fetch; cache?: KeyValueStore } = {}) {
   async function getJson(url: string): Promise<unknown> {
     const res = await fetchFn(url);
-    if (!res.ok) throw new Error(`Fontsource request failed (${res.status}): ${url}`);
+    if (!res.ok)
+      throw new Error(`Fontsource request failed (${res.status}): ${url}`);
     return res.json();
   }
 
@@ -104,7 +125,8 @@ export function fontsource({ fetch: fetchFn = fetch, cache }: { fetch?: Fetch; c
       }
       return list;
     },
-    font: async (id) => z.parse(fontDetail, await getJson(`${API}/${encodeURIComponent(id)}`)),
+    font: async (id) =>
+      z.parse(fontDetail, await getJson(`${API}/${encodeURIComponent(id)}`)),
     files: fontFiles,
     fileUrl,
     licenseUrl,

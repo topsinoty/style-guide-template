@@ -2,3 +2,4 @@ node_modules/
 .superpowers/
 .ds-receipts/
 dist/
+.impeccable/

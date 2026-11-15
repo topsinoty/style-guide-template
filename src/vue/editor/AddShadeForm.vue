@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useId } from 'vue';
 import { parseCssColor } from '../../lib/color.js';
 import { addShade, paletteId, type PaletteColor } from '../../lib/palette.js';
-import ColorInput, { COLOR_ERROR } from '../ColorInput.vue';
+import ColorInput from '../ColorInput.vue';
+import { COLOR_ERROR } from '../../lib/color.js';
 import type { EditorContext } from './context.js';
 
 const props = defineProps<{ ctx: EditorContext; color: PaletteColor }>();
@@ -14,8 +15,8 @@ const error = ref<string>();
 
 function nameProblem(id: string) {
   if (!id) return 'Give the shade a name.';
-  if (props.color.shades.some((shade) => shade.name === id)) return `${id} is already taken.`;
-  return undefined;
+  if (props.color.shades.some((shade) => shade.name === id))
+    return `${id} is already taken.`;
 }
 
 function add() {
@@ -23,20 +24,38 @@ function add() {
   const color = parseCssColor(value.value.trim());
   error.value = nameProblem(id) ?? (color ? undefined : COLOR_ERROR);
   if (error.value || !color) return;
-  props.ctx.edit((doc) => addShade(doc, props.color.id, id, color, props.ctx.vendor));
+  props.ctx.edit((doc) =>
+    addShade(
+      doc,
+      { color: props.color.id, shade: id },
+      color,
+      props.ctx.vendor,
+    ),
+  );
   name.value = '';
   value.value = '';
   emit('added');
 }
+const uid = useId();
 </script>
 
 <template>
   <form class="cd-field-row" @submit.prevent="add">
-    <label class="cd-field"
+    <label :for="`${uid}-name`" class="cd-field"
       ><span>New shade name</span>
-      <input v-model="name" type="text" placeholder="light" />
+      <input
+        :id="`${uid}-name`"
+        v-model="name"
+        type="text"
+        placeholder="light"
+      />
     </label>
-    <ColorInput v-model="value" label="Shade color" placeholder="any CSS color" :error="error" />
+    <ColorInput
+      v-model="value"
+      label="Shade color"
+      placeholder="any CSS color"
+      :error="error"
+    />
     <button type="submit" class="btn btn-small">Add shade</button>
   </form>
 </template>

@@ -1,11 +1,11 @@
-export interface TourStep {
+export type TourStep = {
   title: string;
   body: string;
   target?: string;
   drawer?: boolean;
   tab?: string;
   area?: string;
-}
+};
 
 const READ: TourStep[] = [
   {

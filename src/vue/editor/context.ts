@@ -5,9 +5,14 @@ import { checkBrand, problemText } from '../../lib/io.js';
 import { isNode, nodeAt } from '../../lib/tree.js';
 import { isDark } from '../../lib/color.js';
 import { narrow, isColor } from '../../lib/values.js';
-import type { BrandMeta, ResolverDoc, TokenNode, Tokens } from '../../lib/types.js';
+import type {
+  BrandMeta,
+  ResolverDoc,
+  TokenNode,
+  Tokens,
+} from '../../lib/types.js';
 
-export interface EditorContext {
+export type EditorContext = {
   session: Session;
   vendor: string;
   doc: ResolverDoc;
@@ -22,7 +27,7 @@ export interface EditorContext {
   patchValue(path: string, patch: Record<string, unknown>): void;
   setMeta(fn: (meta: BrandMeta) => BrandMeta, typingKey?: string): void;
   fresh(path: string): TokenNode;
-}
+};
 
 export function editorContext(
   session: Session,
@@ -34,12 +39,14 @@ export function editorContext(
 
   const edit = (fn: (doc: ResolverDoc) => ResolverDoc, typingKey?: string) => {
     const next = fn(store.get());
-    const [problem] = checkBrand(next, session.validator);
+    const problem = checkBrand(next, session.validator).at(0);
     if (problem) session.warn(`Not applied: ${problemText(problem)}`);
     else store.set(next, typingKey);
   };
-  const fresh = (path: string): TokenNode => nodeAt(E.foundation(store.get()), path) ?? {};
-  const setToken = (path: string, token: TokenNode) => edit((doc) => E.setToken(doc, path, token));
+  const fresh = (path: string): TokenNode =>
+    nodeAt(E.foundation(store.get()), path) ?? {};
+  const setToken = (path: string, token: TokenNode) =>
+    edit((doc) => E.setToken(doc, path, token));
 
   return {
     session,
@@ -49,7 +56,9 @@ export function editorContext(
     tokens,
     meta: session.meta,
     theme,
-    darkPage: isDark(narrow(tokens.get('color.page.background')?.resolved, isColor)),
+    darkPage: isDark(
+      narrow(tokens.get('color.page.background')?.resolved, isColor),
+    ),
     setTheme,
     edit,
     setToken,
@@ -58,7 +67,8 @@ export function editorContext(
       const value = isNode(token.$value) ? token.$value : {};
       setToken(path, { ...token, $value: { ...value, ...patch } });
     },
-    setMeta: (fn, typingKey) => edit((doc) => withBrandMeta(doc, vendor, fn(session.meta)), typingKey),
+    setMeta: (fn, typingKey) =>
+      edit((doc) => withBrandMeta(doc, vendor, fn(session.meta)), typingKey),
     fresh,
   };
 }

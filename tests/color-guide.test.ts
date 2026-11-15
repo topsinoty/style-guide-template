@@ -7,7 +7,10 @@ test('treats a single named color as a palette entry', () => {
 });
 
 test('keeps direct shades in their named palette', () => {
-  assert.deepEqual(palettePath('color.accent.500'), { group: 'accent', step: '500' });
+  assert.deepEqual(palettePath('color.accent.500'), {
+    group: 'accent',
+    step: '500',
+  });
 });
 
 test('does not group nested semantic color tokens as palette shades', () => {

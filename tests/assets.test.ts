@@ -37,7 +37,10 @@ test('resolution order: session, library, font provider, missing', () => {
     url: 'library/logos/b.svg',
   });
   assert.equal(resolveAsset(font, ctx).source, 'provider');
-  assert.match(present(resolveAsset(font, ctx).url), /^https:\/\/cdn\.jsdelivr\.net\//);
+  assert.match(
+    present(resolveAsset(font, ctx).url),
+    /^https:\/\/cdn\.jsdelivr\.net\//,
+  );
   assert.equal(resolveAsset({ src: 'logos/c.svg' }, ctx).source, 'missing');
 });
 
@@ -52,7 +55,11 @@ test('missingAssets and allSrcs', () => {
     ],
   );
   assert.deepEqual(
-    missingAssets(meta, { session: new Map(), library: new Set(['logos/primary.svg']), fonts: fontsource() }),
+    missingAssets(meta, {
+      session: new Map(),
+      library: new Set(['logos/primary.svg']),
+      fonts: fontsource(),
+    }),
     ['patterns/dots.svg'],
   );
 });
@@ -70,7 +77,9 @@ test('colliding names are ambiguous, nothing assigned', () => {
     [new File([], 'logo.svg'), new File([], 'other.png')],
   );
   assert.equal(r.matched.size, 0);
-  assert.deepEqual(r.ambiguous, [{ name: 'logo.svg', candidates: ['logos/logo.svg', 'icons/logo.svg'] }]);
+  assert.deepEqual(r.ambiguous, [
+    { name: 'logo.svg', candidates: ['logos/logo.svg', 'icons/logo.svg'] },
+  ]);
   assert.deepEqual(
     r.unmatched.map((f) => f.name),
     ['other.png'],
@@ -80,15 +89,25 @@ test('colliding names are ambiguous, nothing assigned', () => {
 test('a file saved under another origin key is read and moved, other extensions kept', () => {
   const doc = load();
   const { [V]: own, ...rest } = present(doc.sets.foundation.$extensions);
-  doc.sets.foundation.$extensions = { ...rest, 'com.other.site': own, 'org.tool.x': { keep: true } };
+  doc.sets.foundation.$extensions = {
+    ...rest,
+    'com.other.site': own,
+    'org.tool.x': { keep: true },
+  };
   const meta = brandMeta(doc, V);
   assert.equal(meta.assetGroups.length, 2);
   const out = withBrandMeta(doc, V, meta);
   assert.deepEqual(
-    keysOf(present(out.sets.foundation.$extensions)).sort((a, b) => a.localeCompare(b)),
+    keysOf(present(out.sets.foundation.$extensions)).sort((a, b) =>
+      a.localeCompare(b),
+    ),
     [V, 'org.tool.x'],
   );
-  assert.equal(doc.sets.foundation.$extensions['com.other.site'] !== undefined, true, 'input not mutated');
+  assert.equal(
+    doc.sets.foundation.$extensions['com.other.site'] !== undefined,
+    true,
+    'input not mutated',
+  );
 });
 
 test('empty meta when nothing is set', () => {
@@ -100,7 +119,11 @@ test('empty meta when nothing is set', () => {
 test('srcs that are not plain relative paths are treated as missing', () => {
   const ctx = {
     session: new Map<string, FileData>(),
-    library: new Set(['../secret.svg', 'https://evil.example/x.svg', '/abs.svg']),
+    library: new Set([
+      '../secret.svg',
+      'https://evil.example/x.svg',
+      '/abs.svg',
+    ]),
     fonts: fontsource(),
   };
   for (const src of [
@@ -115,22 +138,33 @@ test('srcs that are not plain relative paths are treated as missing', () => {
 });
 
 test('brand metadata is validated', async () => {
-  const { validateBrandMeta } = await import('../src/adapters/zod-validator.js');
+  const { validateBrandMeta } =
+    await import('../src/adapters/zod-validator.js');
   assert.deepEqual(
     validateBrandMeta({
-      assetGroups: [{ id: 'logos', label: 'L', items: [{ label: 'a', src: 'logos/a.svg' }] }],
+      assetGroups: [
+        {
+          id: 'logos',
+          label: 'L',
+          items: [{ label: 'a', src: 'logos/a.svg' }],
+        },
+      ],
       fontFiles: [],
     }),
     [],
   );
   const bad = validateBrandMeta({
-    assetGroups: [{ id: 'x"y', items: [] }, { id: 'ok' }, { id: '../up', items: [] }],
+    assetGroups: [
+      { id: 'x"y', items: [] },
+      { id: 'ok' },
+      { id: '../up', items: [] },
+    ],
     fontFiles: [{ family: 'A' }],
   });
-  assert.ok(bad.some((e) => /x"y/.test(e.message)));
-  assert.ok(bad.some((e) => /items/.test(e.message)));
-  assert.ok(bad.some((e) => /\.\.\/up/.test(e.message)));
-  assert.ok(bad.some((e) => /src/.test(e.message)));
+  assert.ok(bad.some((e) => e.message.includes('x"y')));
+  assert.ok(bad.some((e) => e.message.includes('items')));
+  assert.ok(bad.some((e) => e.message.includes('../up')));
+  assert.ok(bad.some((e) => e.message.includes('src')));
 });
 
 test('adoptVendor moves every foreign extension (tokens and groups) to this site', async () => {
@@ -146,10 +180,13 @@ test('adoptVendor moves every foreign extension (tokens and groups) to this site
   move(present(nodeAt(t, 'spacing')));
   const out = adoptVendor(doc, V);
   assert.deepEqual(
-    vendorData(nodeAt(out.sets.foundation.sources[0], 'color.brand.600'), V).pantone,
+    vendorData(nodeAt(out.sets.foundation.sources[0], 'color.brand.600'), V)
+      .pantone,
     'PANTONE 2727 C',
   );
-  assert.ok(vendorData(nodeAt(out.sets.foundation.sources[0], 'spacing'), V).scale);
+  assert.ok(
+    vendorData(nodeAt(out.sets.foundation.sources[0], 'spacing'), V).scale,
+  );
   assert.ok(brandMeta(out, V).assetGroups.length);
   assert.equal(JSON.stringify(out).includes('com.other.site'), false);
 });
@@ -159,10 +196,16 @@ test('readBrandMeta applies defaults, keeps unknown fields and skips unusable en
   const meta = readBrandMeta({
     note: 'from another tool',
     assetGroups: [
-      { id: 'logos', items: [{ src: 'logos/a.svg', extra: 1 }, { src: '../escape.svg' }] },
+      {
+        id: 'logos',
+        items: [{ src: 'logos/a.svg', extra: 1 }, { src: '../escape.svg' }],
+      },
       'junk',
     ],
-    fontFiles: [{ family: 'Inter', src: 'fonts/inter.woff2' }, { src: 'fonts/no-family.woff2' }],
+    fontFiles: [
+      { family: 'Inter', src: 'fonts/inter.woff2' },
+      { src: 'fonts/no-family.woff2' },
+    ],
   });
   assert.equal(meta.note, 'from another tool');
   assert.deepEqual(
@@ -174,5 +217,8 @@ test('readBrandMeta applies defaults, keeps unknown fields and skips unusable en
     meta.fontFiles.map((f) => [f.family, f.weight, f.style]),
     [['Inter', 400, 'normal']],
   );
-  assert.deepEqual(readBrandMeta(undefined), { assetGroups: [], fontFiles: [] });
+  assert.deepEqual(readBrandMeta(undefined), {
+    assetGroups: [],
+    fontFiles: [],
+  });
 });

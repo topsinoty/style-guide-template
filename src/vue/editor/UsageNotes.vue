@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { cssName } from '../../lib/css.js';
 import * as E from '../../lib/edit.js';
 import { nodeAt } from '../../lib/tree.js';
@@ -13,26 +13,40 @@ const query = ref('');
 const opened = ref<string>();
 
 const notable = computed(() =>
-  [...props.ctx.tokens.keys()].filter((path) => nodeAt(props.ctx.tree, path)?.$value !== undefined),
+  [...props.ctx.tokens.keys()].filter(
+    (path) => nodeAt(props.ctx.tree, path)?.$value !== undefined,
+  ),
 );
 const noteOf = (path: string) => props.ctx.tokens.get(path)?.description;
 const written = computed(() => notable.value.filter((path) => noteOf(path)));
 const matches = computed(() => {
-  const q = query.value.trim().toLowerCase().replace(/^--/, '').replaceAll('-', '.');
+  const q = query.value
+    .trim()
+    .toLowerCase()
+    .replace(/^--/, '')
+    .replaceAll('-', '.');
   if (!q) return written.value;
-  return notable.value.filter((path) => path.includes(q) || cssName(path).includes(query.value.trim()));
+  return notable.value.filter(
+    (path) => path.includes(q) || cssName(path).includes(query.value.trim()),
+  );
 });
+const uid = useId();
 </script>
 
 <template>
   <p class="cd-hint">
-    Say what a token is for: "Page background. Text on it uses ink." The guide shows the note next to the
-    token.
+    Say what a token is for: "Page background. Text on it uses ink." The guide
+    shows the note next to the token.
     {{ written.length }} of {{ notable.length }} tokens have one.
   </p>
-  <label class="cd-field"
+  <label :for="`${uid}-find`" class="cd-field"
     ><span>Find a token</span>
-    <input v-model="query" type="search" placeholder="primary, spacing, ground…" />
+    <input
+      :id="`${uid}-find`"
+      v-model="query"
+      type="search"
+      placeholder="primary, spacing, ground…"
+    />
   </label>
   <ul v-if="matches.length" class="ed-list">
     <ItemRow
@@ -48,7 +62,10 @@ const matches = computed(() => {
         :value="noteOf(path)"
         :rows="2"
         placeholder="What it is for, and what to pair it with."
-        @commit="(value, key) => ctx.edit((doc) => E.setDescription(doc, path, value), key)"
+        @commit="
+          (value, key) =>
+            ctx.edit((doc) => E.setDescription(doc, path, value), key)
+        "
       />
     </ItemRow>
   </ul>
@@ -57,7 +74,9 @@ const matches = computed(() => {
   </p>
   <p v-else-if="!matches.length" class="cd-hint">
     {{
-      query.trim() ? `No token matches "${query.trim()}".` : 'No notes yet. Find a token above to add one.'
+      query.trim()
+        ? `No token matches "${query.trim()}".`
+        : 'No notes yet. Find a token above to add one.'
     }}
   </p>
 </template>

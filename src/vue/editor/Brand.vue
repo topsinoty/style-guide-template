@@ -7,7 +7,8 @@ import TextField from './TextField.vue';
 
 const { ctx } = defineProps<{ ctx: EditorContext }>();
 
-const preview = (element: string) => computed(() => elementPreview(ctx.tree, ctx.vendor, element));
+const preview = (element: string) =>
+  computed(() => elementPreview(ctx.tree, ctx.vendor, element));
 const h1 = preview('h1');
 const p = preview('p');
 
@@ -29,6 +30,9 @@ const FORMAT_HINT =
     :value="ctx.doc.description"
     :hint="FORMAT_HINT"
     placeholder="Who the brand is for and what it should feel like."
-    @commit="(value, key) => ctx.edit((doc) => ({ ...doc, description: value || undefined }), key)"
+    @commit="
+      (value, key) =>
+        ctx.edit((doc) => ({ ...doc, description: value || undefined }), key)
+    "
   />
 </template>

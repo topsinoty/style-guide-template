@@ -11,7 +11,7 @@ import { colorKind, palettePath } from './color-path.js';
 import { narrow, isColor } from '../../lib/values.js';
 import CopyButton from './CopyButton.vue';
 
-interface Shade {
+type Shade = {
   path: string;
   group: string;
   step: string;
@@ -19,13 +19,13 @@ interface Shade {
   hex: string;
   description?: string;
   copies: { text: string; shown: string }[];
-}
-interface Row {
+};
+type Row = {
   path: string;
   source: string;
   hex: string;
   description?: string;
-}
+};
 
 const props = defineProps<{ tokens: Tokens; vendor: string }>();
 
@@ -37,14 +37,29 @@ function shade(path: string, token: ResolvedToken): Shade | null {
   const own = isNode(extension) ? extension : {};
   const printedCmyk = Array.isArray(own.cmyk) ? own.cmyk : null;
   const cmykText = `CMYK ${(printedCmyk ?? cmyk(color)).join(' ')}`;
-  const copies = [toHex(color), toRgbaString(color), toOklchString(color)].map((text) => ({
-    text,
-    shown: text,
-  }));
-  copies.push({ text: cmykText, shown: printedCmyk ? cmykText : `${cmykText} (approx.)` });
-  if (typeof own.pantone === 'string') copies.push({ text: own.pantone, shown: own.pantone });
-  const name = palette.step ? `${palette.group}-${palette.step}` : palette.group;
-  return { path, ...palette, name, hex: toHex(color), description: token.description, copies };
+  const copies = [toHex(color), toRgbaString(color), toOklchString(color)].map(
+    (text) => ({
+      text,
+      shown: text,
+    }),
+  );
+  copies.push({
+    text: cmykText,
+    shown: printedCmyk ? cmykText : `${cmykText} (approx.)`,
+  });
+  if (typeof own.pantone === 'string')
+    copies.push({ text: own.pantone, shown: own.pantone });
+  const name = palette.step
+    ? `${palette.group}-${palette.step}`
+    : palette.group;
+  return {
+    path,
+    ...palette,
+    name,
+    hex: toHex(color),
+    description: token.description,
+    copies,
+  };
 }
 
 function sourceOf(value: unknown, color: DtcgColor): string {
@@ -73,14 +88,17 @@ const color = computed(() => {
     const kind = colorKind(path);
     const swatch = kind === 'palette' ? shade(path, token) : null;
     const line = swatch ? null : row(path, token);
-    if (swatch) palette.set(swatch.group, [...(palette.get(swatch.group) ?? []), swatch]);
+    if (swatch)
+      palette.set(swatch.group, [...(palette.get(swatch.group) ?? []), swatch]);
     else if (line) rows[kind === 'role' ? 'role' : 'other'].push(line);
   }
   const hues = [...palette].map(
-    ([id, shades]) => [id, shades.toSorted((a, b) => byShadeOrder(a.step, b.step))] as const,
+    ([id, shades]) =>
+      [id, shades.toSorted((a, b) => byShadeOrder(a.step, b.step))] as const,
   );
   const tables = [{ title: 'Roles', rows: rows.role }];
-  if (rows.other.length) tables.push({ title: 'Other tokens', rows: rows.other });
+  if (rows.other.length)
+    tables.push({ title: 'Other tokens', rows: rows.other });
   return { hues, tables };
 });
 
@@ -89,14 +107,19 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
 
 <template>
   <p v-if="!color.hues.length" class="cd-hint">
-    No palette colors are defined yet. Colors used by roles or other tokens appear below.
+    No palette colors are defined yet. Colors used by roles or other tokens
+    appear below.
   </p>
   <template v-for="[hue, shades] in color.hues" :key="hue">
     <h3 :id="`hue-${hue}`">{{ hue }}</h3>
     <RovingFocusGroup as="ul" class="cd-scale" :aria-labelledby="`hue-${hue}`">
       <li v-for="s in shades" :key="s.path">
         <RovingFocusItem as-child>
-          <CopyButton :text="s.hex" :label="`${s.name}: copy ${s.hex}`" class="cd-copy cd-copy-swatch">
+          <CopyButton
+            :text="s.hex"
+            :label="`${s.name}: copy ${s.hex}`"
+            class="cd-copy cd-copy-swatch"
+          >
             <span class="cd-color-swatch" :style="background(s.path)"></span>
           </CopyButton>
         </RovingFocusItem>
@@ -130,7 +153,8 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
           <tbody>
             <tr v-for="r in table.rows" :key="r.path">
               <td>
-                <span class="cd-chip" :style="background(r.path)"></span><code>{{ cssName(r.path) }}</code>
+                <span class="cd-chip" :style="background(r.path)"></span
+                ><code>{{ cssName(r.path) }}</code>
               </td>
               <td>
                 <code>{{ r.source }}</code>

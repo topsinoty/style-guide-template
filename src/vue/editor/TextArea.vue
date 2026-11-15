@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch, type CSSProperties } from 'vue';
+import { onBeforeUnmount, ref, watch, type CSSProperties, useId } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 
 const props = defineProps<{
@@ -12,7 +12,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ commit: [value: string, key: string] }>();
 const key = `textarea-${crypto.randomUUID()}`;
-const draft = ref(props.value ?? '');
+const draft = ref('');
 const focused = ref(false);
 
 // While typing, the field keeps its own text so trimming never eats the space just typed.
@@ -21,10 +21,12 @@ watch(
   (value) => {
     if (!focused.value) draft.value = value ?? '';
   },
+  { immediate: true },
 );
 
 const send = () => {
-  if (draft.value.trim() !== (props.value ?? '')) emit('commit', draft.value.trim(), key);
+  if (draft.value.trim() !== (props.value ?? ''))
+    emit('commit', draft.value.trim(), key);
 };
 const sendSoon = useDebounceFn(send, 250);
 
@@ -36,12 +38,14 @@ function done() {
 
 // Switching tabs or closing a row unmounts the field; keep the last keystrokes.
 onBeforeUnmount(send);
+const uid = useId();
 </script>
 
 <template>
-  <label class="cd-field"
+  <label :for="uid" class="cd-field"
     ><span>{{ label }}</span>
     <textarea
+      :id="uid"
       v-model="draft"
       :rows="rows ?? 4"
       :placeholder="placeholder"

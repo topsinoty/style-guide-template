@@ -3,11 +3,18 @@ import { ref } from 'vue';
 import { useTimeoutFn } from '@vueuse/core';
 
 const props = withDefaults(
-  defineProps<{ text: string; label?: string; title?: string; tabindex?: number }>(),
+  defineProps<{
+    text: string;
+    label?: string;
+    title?: string;
+    tabindex?: number;
+  }>(),
   { tabindex: 0 },
 );
 const status = ref('');
-const { start: clearLater } = useTimeoutFn(() => (status.value = ''), 1500, { immediate: false });
+const { start: clearLater } = useTimeoutFn(() => (status.value = ''), 1500, {
+  immediate: false,
+});
 
 async function copy() {
   try {

@@ -9,7 +9,8 @@ const TAGS = { strong: 'strong', em: 'em', code: 'code' } as const;
 const inline = (parts: Inline[]) =>
   parts.map((part) => {
     if (part.kind === 'text') return createTextVNode(part.text);
-    if (part.kind === 'link') return h('a', { href: part.href, rel: 'noopener noreferrer' }, part.text);
+    if (part.kind === 'link')
+      return h('a', { href: part.href, rel: 'noopener noreferrer' }, part.text);
     return h(TAGS[part.kind], part.text);
   });
 const block = (b: Block) => {
@@ -20,7 +21,8 @@ const block = (b: Block) => {
     );
   return h(b.kind === 'heading' ? 'h3' : 'p', inline(b.inline));
 };
-const Blocks: FunctionalComponent<{ text: string }> = ({ text }) => parseBlocks(text).map(block);
+const Blocks: FunctionalComponent<{ text: string }> = ({ text }) =>
+  parseBlocks(text).map(block);
 </script>
 
 <template>

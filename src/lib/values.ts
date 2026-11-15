@@ -74,9 +74,11 @@ const weightKeywords = new Set<string>(WEIGHT_KEYWORDS);
 const strokeStyles = new Set<string>(STROKE_STYLES);
 const fontStyles = new Set<string>(FONT_STYLES);
 
-export const narrow = <T>(value: unknown, guard: Guard<T>): T | null => (guard(value) ? value : null);
+export const narrow = <T>(value: unknown, guard: Guard<T>): T | null =>
+  guard(value) ? value : null;
 
-const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+const isNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
 
 const isComponent = (value: unknown) => value === 'none' || isNumber(value);
 
@@ -99,14 +101,18 @@ export function isColor(value: unknown): value is DtcgColor {
     components.length === 3 &&
     components.every(isComponent) &&
     (alpha === undefined || (isNumber(alpha) && alpha >= 0 && alpha <= 1)) &&
-    (hex === undefined || (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex)))
+    (hex === undefined ||
+      (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex)))
   );
 }
 
 const lengthIn =
   (units: readonly string[]): Guard<Dimension> =>
   (value): value is Dimension =>
-    isNode(value) && isNumber(value.value) && typeof value.unit === 'string' && units.includes(value.unit);
+    isNode(value) &&
+    isNumber(value.value) &&
+    typeof value.unit === 'string' &&
+    units.includes(value.unit);
 
 export const isSize = lengthIn(['px', 'rem']);
 export const isDuration = lengthIn(['ms', 's']);
@@ -116,7 +122,9 @@ export const isCubicBezier = (value: unknown): value is CubicBezier =>
 
 export const isFontFamily = (value: unknown): value is FontFamily =>
   typeof value === 'string' ||
-  (Array.isArray(value) && value.length > 0 && value.every((family) => typeof family === 'string'));
+  (Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((family) => typeof family === 'string'));
 
 export const isFontWeight = (value: unknown): value is FontWeight =>
   (isNumber(value) && value >= 1 && value <= 1000) ||
@@ -142,7 +150,8 @@ export function isShadowLayer(value: unknown): value is ShadowLayer {
 }
 
 export const isShadow = (value: unknown): value is Shadow =>
-  isShadowLayer(value) || (Array.isArray(value) && value.every(orAlias(isShadowLayer)));
+  isShadowLayer(value) ||
+  (Array.isArray(value) && value.every(orAlias(isShadowLayer)));
 
 export const isBorder = (value: unknown): value is Border =>
   isNode(value) &&

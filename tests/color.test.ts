@@ -17,9 +17,13 @@ import {
 } from '../src/lib/color.js';
 import type { DtcgColor } from '../src/lib/types.js';
 
-const space = (colorSpace: string, components: number[]) => z.parse(color, { colorSpace, components });
+const space = (colorSpace: string, components: number[]) =>
+  z.parse(color, { colorSpace, components });
 
-const srgb = (r: number, g: number, b: number): DtcgColor => ({ colorSpace: 'srgb', components: [r, g, b] });
+const srgb = (r: number, g: number, b: number): DtcgColor => ({
+  colorSpace: 'srgb',
+  components: [r, g, b],
+});
 
 test('srgb red <-> oklch', () => {
   const [l, c, h] = toOklch(srgb(1, 0, 0));
@@ -53,19 +57,37 @@ test('alpha omitted when 1', () => {
 });
 
 test('none component reads as 0', () => {
-  assert.deepEqual(toOklch({ colorSpace: 'oklch', components: [0.5, 'none', 'none'] }), [0.5, 0, 0, 1]);
+  assert.deepEqual(
+    toOklch({ colorSpace: 'oklch', components: [0.5, 'none', 'none'] }),
+    [0.5, 0, 0, 1],
+  );
 });
 
 test('strings', () => {
   assert.equal(toOklchString(oklch(0.55, 0.18, 260)), 'oklch(0.55 0.18 260)');
-  assert.equal(toOklchString(oklch(0.55, 0.18, 260, 0.5)), 'oklch(0.55 0.18 260 / 0.5)');
+  assert.equal(
+    toOklchString(oklch(0.55, 0.18, 260, 0.5)),
+    'oklch(0.55 0.18 260 / 0.5)',
+  );
   assert.equal(toRgbaString(srgb(1, 0, 0)), 'rgba(255, 0, 0, 1)');
   assert.deepEqual(cmyk(srgb(1, 0, 0)), [0, 100, 100, 0]);
 });
 
 test('shade scale', () => {
   const s = shadeScale(260, 0.18);
-  assert.deepEqual(keysOf(s), ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']);
+  assert.deepEqual(keysOf(s), [
+    '50',
+    '100',
+    '200',
+    '300',
+    '400',
+    '500',
+    '600',
+    '700',
+    '800',
+    '900',
+    '950',
+  ]);
   assert.equal(s['50'].components[0], 0.97);
   assert.equal(s['950'].components[0], 0.15);
   for (const v of valuesOf(s)) assert.ok(inGamut(v));
@@ -77,8 +99,14 @@ test('parseCssColor reads hex, rgb and oklch', async () => {
   assert.equal(present(parseCssColor('#f00')).hex, '#ff0000');
   assert.equal(present(parseCssColor('rgb(255, 0, 0)')).hex, '#ff0000');
   assert.equal(present(parseCssColor('rgb(255 0 0)')).hex, '#ff0000');
-  assert.deepEqual(present(parseCssColor('oklch(0.55 0.18 260)')).components, [0.55, 0.18, 260]);
-  assert.deepEqual(present(parseCssColor('oklch(55% 0.18 260)')).components, [0.55, 0.18, 260]);
+  assert.deepEqual(
+    present(parseCssColor('oklch(0.55 0.18 260)')).components,
+    [0.55, 0.18, 260],
+  );
+  assert.deepEqual(
+    present(parseCssColor('oklch(55% 0.18 260)')).components,
+    [0.55, 0.18, 260],
+  );
   assert.equal(present(parseCssColor('oklch(0.5 0.1 10 / 0.5)')).alpha, 0.5);
   assert.equal(present(parseCssColor('#ff0000')).colorSpace, 'oklch');
   assert.equal(parseCssColor('blue-ish'), null);
@@ -111,7 +139,8 @@ test('every DTCG color space converts', async () => {
 });
 
 test('anchoredScale keeps the typed color exactly as the nearest shade', async () => {
-  const { anchoredScale, parseCssColor, toHex } = await import('../src/lib/color.js');
+  const { anchoredScale, parseCssColor, toHex } =
+    await import('../src/lib/color.js');
   const typed = present(parseCssColor('#f0941d'));
   const { scale, anchor } = anchoredScale(typed);
   assert.equal(anchor, '300');
@@ -149,18 +178,36 @@ test('every DTCG color space converts (white is white everywhere)', async () => 
 
 test('known reds in other spaces', async () => {
   const { toHex } = await import('../src/lib/color.js');
-  assert.equal(toHex({ colorSpace: 'lab', components: [54.2905, 80.8049, 69.891] }), '#ff0000');
-  assert.equal(toHex({ colorSpace: 'hsl', components: [0, 100, 50] }), '#ff0000');
-  assert.equal(toHex({ colorSpace: 'display-p3', components: [1, 0, 0] }), '#ff0000');
+  assert.equal(
+    toHex({ colorSpace: 'lab', components: [54.2905, 80.8049, 69.891] }),
+    '#ff0000',
+  );
+  assert.equal(
+    toHex({ colorSpace: 'hsl', components: [0, 100, 50] }),
+    '#ff0000',
+  );
+  assert.equal(
+    toHex({ colorSpace: 'display-p3', components: [1, 0, 0] }),
+    '#ff0000',
+  );
 });
 
 test('cssColor writes each space natively', async () => {
   const { cssColor } = await import('../src/lib/color.js');
-  assert.equal(cssColor({ colorSpace: 'display-p3', components: [1, 0, 0] }), 'color(display-p3 1 0 0)');
+  assert.equal(
+    cssColor({ colorSpace: 'display-p3', components: [1, 0, 0] }),
+    'color(display-p3 1 0 0)',
+  );
   assert.equal(
     cssColor({ colorSpace: 'lab', components: [50, 20, -30], alpha: 0.5 }),
     'lab(50 20 -30 / 0.5)',
   );
-  assert.equal(cssColor({ colorSpace: 'hsl', components: [10, 50, 40] }), 'hsl(10 50% 40%)');
-  assert.equal(cssColor({ colorSpace: 'oklch', components: [0.5, 0.1, 10] }), 'oklch(0.5 0.1 10)');
+  assert.equal(
+    cssColor({ colorSpace: 'hsl', components: [10, 50, 40] }),
+    'hsl(10 50% 40%)',
+  );
+  assert.equal(
+    cssColor({ colorSpace: 'oklch', components: [0.5, 0.1, 10] }),
+    'oklch(0.5 0.1 10)',
+  );
 });

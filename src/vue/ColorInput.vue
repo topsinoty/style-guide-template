@@ -1,13 +1,15 @@
-<script lang="ts">
-export const COLOR_ERROR = 'Enter a CSS color, such as #2e59aa.';
-</script>
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { parseCssColor, toHex } from '../lib/color.js';
+import { computed, ref, useId } from 'vue';
+import { COLOR_ERROR, parseCssColor, toHex } from '../lib/color.js';
 import type { DtcgColor } from '../lib/types.js';
 
 const props = withDefaults(
-  defineProps<{ label: string; placeholder?: string; picker?: boolean; error?: string }>(),
+  defineProps<{
+    label: string;
+    placeholder?: string;
+    picker?: boolean;
+    error?: string;
+  }>(),
   { picker: true },
 );
 const emit = defineEmits<{ commit: [color: DtcgColor] }>();
@@ -28,13 +30,15 @@ function commit() {
   invalid.value = !color;
   if (color) emit('commit', color);
 }
+const uid = useId();
 </script>
 
 <template>
-  <label class="cd-field">
+  <label :for="uid" class="cd-field">
     <span>{{ label }}</span>
     <span class="cd-color-input">
       <input
+        :id="uid"
         v-model="text"
         type="text"
         :placeholder="placeholder"
@@ -43,7 +47,16 @@ function commit() {
         @input="invalid = false"
         @change="commit"
       />
-      <input v-if="picker" v-model="hex" type="color" :aria-label="`Pick ${label}`" @change="commit" />
+      <label v-if="picker" :for="`${uid}-pick`" class="cd-sr-only"
+        >Pick {{ label }}</label
+      >
+      <input
+        v-if="picker"
+        :id="`${uid}-pick`"
+        v-model="hex"
+        type="color"
+        @change="commit"
+      />
     </span>
     <span v-if="error" :id="errorId" class="cd-error">{{ error }}</span>
   </label>

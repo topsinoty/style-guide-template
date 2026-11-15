@@ -1,4 +1,5 @@
-export type Mode = { kind: 'private' } | { kind: 'public'; brand: string } | { kind: 'preview' };
+export type Mode =
+  { kind: 'private' } | { kind: 'public'; brand: string } | { kind: 'preview' };
 
 export function readMode(search: string, hostedBrand?: string): Mode {
   if (hostedBrand) return { kind: 'public', brand: hostedBrand };

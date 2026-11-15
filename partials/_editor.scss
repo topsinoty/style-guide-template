@@ -184,8 +184,14 @@
 }
 
 .cd-popover.cd-contrast-popover {
-	width: min(chrome(36), var(--reka-popover-content-available-width, chrome(36)));
-	max-height: min(chrome(28), var(--reka-popover-content-available-height, chrome(28)));
+	width: min(
+		chrome(36),
+		var(--reka-popover-content-available-width, chrome(36))
+	);
+	max-height: min(
+		chrome(28),
+		var(--reka-popover-content-available-height, chrome(28))
+	);
 }
 
 .cd-drop {
@@ -196,7 +202,11 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--spacing-xl);
-	background: color-mix(in oklch, var(--color-page-background) 85%, transparent);
+	background: color-mix(
+		in oklch,
+		var(--color-page-background) 85%,
+		transparent
+	);
 	font-family: var(--font-body);
 	font-size: var(--font-size-xl);
 	text-align: center;
@@ -408,7 +418,10 @@
 	z-index: 35;
 	display: grid;
 	gap: var(--ed-1);
-	width: min(chrome(20), var(--reka-popover-content-available-width, chrome(20)));
+	width: min(
+		chrome(20),
+		var(--reka-popover-content-available-width, chrome(20))
+	);
 	max-height: var(--reka-popover-content-available-height, none);
 	overflow-y: auto;
 	padding: var(--ed-3);
@@ -536,8 +549,14 @@
 
 .cd-combobox-popup {
 	z-index: 35;
-	width: min(var(--reka-combobox-trigger-width), var(--reka-combobox-content-available-width, chrome(24)));
-	max-height: min(chrome(16), var(--reka-combobox-content-available-height, chrome(16)));
+	width: min(
+		var(--reka-combobox-trigger-width),
+		var(--reka-combobox-content-available-width, chrome(24))
+	);
+	max-height: min(
+		chrome(16),
+		var(--reka-combobox-content-available-height, chrome(16))
+	);
 	overflow-y: auto;
 	padding: var(--ed-1);
 	border: 1px solid var(--ed-border);
@@ -589,7 +608,10 @@
 .cd-listbox-popup {
 	z-index: 35;
 	width: var(--reka-select-trigger-width);
-	max-height: min(chrome(16), var(--reka-select-content-available-height, chrome(16)));
+	max-height: min(
+		chrome(16),
+		var(--reka-select-content-available-height, chrome(16))
+	);
 	overflow-y: auto;
 	padding: var(--ed-1);
 	border: 1px solid var(--ed-border);
@@ -623,6 +645,11 @@
 	display: grid;
 	gap: var(--spacing-sm);
 	font-size: var(--font-size-sm);
+}
+
+.cd-token-caption {
+	display: grid;
+	gap: var(--spacing-xs);
 }
 
 .cd-token-row {
@@ -781,7 +808,11 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: var(--radius-sm);
-	background: color-mix(in oklch, var(--color-page-background) 90%, transparent);
+	background: color-mix(
+		in oklch,
+		var(--color-page-background) 90%,
+		transparent
+	);
 	font-size: var(--font-size-xs);
 	font-weight: 700;
 	color: var(--color-page-foreground);

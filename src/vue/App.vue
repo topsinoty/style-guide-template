@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useTemplateRef, watch, watchEffect } from 'vue';
+import {
+  computed,
+  nextTick,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+  watchEffect,
+} from 'vue';
 import {
   onKeyStroke,
   useDropZone,
@@ -25,7 +33,6 @@ import {
   SwitchThumb,
 } from 'reka-ui';
 import type { Mode } from '../app/mode.js';
-import type { Session } from '../app/session.js';
 import { download } from './download.js';
 import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets.js';
 import { isDark } from '../lib/color.js';
@@ -43,11 +50,11 @@ import Help from './Help.vue';
 import Tour from './tour/Tour.vue';
 import { EDIT_STEPS, READ_STEPS } from './tour/steps.js';
 import { visibleSections } from './guide/sections.js';
-import { provideSession } from './useSession.js';
+import { injectSession } from './useSession.js';
 import { deriveView } from './view.js';
 
-const props = defineProps<{ session: Session; mode: Mode }>();
-const session = provideSession(props.session);
+defineProps<{ mode: Mode }>();
+const session = injectSession();
 
 const themeChoice = useStorage('styleguide:theme', 'auto');
 const prefersDark = usePreferredDark();
@@ -61,9 +68,13 @@ const theme = computed(() => {
   );
 });
 const lightDark = computed(
-  () => themes.value.length === 2 && themes.value.every((t) => t === 'light' || t === 'dark'),
+  () =>
+    themes.value.length === 2 &&
+    themes.value.every((t) => t === 'light' || t === 'dark'),
 );
-const themeOptions = computed(() => themes.value.map((t) => ({ value: t, label: cap(t) })));
+const themeOptions = computed(() =>
+  themes.value.map((t) => ({ value: t, label: cap(t) })),
+);
 const wide = useMediaQuery('(min-width: 48rem)');
 const reduceMotion = usePreferredReducedMotion();
 const { height: headerHeight } = useElementBounding(useTemplateRef('header'));
@@ -88,9 +99,13 @@ const editorMounted = ref(false);
 const exporting = ref(false);
 
 const view = computed(() => deriveView(session.value, theme.value));
-const sections = computed(() => visibleSections(view.value.meta, view.value.tokens, session.value.editable));
+const sections = computed(() =>
+  visibleSections(view.value.meta, view.value.tokens, session.value.editable),
+);
 const logo = computed(() => mainLogo(view.value.meta));
-const logoUrl = computed(() => logo.value && urlFor(logo.value, session.value.ctx));
+const logoUrl = computed(
+  () => logo.value && urlFor(logo.value, session.value.ctx),
+);
 
 watchEffect(() => {
   const root = document.documentElement;
@@ -99,7 +114,10 @@ watchEffect(() => {
     '--chrome-rem',
     `${DEFAULT_ROOT_SIZE / (view.value.meta.rootSize ?? DEFAULT_ROOT_SIZE)}rem`,
   );
-  const page = narrow(view.value.tokens.get('color.page.background')?.resolved, isColor);
+  const page = narrow(
+    view.value.tokens.get('color.page.background')?.resolved,
+    isColor,
+  );
   root.style.colorScheme = isDark(page) ? 'dark' : 'light';
 });
 
@@ -108,20 +126,36 @@ useStyleTag(
   computed(() => view.value.css),
   { id: 'brand-css' },
 );
-watchDebounced(view, () => session.value.prune(), { debounce: 2000, immediate: true });
+watchDebounced(view, () => session.value.prune(), {
+  debounce: 2000,
+  immediate: true,
+});
 whenever(editing, () => (editorMounted.value = true), { once: true });
 
 useEventListener(document.fonts, 'loadingerror', (e: FontFaceSetLoadEvent) => {
-  const failed = e.fontfaces.map((f) => `${f.family.replace(/"/g, '')} ${f.weight} ${f.style}`);
-  session.value.warn(...failed.map((font) => `Font could not be loaded: ${font}`));
+  const failed = e.fontfaces.map(
+    (f) => `${f.family.replace(/"/g, '')} ${f.weight} ${f.style}`,
+  );
+  session.value.warn(
+    ...failed.map((font) => `Font could not be loaded: ${font}`),
+  );
 });
+
+function report(e: unknown) {
+  session.value.warn(errorMessage(e));
+}
 
 async function previewTheme(next: string) {
   const apply = async () => {
     themeChoice.value = next;
     await nextTick();
   };
-  if (next === theme.value || !document.startViewTransition || reduceMotion.value === 'reduce') await apply();
+  if (
+    next === theme.value ||
+    !('startViewTransition' in document) ||
+    reduceMotion.value === 'reduce'
+  )
+    await apply();
   else document.startViewTransition(apply);
 }
 
@@ -130,14 +164,16 @@ async function focusBrandName(event: Event) {
   await nextTick();
   const target =
     document.getElementById('cd-brand-name') ??
-    document.querySelector<HTMLElement>('#cd-drawer [role="tab"][aria-selected="true"]');
+    document.querySelector<HTMLElement>(
+      '#cd-drawer [role="tab"][aria-selected="true"]',
+    );
   target?.focus();
 }
 
 const dark = computed({
   get: () => theme.value === 'dark',
   set: (on) => {
-    previewTheme(on ? 'dark' : 'light');
+    previewTheme(on ? 'dark' : 'light').catch(report);
   },
 });
 
@@ -179,24 +215,32 @@ async function exportKit() {
 }
 
 const loadDialog = useFileDialog({ reset: true });
-loadDialog.onChange(async (files) => {
-  if (files) await session.value.receive([...files]);
+loadDialog.onChange((files) => {
+  if (files) session.value.receive([...files]).catch(report);
 });
 
 const { isOverDropZone: dragging } = useDropZone(document, {
-  checkValidity: (items) => session.value.editable && [...items].some((item) => item.kind === 'file'),
-  async onDrop(files) {
-    if (files && session.value.editable) await session.value.receive(files);
+  checkValidity: (items) =>
+    session.value.editable && [...items].some((item) => item.kind === 'file'),
+  onDrop(files) {
+    if (files && session.value.editable)
+      session.value.receive(files).catch(report);
   },
 });
 
-useEventListener(document, 'paste', async (e: ClipboardEvent) => {
-  if (!session.value.editable || (e.target instanceof Element && e.target.closest(TEXT_ENTRY))) return;
+useEventListener(document, 'paste', (e: ClipboardEvent) => {
+  if (
+    !session.value.editable ||
+    (e.target instanceof Element && e.target.closest(TEXT_ENTRY))
+  )
+    return;
   const files = [...(e.clipboardData?.files ?? [])];
   const text = e.clipboardData?.getData('text/plain').trim() ?? '';
   if (!files.length && !text.startsWith('{')) return;
   e.preventDefault();
-  await session.value.receive(files.length ? files : [new File([text], 'pasted.json')]);
+  session.value
+    .receive(files.length ? files : [new File([text], 'pasted.json')])
+    .catch(report);
 });
 
 const current = ref<string[]>([]);
@@ -228,8 +272,14 @@ function onNavWheel(e: WheelEvent) {
     <div :class="{ 'is-dragging': dragging }">
       <header ref="header">
         <div class="cd-logo">
-          <img v-if="logoUrl" :src="logoUrl" :alt="session.doc.name ?? 'Logo'" />
-          <span v-else class="cd-sr-only">{{ session.doc.name ?? 'Logo' }}</span>
+          <img
+            v-if="logoUrl"
+            :src="logoUrl"
+            :alt="session.doc.name ?? 'Logo'"
+          />
+          <span v-else class="cd-sr-only">{{
+            session.doc.name ?? 'Logo'
+          }}</span>
         </div>
         <nav aria-label="Sections">
           <ul id="cd-nav" class="cd-main-nav" @wheel="onNavWheel">
@@ -245,9 +295,17 @@ function onNavWheel(e: WheelEvent) {
           </ul>
         </nav>
         <div class="cd-actions">
-          <SwitchRoot v-if="lightDark" id="theme-toggle" v-model="dark" class="cd-action" title="Dark mode">
+          <SwitchRoot
+            v-if="lightDark"
+            id="theme-toggle"
+            v-model="dark"
+            class="cd-action"
+            title="Dark mode"
+          >
             <Icon name="moon" /><span class="cd-action-label">Dark mode</span>
-            <span class="cd-switch" aria-hidden="true"><SwitchThumb class="cd-switch-thumb" /></span>
+            <span class="cd-switch" aria-hidden="true"
+              ><SwitchThumb class="cd-switch-thumb"
+            /></span>
           </SwitchRoot>
           <Listbox
             v-else-if="themes.length > 1"
@@ -259,9 +317,19 @@ function onNavWheel(e: WheelEvent) {
           />
           <template v-if="session.editable">
             <DialogTrigger as-child>
-              <Action id="edit-toggle" icon="edit" label="Edit" title="Edit the brand" />
+              <Action
+                id="edit-toggle"
+                icon="edit"
+                label="Edit"
+                title="Edit the brand"
+              />
             </DialogTrigger>
-            <a id="view-link" class="cd-action" href="?view" title="See the brand book as readers see it">
+            <a
+              id="view-link"
+              class="cd-action"
+              href="?view"
+              title="See the brand book as readers see it"
+            >
               <Icon name="view" /><span class="cd-action-label">View</span>
             </a>
           </template>
@@ -272,7 +340,9 @@ function onNavWheel(e: WheelEvent) {
             href="./"
             title="Back to the editor"
           >
-            <Icon name="back" /><span class="cd-action-label">Back to editing</span>
+            <Icon name="back" /><span class="cd-action-label"
+              >Back to editing</span
+            >
           </a>
           <Action
             v-if="session.editable"
@@ -297,7 +367,13 @@ function onNavWheel(e: WheelEvent) {
             :busy="exporting"
             @click="exportKit"
           />
-          <Action id="help-btn" icon="help" label="Help" title="Help and the tour" @click="helping = true" />
+          <Action
+            id="help-btn"
+            icon="help"
+            label="Help"
+            title="Help and the tour"
+            @click="helping = true"
+          />
         </div>
       </header>
       <Guide
@@ -309,13 +385,19 @@ function onNavWheel(e: WheelEvent) {
         :covered="editing && !wide"
         :inset="headerHeight"
       />
-      <Help v-model:open="helping" :editable="session.editable" @tour="startTour" />
+      <Help
+        v-model:open="helping"
+        :editable="session.editable"
+        @tour="startTour"
+      />
       <Tour
         v-model:open="touring"
         :steps="session.editable ? EDIT_STEPS : READ_STEPS"
         @drawer="editing = $event"
       />
-      <div v-if="session.editable" class="cd-drop" aria-hidden="true">Drop files to load them</div>
+      <div v-if="session.editable" class="cd-drop" aria-hidden="true">
+        Drop files to load them
+      </div>
       <DialogContent
         v-if="session.editable"
         id="cd-drawer"
@@ -347,7 +429,12 @@ function onNavWheel(e: WheelEvent) {
               @click="session.store.redo()"
             />
             <DialogClose as-child>
-              <Action id="drawer-close" icon="close" label="Close" title="Close the editor (Esc)" />
+              <Action
+                id="drawer-close"
+                icon="close"
+                label="Close"
+                title="Close the editor (Esc)"
+              />
             </DialogClose>
           </div>
         </div>

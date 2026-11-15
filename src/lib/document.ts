@@ -1,8 +1,9 @@
-import { entriesOf, recordOf } from './records.js';
+import { entriesOf, recordOf, valueAt } from './records.js';
 import { isNode } from './tree.js';
 import type { ResolverDoc, TokenNode } from './types.js';
 
-export const RESOLVER_SCHEMA = 'https://www.designtokens.org/schemas/2025.10/resolver.json';
+export const RESOLVER_SCHEMA =
+  'https://www.designtokens.org/schemas/2025.10/resolver.json';
 
 export const isResolver = (json: unknown): json is ResolverDoc =>
   isNode(json) && Array.isArray(json.resolutionOrder);
@@ -11,13 +12,21 @@ const REF = /^#\/(sets|modifiers)\/(.+)$/;
 
 // The spec allows sets and modifiers at the root or inline in resolutionOrder; files are written inline,
 // the form most tools read, and kept at the root inside the app.
-export function inlineResolver({ sets, modifiers, resolutionOrder, ...rest }: ResolverDoc): TokenNode {
+export function inlineResolver({
+  sets,
+  modifiers,
+  resolutionOrder,
+  ...rest
+}: ResolverDoc): TokenNode {
   return {
     ...rest,
     resolutionOrder: resolutionOrder.map(({ $ref }) => {
       const [, kind, name] = REF.exec($ref) ?? [];
-      if (kind === 'sets' && sets[name]) return { type: 'set', name, ...sets[name] };
-      if (kind === 'modifiers' && modifiers?.[name]) return { type: 'modifier', name, ...modifiers[name] };
+      const set = valueAt(sets, name);
+      const modifier = valueAt(modifiers, name);
+      if (kind === 'sets' && set) return { type: 'set', name, ...set };
+      if (kind === 'modifiers' && modifier)
+        return { type: 'modifier', name, ...modifier };
       return { $ref };
     }),
   };
@@ -47,7 +56,10 @@ export function hoistResolver(json: TokenNode): TokenNode {
   };
 }
 
-export function toResolver(input: TokenNode | ResolverDoc, name: string): ResolverDoc {
+export function toResolver(
+  input: TokenNode | ResolverDoc,
+  name: string,
+): ResolverDoc {
   const json = isNode(input) ? hoistResolver(input) : input;
   if (isResolver(json)) return json;
   return {
@@ -55,7 +67,12 @@ export function toResolver(input: TokenNode | ResolverDoc, name: string): Resolv
     version: '2025.10',
     name,
     sets: { foundation: { sources: [json] } },
-    modifiers: { theme: { contexts: { light: [], dark: [] }, default: 'light' } },
-    resolutionOrder: [{ $ref: '#/sets/foundation' }, { $ref: '#/modifiers/theme' }],
+    modifiers: {
+      theme: { contexts: { light: [], dark: [] }, default: 'light' },
+    },
+    resolutionOrder: [
+      { $ref: '#/sets/foundation' },
+      { $ref: '#/modifiers/theme' },
+    ],
   };
 }

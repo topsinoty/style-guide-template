@@ -9,19 +9,32 @@ import { dim } from './parts.js';
 
 const props = defineProps<{ tokens: Tokens; meta: BrandMeta }>();
 const sizes = computed(() =>
-  [...props.tokens].filter(([p, t]) => p.startsWith('font-size.') && t.type === 'dimension'),
+  [...props.tokens].filter(
+    ([p, t]) => p.startsWith('font-size.') && t.type === 'dimension',
+  ),
 );
 const styles = computed(() =>
   [...props.tokens].flatMap(([path, token]) => {
-    const style = token.type === 'typography' ? narrow(token.resolved, isTypography) : null;
+    const style =
+      token.type === 'typography' ? narrow(token.resolved, isTypography) : null;
     if (!style) return [];
     const family = [style.fontFamily].flat()[0];
-    const summary = `${family} ${style.fontWeight} ${dim(style.fontSize)} / ${style.lineHeight}`;
-    return [{ path, name: path.slice('typography.'.length), summary, description: token.description }];
+    const summary = `${dim(family)} ${dim(style.fontWeight)} ${dim(style.fontSize)} / ${dim(style.lineHeight)}`;
+    return [
+      {
+        path,
+        name: path.slice('typography.'.length),
+        summary,
+        description: token.description,
+      },
+    ];
   }),
 );
 const families = computed(() => [
-  ...Map.groupBy(sortFontFiles(props.meta.fontFiles), (f: FontFile) => f.family),
+  ...Map.groupBy(
+    sortFontFiles(props.meta.fontFiles),
+    (f: FontFile) => f.family,
+  ),
 ]);
 const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
 </script>
@@ -37,8 +50,11 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
     >
       Aa
       <span class="cd-type-meta"
-        ><code>{{ cssName(path) }}</code> <span class="cd-token-value">{{ dim(token.resolved) }}</span>
-        <small v-if="token.description" class="cd-usage">{{ token.description }}</small></span
+        ><code>{{ cssName(path) }}</code>
+        <span class="cd-token-value">{{ dim(token.resolved) }}</span>
+        <small v-if="token.description" class="cd-usage">{{
+          token.description
+        }}</small></span
       >
     </p>
   </Card>
@@ -64,14 +80,23 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
   <Card label="fonts">
     <h3>Fonts</h3>
     <template v-if="families.length">
-      <div v-for="[family, files] in families" :key="family" class="cd-specimen">
+      <div
+        v-for="[family, files] in families"
+        :key="family"
+        class="cd-specimen"
+      >
         <b>{{ family }}</b>
         <p
           v-for="file in files"
           :key="file.src"
-          :style="{ fontFamily: cssString(family), fontWeight: String(file.weight), fontStyle: file.style }"
+          :style="{
+            fontFamily: cssString(family),
+            fontWeight: String(file.weight),
+            fontStyle: file.style,
+          }"
         >
-          {{ file.weight }} {{ file.style }}: The quick brown fox jumps over the lazy dog
+          {{ file.weight }} {{ file.style }}: The quick brown fox jumps over the
+          lazy dog
           <span class="cd-type-meta">{{ file.src }}</span>
         </p>
       </div>

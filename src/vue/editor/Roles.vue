@@ -8,7 +8,7 @@ import { entriesOf } from '../../lib/records.js';
 import { paletteColors, roleFromShade } from '../../lib/palette.js';
 import Choice from './Choice.vue';
 import { narrow, isColor } from '../../lib/values.js';
-import { COLOR_ERROR } from '../ColorInput.vue';
+import { COLOR_ERROR } from '../../lib/color.js';
 import { cap } from '../guide/parts.js';
 import type { EditorContext } from './context.js';
 import { colorOptions, roleEntry, roleText } from './role-color.js';
@@ -27,7 +27,10 @@ const palette = computed(() => paletteColors(props.ctx.doc, props.ctx.vendor));
 const shades = computed(() => colorOptions(palette.value));
 const fillOptions = computed(() =>
   palette.value.flatMap((c) =>
-    c.shades.map((s) => ({ value: `{color.${c.id}.${s.name}}`, label: `${c.id} · ${s.name}` })),
+    c.shades.map((s) => ({
+      value: `{color.${c.id}.${s.name}}`,
+      label: `${c.id} · ${s.name}`,
+    })),
   ),
 );
 
@@ -48,19 +51,35 @@ const roles = computed(() =>
 );
 
 const sample = (role: string, has: (part: string) => boolean) => {
-  const part = (name: string) => (has(name) ? `var(${cssName('color.' + role + '.' + name)})` : undefined);
-  return { background: part('background'), color: part('foreground'), borderColor: part('border') };
+  const part = (name: string) => {
+    const variable = cssName(`color.${role}.${name}`);
+    return has(name) ? `var(${variable})` : undefined;
+  };
+  return {
+    background: part('background'),
+    color: part('foreground'),
+    borderColor: part('border'),
+  };
 };
 
-const pretty = (text: string) => text.replace(/^\{(color\.)?(.*)\}$/, '$2').replace(' · ', '-');
-const contrast = computed(() => checkContrast(props.ctx.doc).filter((r) => r.context === props.ctx.theme));
+const pretty = (text: string) =>
+  text.replace(/^\{(color\.)?(.*)\}$/, '$2').replace(' · ', '-');
+const contrast = computed(() =>
+  checkContrast(props.ctx.doc).filter((r) => r.context === props.ctx.theme),
+);
 const summary = (role: string, tokens: { path: string; text: string }[]) => {
   const text = contrast.value.find((r) => r.label === `${role} text`);
-  const border = contrast.value.find((r) => r.label === `${role} border on page`);
-  const ground = tokens.find((t) => t.path.endsWith('.background')) ?? tokens[0];
-  if (text) return `${text.pass ? 'Text' : 'Text too faint,'} ${text.ratio}:1 on ${pretty(ground.text)}`;
-  if (border) return `${border.pass ? 'Border' : 'Border too faint,'} ${border.ratio}:1 on the page`;
-  return ground ? `Uses ${pretty(ground.text)}` : '';
+  const border = contrast.value.find(
+    (r) => r.label === `${role} border on page`,
+  );
+  const ground =
+    tokens.find((t) => t.path.endsWith('.background')) ?? tokens.at(0);
+  const on = ground ? pretty(ground.text) : '';
+  if (text)
+    return `${text.pass ? 'Text' : 'Text too faint,'} ${text.ratio}:1 on ${on}`;
+  if (border)
+    return `${border.pass ? 'Border' : 'Border too faint,'} ${border.ratio}:1 on the page`;
+  return ground ? `Uses ${on}` : '';
 };
 
 function fill(role: string, option: string) {
@@ -71,25 +90,39 @@ function fill(role: string, option: string) {
   let borderSteps = 2;
   if (has('background-hover') || !has('background')) borderSteps = 0;
   else if (role === 'input') borderSteps = 5;
-  const parts = roleFromShade(palette.value, colorId, shade, props.ctx.darkPage, borderSteps);
+  const parts = roleFromShade(
+    palette.value,
+    { color: colorId, shade },
+    props.ctx.darkPage,
+    borderSteps,
+  );
   props.ctx.edit((doc) =>
     entriesOf(parts)
       .filter(([part]) => has(part))
-      .reduce((next, [part, value]) => E.setRole(next, props.ctx.theme, `${role}.${part}`, value), doc),
+      .reduce(
+        (next, [part, value]) =>
+          E.setRole(next, props.ctx.theme, `${role}.${part}`, value),
+        doc,
+      ),
   );
 }
 
 function setRole(path: string, text: string) {
   const value = roleEntry(text, shades.value);
-  if (!value) return props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
-  props.ctx.edit((doc) => E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value));
+  if (!value) {
+    props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
+    return;
+  }
+  props.ctx.edit((doc) =>
+    E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value),
+  );
 }
 </script>
 
 <template>
   <p class="cd-hint">
-    What the interface uses: page, cards, buttons, alerts. Open a role to point each part at a palette shade
-    or any CSS color.
+    What the interface uses: page, cards, buttons, alerts. Open a role to point
+    each part at a palette shade or any CSS color.
   </p>
   <ul class="ed-list">
     <ItemRow
@@ -101,7 +134,12 @@ function setRole(path: string, text: string) {
       @update:open="(open) => (opened = open ? role : undefined)"
     >
       <template #lead>
-        <span class="ed-role-sample" :style="sample(role, has)" aria-hidden="true">Aa</span>
+        <span
+          class="ed-role-sample"
+          :style="sample(role, has)"
+          aria-hidden="true"
+          >Aa</span
+        >
       </template>
       <Choice
         label="Fill every part from one shade"

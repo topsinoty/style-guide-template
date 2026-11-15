@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
 import { parseCssColor } from '../src/lib/color.js';
-import { colorOptions, roleEntry, roleText } from '../src/vue/editor/role-color.js';
+import {
+  colorOptions,
+  roleEntry,
+  roleText,
+} from '../src/vue/editor/role-color.js';
 import { present } from './helpers.js';
 
 const palette = [
@@ -17,8 +21,16 @@ const options = colorOptions(palette);
 
 test('creates readable, swatched choices for arbitrary palette shades', () => {
   assert.deepEqual(options, [
-    { value: '{color.brand.600}', label: 'brand · 600', swatch: 'var(--color-brand-600)' },
-    { value: '{color.brand.base}', label: 'brand', swatch: 'var(--color-brand-base)' },
+    {
+      value: '{color.brand.600}',
+      label: 'brand · 600',
+      swatch: 'var(--color-brand-600)',
+    },
+    {
+      value: '{color.brand.base}',
+      label: 'brand',
+      swatch: 'var(--color-brand-base)',
+    },
   ]);
 });
 

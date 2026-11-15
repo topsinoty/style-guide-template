@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, shallowReactive, useTemplateRef, watch } from 'vue';
-import { useEventListener, useIntersectionObserver, useWindowSize } from '@vueuse/core';
+import {
+  useEventListener,
+  useIntersectionObserver,
+  useWindowSize,
+} from '@vueuse/core';
 import type { Session } from '../../app/session.js';
 import { missingAssets } from '../../lib/assets.js';
 import { checkContrast } from '../../lib/contrast.js';
@@ -32,11 +36,16 @@ const props = defineProps<{
 }>();
 const current = defineModel<string[]>('current', { required: true });
 
-const sections = computed(() => visibleSections(props.meta, props.tokens, props.session.editable));
+const sections = computed(() =>
+  visibleSections(props.meta, props.tokens, props.session.editable),
+);
 const guideRoot = useTemplateRef<HTMLElement>('guideRoot');
-const itemsOf = (id: string) => props.meta.assetGroups.find((g) => g.id === id)?.items ?? [];
+const itemsOf = (id: string) =>
+  props.meta.assetGroups.find((g) => g.id === id)?.items ?? [];
 
-const otherTokens = computed(() => [...props.tokens].filter(([path]) => isOtherToken(path)));
+const otherTokens = computed(() =>
+  [...props.tokens].filter(([path]) => isOtherToken(path)),
+);
 
 const specimen = ref(['', '']);
 const specimenEls = useTemplateRef<HTMLElement[]>('specimenText');
@@ -98,10 +107,11 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
           Heading, <span class="cd-specimen-label">{{ specimen[0] }}</span>
         </h1>
         <p ref="specimenText">
-          Aa - <span class="cd-specimen-label">{{ specimen[1] }}</span>. Lorem ipsum dolor sit amet,
-          consectetur adipisicing elit. Omnis voluptate distinctio reprehenderit, autem deleniti ad
-          <a href="#0">voluptatum eaque</a>. Optio ea aperiam nisi distinctio nemo repellat, voluptate fugiat.
-          Quidem neque illum, blanditiis!
+          Aa - <span class="cd-specimen-label">{{ specimen[1] }}</span>. Lorem
+          ipsum dolor sit amet, consectetur adipisicing elit. Omnis voluptate
+          distinctio reprehenderit, autem deleniti ad
+          <a href="#0">voluptatum eaque</a>. Optio ea aperiam nisi distinctio
+          nemo repellat, voluptate fugiat. Quidem neque illum, blanditiis!
         </p>
       </Card>
       <div v-if="!section.text" class="cd-section-body">
@@ -124,8 +134,16 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
             </li>
           </ul>
         </template>
-        <Colors v-else-if="section.id === 'colors'" :tokens="tokens" :vendor="session.vendor" />
-        <Typography v-else-if="section.id === 'typography'" :tokens="tokens" :meta="meta" />
+        <Colors
+          v-else-if="section.id === 'colors'"
+          :tokens="tokens"
+          :vendor="session.vendor"
+        />
+        <Typography
+          v-else-if="section.id === 'typography'"
+          :tokens="tokens"
+          :meta="meta"
+        />
         <Card v-else-if="section.id === 'icons'" label="icons">
           <ul>
             <li v-for="item in itemsOf('icons')" :key="item.src">
@@ -137,7 +155,11 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
           </ul>
         </Card>
         <Scale
-          v-else-if="section.id === 'spacing' || section.id === 'radius' || section.id === 'shadow'"
+          v-else-if="
+            section.id === 'spacing' ||
+            section.id === 'radius' ||
+            section.id === 'shadow'
+          "
           :kind="section.id"
           :tokens="tokens"
         />
@@ -164,7 +186,10 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
                   </td>
                   <td>
                     <MotionPreview
-                      v-if="token.type === 'duration' || token.type === 'cubicBezier'"
+                      v-if="
+                        token.type === 'duration' ||
+                        token.type === 'cubicBezier'
+                      "
                       :name="cssName(path)"
                       :type="token.type"
                     />
@@ -185,7 +210,11 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
             </table>
           </div>
         </Card>
-        <Code v-else-if="section.id === 'css-variables'" :doc="doc" :vendor="session.vendor" />
+        <Code
+          v-else-if="section.id === 'css-variables'"
+          :doc="doc"
+          :vendor="session.vendor"
+        />
         <template v-else-if="section.group">
           <div v-if="itemsOf(section.group).length" class="cd-files">
             <FileCard

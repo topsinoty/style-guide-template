@@ -24,7 +24,9 @@ const px = (value: number) => ({ value, unit: 'px' });
 
 test('colors need a known space, three components and a valid alpha and hex', () => {
   assert.ok(isColor(red));
-  assert.ok(isColor({ ...red, components: ['none', 0, 0], alpha: 0.5, hex: '#ff0000' }));
+  assert.ok(
+    isColor({ ...red, components: ['none', 0, 0], alpha: 0.5, hex: '#ff0000' }),
+  );
   assert.ok(!isColor({ ...red, colorSpace: 'cmyk' }));
   assert.ok(!isColor({ ...red, components: [1, 0] }));
   assert.ok(!isColor({ ...red, components: [1, 0, 'x'] }));
@@ -35,7 +37,9 @@ test('colors need a known space, three components and a valid alpha and hex', ()
 
 test('sizes and durations only accept their own units', () => {
   assert.ok(isSize(px(4)) && isSize({ value: 1, unit: 'rem' }));
-  assert.ok(!isSize({ value: 1, unit: 'em' }) && !isSize({ value: '1', unit: 'px' }));
+  assert.ok(
+    !isSize({ value: 1, unit: 'em' }) && !isSize({ value: '1', unit: 'px' }),
+  );
   assert.ok(isDuration({ value: 200, unit: 'ms' }) && !isDuration(px(200)));
 });
 
@@ -43,12 +47,20 @@ test('font families, weights and curves', () => {
   assert.ok(isFontFamily('Inter') && isFontFamily(['Inter', 'sans-serif']));
   assert.ok(!isFontFamily([]) && !isFontFamily([1]));
   assert.ok(isFontWeight(700) && isFontWeight('bold'));
-  assert.ok(!isFontWeight(0) && !isFontWeight(1001) && !isFontWeight('heavier'));
+  assert.ok(
+    !isFontWeight(0) && !isFontWeight(1001) && !isFontWeight('heavier'),
+  );
   assert.ok(isCubicBezier([0, 0, 1, 1]) && !isCubicBezier([0, 0, 1]));
 });
 
 test('composites accept aliases for their parts and reject missing parts', () => {
-  const layer = { color: '{color.black}', offsetX: px(0), offsetY: px(1), blur: px(2), spread: px(0) };
+  const layer = {
+    color: '{color.black}',
+    offsetX: px(0),
+    offsetY: px(1),
+    blur: px(2),
+    spread: px(0),
+  };
   assert.ok(isShadow(layer) && isShadow([layer, '{shadow.sm}']));
   assert.ok(!isShadow({ ...layer, blur: undefined }));
   assert.ok(isBorder({ color: red, width: px(1), style: 'solid' }));
@@ -72,7 +84,10 @@ test('composites accept aliases for their parts and reject missing parts', () =>
 });
 
 test('aliases are curly references or $ref pointers', () => {
-  assert.ok(isAlias('{color.brand.600}') && isAlias({ $ref: '#/color/brand/600/$value' }));
+  assert.ok(
+    isAlias('{color.brand.600}') &&
+      isAlias({ $ref: '#/color/brand/600/$value' }),
+  );
   assert.ok(!isAlias('color.brand.600') && !isAlias('{a}{b}'));
 });
 
@@ -101,7 +116,11 @@ test('guards agree with the brand file schema on every preset token', () => {
     const guard = token.type ? guards[token.type] : undefined;
     const schema = token.type ? schemas[token.type] : undefined;
     if (!guard || !schema || isAlias(token.value)) continue;
-    assert.equal(guard(token.value), z.safeParse(schema, token.value).success, path);
+    assert.equal(
+      guard(token.value),
+      z.safeParse(schema, token.value).success,
+      path,
+    );
     checked++;
   }
   assert.ok(checked > 50, `only ${checked} tokens checked`);

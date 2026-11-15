@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, useId } from 'vue';
 import {
   ComboboxAnchor,
   ComboboxContent,
@@ -13,30 +13,42 @@ import {
 import { parseCssColor } from '../../lib/color.js';
 import { optionFor, type ColorOption } from './role-color.js';
 
-const props = defineProps<{ label: string; text: string; hex: string; options: ColorOption[] }>();
+const props = defineProps<{
+  label: string;
+  text: string;
+  hex: string;
+  options: ColorOption[];
+}>();
 const emit = defineEmits<{ commit: [text: string] }>();
 
-const search = ref(props.text);
-const picked = ref(props.hex);
+const search = ref('');
+const picked = ref('');
 
 watch(
   () => props.text,
   (text) => (search.value = text),
+  { immediate: true },
 );
 watch(
   () => props.hex,
   (hex) => (picked.value = hex),
+  { immediate: true },
 );
 
-const query = computed(() => (search.value === props.text ? '' : search.value.trim()));
+const query = computed(() =>
+  search.value === props.text ? '' : search.value.trim(),
+);
 
 const matches = computed(() =>
-  props.options.filter((option) => option.label.toLowerCase().includes(query.value.toLowerCase())),
+  props.options.filter((option) =>
+    option.label.toLowerCase().includes(query.value.toLowerCase()),
+  ),
 );
 
 const custom = computed(() => {
   const typed = query.value;
-  if (!typed || optionFor(typed, props.options) || !parseCssColor(typed)) return null;
+  if (!typed || optionFor(typed, props.options) || !parseCssColor(typed))
+    return null;
   return typed;
 });
 
@@ -44,6 +56,7 @@ function choose(value: unknown) {
   if (typeof value === 'string') emit('commit', value);
   search.value = props.text;
 }
+const uid = useId();
 </script>
 
 <template>
@@ -54,11 +67,12 @@ function choose(value: unknown) {
     :open-on-click="true"
     @update:model-value="choose"
   >
+    <label :for="uid" class="cd-sr-only">Pick a custom {{ label }} color</label>
     <input
+      :id="uid"
       v-model="picked"
       type="color"
       class="cd-role-swatch"
-      :aria-label="`Pick a custom ${label} color`"
       @change="emit('commit', picked)"
     />
     <ComboboxAnchor class="cd-combobox-anchor">
@@ -73,10 +87,24 @@ function choose(value: unknown) {
       />
     </ComboboxAnchor>
     <ComboboxPortal>
-      <ComboboxContent position="popper" :side-offset="4" :collision-padding="8" class="cd-combobox-popup">
+      <ComboboxContent
+        position="popper"
+        :side-offset="4"
+        :collision-padding="8"
+        class="cd-combobox-popup"
+      >
         <ComboboxViewport>
-          <ComboboxItem v-if="custom" :value="custom" :text-value="custom" class="cd-listbox-option">
-            <span class="cd-combobox-option-swatch" aria-hidden="true" :style="{ background: custom }"></span>
+          <ComboboxItem
+            v-if="custom"
+            :value="custom"
+            :text-value="custom"
+            class="cd-listbox-option"
+          >
+            <span
+              class="cd-combobox-option-swatch"
+              aria-hidden="true"
+              :style="{ background: custom }"
+            ></span>
             <span>Use {{ custom }} as a custom color</span>
           </ComboboxItem>
           <ComboboxItem
@@ -94,7 +122,9 @@ function choose(value: unknown) {
             <span>{{ option.label }}</span>
           </ComboboxItem>
         </ComboboxViewport>
-        <ComboboxEmpty class="cd-combobox-empty">No shade matches. Type a CSS color to use it.</ComboboxEmpty>
+        <ComboboxEmpty class="cd-combobox-empty"
+          >No shade matches. Type a CSS color to use it.</ComboboxEmpty
+        >
       </ComboboxContent>
     </ComboboxPortal>
   </ComboboxRoot>

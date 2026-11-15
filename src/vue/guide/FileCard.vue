@@ -13,10 +13,13 @@ const name = computed(() => fileName(props.item.src));
 const data = computed(() => props.ctx.session.get(props.item.src));
 const size = computed(() => {
   if (!data.value) return '';
-  const bytes = data.value instanceof Blob ? data.value.size : data.value.byteLength;
+  const bytes =
+    data.value instanceof Blob ? data.value.size : data.value.byteLength;
   return formatSize(bytes);
 });
-const href = computed(() => (data.value ? downloadUrl(props.item.src, data.value) : url.value));
+const href = computed(() =>
+  data.value ? downloadUrl(props.item.src, data.value) : url.value,
+);
 </script>
 
 <template>
@@ -38,7 +41,8 @@ const href = computed(() => (data.value ? downloadUrl(props.item.src, data.value
     </template>
     <template v-else>
       <div class="cd-missing">
-        <Icon name="alert" /><span>Missing file</span><code>{{ item.src }}</code>
+        <Icon name="alert" /><span>Missing file</span
+        ><code>{{ item.src }}</code>
       </div>
       <figcaption>{{ item.label }}</figcaption>
     </template>

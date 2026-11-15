@@ -1,4 +1,5 @@
 import { test } from 'vitest';
+import { valueAt } from '../src/lib/records.js';
 import assert from 'node:assert/strict';
 import { setToken } from '../src/lib/edit.js';
 import { present, load } from './helpers.js';
@@ -28,11 +29,13 @@ test('a failing pair is reported per context', () => {
 
 test('a dark override can fix it', () => {
   const doc = justBelowAA();
-  present(doc.modifiers?.theme?.contexts.dark).push({
+  present(valueAt(doc.modifiers, 'theme')?.contexts.dark).push({
     color: { primary: { background: { $type: 'color', $value: srgb(0) } } },
   });
   const dark = present(
-    checkContrast(doc).find((r) => r.context === 'dark' && r.fg === 'color.primary.foreground'),
+    checkContrast(doc).find(
+      (r) => r.context === 'dark' && r.fg === 'color.primary.foreground',
+    ),
   );
   assert.equal(dark.pass, true);
 });
@@ -40,7 +43,9 @@ test('a dark override can fix it', () => {
 test('borders of input and focus on the page background need 3:1', () => {
   let doc = load();
   doc = setToken(doc, 'color.input', { border: { $value: srgb(0.5) } });
-  const pair = present(requiredPairs(resolve(doc)).find((p) => p.fg === 'color.input.border'));
+  const pair = present(
+    requiredPairs(resolve(doc)).find((p) => p.fg === 'color.input.border'),
+  );
   assert.deepEqual([pair.bg, pair.min], ['color.page.background', 3]);
 });
 

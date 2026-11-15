@@ -8,7 +8,11 @@ import { deriveView, type ViewSession } from '../src/vue/view.js';
 
 const preset = presetDoc();
 const vendor = 'com.example.styleguide';
-const ctx = { session: new Map<string, FileData>(), library: new Set<string>(), fonts: fontsource() };
+const ctx = {
+  session: new Map<string, FileData>(),
+  library: new Set<string>(),
+  fonts: fontsource(),
+};
 
 function fixture(doc: ResolverDoc) {
   let current = doc;
@@ -49,7 +53,10 @@ test('derives tokens and brand CSS from the same valid document and theme', () =
 });
 
 test('falls back to the preset when the current draft cannot resolve', () => {
-  const state = fixture({ ...preset, resolutionOrder: [{ $ref: '#/sets/missing' }] });
+  const state = fixture({
+    ...preset,
+    resolutionOrder: [{ $ref: '#/sets/missing' }],
+  });
   const view = deriveView(state.session, 'light');
   assert.equal(state.recovered, true);
   assert.ok(view.tokens.size > 0);

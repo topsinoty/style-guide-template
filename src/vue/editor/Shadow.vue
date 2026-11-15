@@ -18,16 +18,25 @@ import type { Dimension, DtcgColor, TokenNode } from '../../lib/types.js';
 const props = defineProps<{ ctx: EditorContext }>();
 
 const px = (value: number) => ({ value, unit: 'px' });
-const layer = (alpha: number, y: number, blur: number, spread = 0, lightness = 0) => ({
+const layer = (
+  alpha: number,
+  y: number,
+  blur: number,
+  { spread = 0, lightness = 0 } = {},
+) => ({
   color: { colorSpace: 'oklch', components: [lightness, 0, 0], alpha },
   offsetX: px(0),
   offsetY: px(y),
   blur: px(blur),
   spread: px(spread),
 });
-const ring = (alpha: number) => layer(alpha, 0, 0, 1, 1);
+const ring = (alpha: number) => layer(alpha, 0, 0, { spread: 1, lightness: 1 });
 const STANDARD = {
-  light: { sm: [layer(0.05, 1, 1)], md: [layer(0.1, 2, 8)], lg: [layer(0.15, 8, 24)] },
+  light: {
+    sm: [layer(0.05, 1, 1)],
+    md: [layer(0.1, 2, 8)],
+    lg: [layer(0.15, 8, 24)],
+  },
   dark: {
     sm: [layer(0.4, 1, 2), ring(0.08)],
     md: [layer(0.5, 2, 8), ring(0.1)],
@@ -35,9 +44,13 @@ const STANDARD = {
   },
 };
 
-const fallback = computed(() => E.defaultTheme(props.ctx.doc) ?? props.ctx.theme);
+const fallback = computed(
+  () => E.defaultTheme(props.ctx.doc) ?? props.ctx.theme,
+);
 const isDefault = computed(() => props.ctx.theme === fallback.value);
-const own = computed(() => child(E.themeSource(props.ctx.doc, props.ctx.theme), 'shadow'));
+const own = computed(() =>
+  child(E.themeSource(props.ctx.doc, props.ctx.theme), 'shadow'),
+);
 
 const readLayer = (value: unknown) =>
   isNode(value)
@@ -52,7 +65,11 @@ const readLayer = (value: unknown) =>
 
 const shadows = computed(() => {
   const base = child(props.ctx.tree, 'shadow');
-  const names = [...new Set([...children(base), ...children(own.value)].map(([name]) => name))];
+  const names = [
+    ...new Set(
+      [...children(base), ...children(own.value)].map(([name]) => name),
+    ),
+  ];
   return names.flatMap((name) => {
     const mine = child(own.value, name);
     const token = mine ?? child(base, name);
@@ -61,14 +78,23 @@ const shadows = computed(() => {
     const layers = raw.map(readLayer);
     if (layers.some((l) => !l)) return [];
     return [
-      { name, token, layers: layers.flatMap((l) => (l ? [l] : [])), inherited: !isDefault.value && !mine },
+      {
+        name,
+        token,
+        layers: layers.flatMap((l) => (l ? [l] : [])),
+        inherited: !isDefault.value && !mine,
+      },
     ];
   });
 });
 
 const opened = ref<string>();
 const summary = (
-  layers: { offsetX: Dimension | null; offsetY: Dimension | null; blur: Dimension | null }[],
+  layers: {
+    offsetX: Dimension | null;
+    offsetY: Dimension | null;
+    blur: Dimension | null;
+  }[],
 ) => {
   const [first] = layers;
   const text = [first.offsetX, first.offsetY, first.blur]
@@ -77,10 +103,19 @@ const summary = (
   return layers.length > 1 ? `${text} + ${layers.length - 1} more` : text;
 };
 
-function write(name: string, token: TokenNode, values: unknown[], inherited: boolean) {
+function write(
+  name: string,
+  token: TokenNode,
+  values: unknown[],
+  inherited: boolean,
+) {
   const $value = values.length === 1 ? values[0] : values;
-  const next = inherited ? { $type: 'shadow', ...token, $value } : { ...token, $value };
-  props.ctx.edit((doc) => E.setThemed(doc, props.ctx.theme, `shadow.${name}`, next));
+  const next = inherited
+    ? { $type: 'shadow', ...token, $value }
+    : { ...token, $value };
+  props.ctx.edit((doc) =>
+    E.setThemed(doc, props.ctx.theme, `shadow.${name}`, next),
+  );
 }
 
 const rawLayers = (token: TokenNode) =>
@@ -97,12 +132,19 @@ function put(name: string, i: number, patch: Record<string, unknown>) {
 
 function addLayer(name: string) {
   const row = shadows.value.find((s) => s.name === name);
-  if (row) write(name, row.token, [...rawLayers(row.token), layer(0.1, 0, 0, 1)], row.inherited);
+  if (row)
+    write(
+      name,
+      row.token,
+      [...rawLayers(row.token), layer(0.1, 0, 0, { spread: 1 })],
+      row.inherited,
+    );
 }
 
 function removeLayer(name: string, i: number) {
   const row = shadows.value.find((s) => s.name === name);
-  if (row) write(name, row.token, rawLayers(row.token).toSpliced(i, 1), row.inherited);
+  if (row)
+    write(name, row.token, rawLayers(row.token).toSpliced(i, 1), row.inherited);
 }
 
 function remove(name: string) {
@@ -113,8 +155,12 @@ function remove(name: string) {
   );
 }
 
-const allInherited = computed(() => shadows.value.length > 0 && shadows.value.every((s) => s.inherited));
-const standard = computed(() => (props.ctx.darkPage ? STANDARD.dark : STANDARD.light));
+const allInherited = computed(
+  () => shadows.value.length > 0 && shadows.value.every((s) => s.inherited),
+);
+const standard = computed(() =>
+  props.ctx.darkPage ? STANDARD.dark : STANDARD.light,
+);
 function useStandard() {
   const group: TokenNode = { $type: 'shadow' };
   for (const [name, layers] of entriesOf(standard.value))
@@ -123,13 +169,17 @@ function useStandard() {
 }
 
 function addShadow(name: string) {
-  props.ctx.setToken(`shadow.${name}`, { $type: 'shadow', $value: layer(0.1, 2, 4) });
+  props.ctx.setToken(`shadow.${name}`, {
+    $type: 'shadow',
+    $value: layer(0.1, 2, 4),
+  });
 }
 </script>
 
 <template>
   <p class="cd-hint">
-    Open a shadow to change its offset, blur and color. Stack layers for a deeper shadow or a light edge.
+    Open a shadow to change its offset, blur and color. Stack layers for a
+    deeper shadow or a light edge.
   </p>
   <ul v-if="shadows.length" class="ed-list">
     <ItemRow
@@ -139,21 +189,33 @@ function addShadow(name: string) {
       :title="name"
       :meta="summary(layers)"
       :remove-label="
-        isDefault ? `Remove shadow ${name}` : inherited ? undefined : `Use the default theme's ${name}`
+        isDefault
+          ? `Remove shadow ${name}`
+          : inherited
+            ? undefined
+            : `Use the default theme's ${name}`
       "
       @update:open="(open) => (opened = open ? name : undefined)"
       @remove="remove(name)"
     >
       <template #lead>
-        <span class="ed-shadow-chip" :style="{ boxShadow: `var(${cssName(`shadow.${name}`)})` }"></span>
+        <span
+          class="ed-shadow-chip"
+          :style="{ boxShadow: `var(${cssName(`shadow.${name}`)})` }"
+        ></span>
       </template>
       <template v-if="!isDefault" #badge>
         <span v-if="!inherited" class="ed-badge">{{ ctx.theme }}</span>
       </template>
       <p v-if="inherited" class="cd-hint">
-        Same as the default theme. A change here applies to {{ ctx.theme }} only.
+        Same as the default theme. A change here applies to
+        {{ ctx.theme }} only.
       </p>
-      <fieldset v-for="({ offsetX, offsetY, blur, spread, color }, i) in layers" :key="i" class="ed-layer">
+      <fieldset
+        v-for="({ offsetX, offsetY, blur, spread, color }, i) in layers"
+        :key="i"
+        class="ed-layer"
+      >
         <legend v-if="layers.length > 1">
           Layer {{ i + 1 }}
           <IconButton
@@ -192,7 +254,10 @@ function addShadow(name: string) {
           <ColorInput
             label="Color"
             :model-value="toHex(color)"
-            @commit="(next: DtcgColor) => put(name, i, { color: { ...next, alpha: color.alpha } })"
+            @commit="
+              (next: DtcgColor) =>
+                put(name, i, { color: { ...next, alpha: color.alpha } })
+            "
           />
           <NumberField
             label="Opacity (0 to 1)"
@@ -201,17 +266,27 @@ function addShadow(name: string) {
             :max="1"
             :step="0.05"
             @commit="
-              (value) => value >= 0 && value <= 1 && put(name, i, { color: { ...color, alpha: value } })
+              (value) =>
+                value >= 0 &&
+                value <= 1 &&
+                put(name, i, { color: { ...color, alpha: value } })
             "
           />
         </div>
       </fieldset>
-      <button type="button" class="btn btn-secondary btn-quiet ed-add-layer" @click="addLayer(name)">
+      <button
+        type="button"
+        class="btn btn-secondary btn-quiet ed-add-layer"
+        @click="addLayer(name)"
+      >
         Add layer
       </button>
     </ItemRow>
   </ul>
-  <div v-if="isDefault ? !shadows.length : ctx.darkPage && allInherited" class="ed-blocked">
+  <div
+    v-if="isDefault ? !shadows.length : ctx.darkPage && allInherited"
+    class="ed-blocked"
+  >
     <p class="cd-hint">
       {{
         shadows.length
@@ -220,7 +295,9 @@ function addShadow(name: string) {
       }}
     </p>
     <button type="button" class="btn btn-secondary" @click="useStandard">
-      Use standard {{ ctx.darkPage ? 'dark ' : '' }}shadows ({{ keysOf(standard).join(', ') }})
+      Use standard {{ ctx.darkPage ? 'dark ' : '' }}shadows ({{
+        keysOf(standard).join(', ')
+      }})
     </button>
   </div>
   <NameForm
@@ -232,8 +309,15 @@ function addShadow(name: string) {
     @add="addShadow"
   />
   <div v-else-if="!shadows.length" class="ed-blocked">
-    <p class="cd-hint">New shadows start in the default theme; each theme can then change its own.</p>
-    <button type="button" class="btn btn-secondary" @click="ctx.setTheme(fallback)">
+    <p class="cd-hint">
+      New shadows start in the default theme; each theme can then change its
+      own.
+    </p>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      @click="ctx.setTheme(fallback)"
+    >
       Edit {{ fallback }} shadows
     </button>
   </div>

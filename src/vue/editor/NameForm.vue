@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useId } from 'vue';
 import { paletteId } from '../../lib/palette.js';
 import AddPanel from './AddPanel.vue';
 
@@ -31,16 +31,17 @@ function add(close: () => void) {
   name.value = '';
   close();
 }
+const uid = useId();
 </script>
 
 <template>
   <AddPanel :label="action">
     <template #default="{ close }">
       <form class="ed-add" @submit.prevent="add(close)">
-        <label class="cd-field"
+        <label :for="inputId ?? uid" class="cd-field"
           ><span>{{ label }}</span>
           <input
-            :id="inputId"
+            :id="inputId ?? uid"
             v-model="name"
             type="text"
             :placeholder="placeholder && `e.g. ${placeholder}`"
@@ -49,8 +50,16 @@ function add(close: () => void) {
         /></label>
         <slot />
         <button type="submit" class="btn">{{ action }}</button>
-        <button type="button" class="btn btn-secondary btn-quiet" @click="close">Cancel</button>
-        <p v-if="error" :id="errorId" class="cd-error" role="alert">{{ error }}</p>
+        <button
+          type="button"
+          class="btn btn-secondary btn-quiet"
+          @click="close"
+        >
+          Cancel
+        </button>
+        <p v-if="error" :id="errorId" class="cd-error" role="alert">
+          {{ error }}
+        </p>
       </form>
     </template>
   </AddPanel>

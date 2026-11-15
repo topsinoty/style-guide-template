@@ -594,7 +594,11 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	cursor: pointer;
 
 	&:hover {
-		background: color-mix(in oklch, var(--color-card-foreground) 10%, var(--color-card-background));
+		background: color-mix(
+			in oklch,
+			var(--color-card-foreground) 10%,
+			var(--color-card-background)
+		);
 	}
 
 	&:focus-visible {

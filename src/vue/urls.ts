@@ -29,7 +29,9 @@ function cachedUrl(
   if (cached?.data === data) return cached.url;
   if (cached) URL.revokeObjectURL(cached.url);
   const url = URL.createObjectURL(
-    data instanceof Blob && type === '' ? data : new Blob([blobPart(data)], { type }),
+    data instanceof Blob && type === ''
+      ? data
+      : new Blob([blobPart(data)], { type }),
   );
   cache.set(path, { data, url });
   return url;
@@ -43,7 +45,9 @@ export const objectUrl = (path: string, data: FileData) =>
     shown,
     path,
     data,
-    data instanceof Blob ? '' : (MIME[extension(path)] ?? 'application/octet-stream'),
+    data instanceof Blob
+      ? ''
+      : (MIME[extension(path)] ?? 'application/octet-stream'),
   );
 
 export const downloadUrl = (path: string, data: FileData) =>

@@ -2,13 +2,13 @@ import type { FontProvider } from '../ports.js';
 
 export type VendorData = Record<string, unknown>;
 
-export interface TokenNode {
+export type TokenNode = {
   $value?: unknown;
   $type?: string;
   $description?: string;
   $extensions?: Record<string, VendorData>;
   [key: string]: unknown;
-}
+};
 
 export type ColorSpace =
   | 'srgb'
@@ -28,25 +28,25 @@ export type ColorSpace =
 
 export type ColorComponent = number | 'none';
 
-export interface DtcgColor {
+export type DtcgColor = {
   colorSpace: ColorSpace;
   components: [ColorComponent, ColorComponent, ColorComponent];
   alpha?: number;
   hex?: string;
-}
+};
 
-export interface TokenSet {
+export type TokenSet = {
   sources: TokenNode[];
   $extensions?: Record<string, unknown>;
   [key: string]: unknown;
-}
+};
 
-export interface Modifier {
+export type Modifier = {
   contexts: Record<string, TokenNode[]>;
   default?: string;
-}
+};
 
-export interface ResolverDoc {
+export type ResolverDoc = {
   $schema?: string;
   version: '2025.10';
   name?: string;
@@ -54,11 +54,11 @@ export interface ResolverDoc {
   sets: Record<string, TokenSet>;
   modifiers?: Record<string, Modifier>;
   resolutionOrder: { $ref: string }[];
-}
+};
 
 export type FontStyle = 'normal' | 'italic' | 'oblique';
 
-export interface AssetItem {
+export type AssetItem = {
   src: string;
   label?: string;
   description?: string;
@@ -66,16 +66,16 @@ export interface AssetItem {
   background?: string;
   wide?: boolean;
   [key: string]: unknown;
-}
+};
 
-export interface AssetGroup {
+export type AssetGroup = {
   id: string;
   label?: string;
   items: AssetItem[];
   [key: string]: unknown;
-}
+};
 
-export interface FontFile extends AssetItem {
+export type FontFile = {
   family: string;
   weight: number;
   style: FontStyle;
@@ -83,21 +83,21 @@ export interface FontFile extends AssetItem {
   unicodeRange?: string;
   fontsourceId?: string;
   version?: string;
-}
+} & AssetItem;
 
-export interface TextSection {
+export type TextSection = {
   id: string;
   title?: string;
   body?: string;
-}
+};
 
-export interface ContrastPair {
+export type ContrastPair = {
   fg: string;
   bg: string;
   min: number;
-}
+};
 
-export interface BrandMeta {
+export type BrandMeta = {
   assetGroups: AssetGroup[];
   fontFiles: FontFile[];
   logo?: string;
@@ -105,14 +105,14 @@ export interface BrandMeta {
   contrast?: ContrastPair[];
   rootSize?: number;
   [key: string]: unknown;
-}
+};
 
-export interface Manifest {
+export type Manifest = {
   files: string[];
   brands: { name: string; path: string }[];
-}
+};
 
-export interface FontListing {
+export type FontListing = {
   id: string;
   family: string;
   category: string;
@@ -120,23 +120,25 @@ export interface FontListing {
   styles: string[];
   defSubset: string;
   license: string;
-}
+};
 
-export interface FontVariant {
+type Sparse<T> = Record<string, T | undefined>;
+
+export type FontVariant = {
   url?: { woff2?: string };
-}
+};
 
-export interface FontDetail extends FontListing {
+export type FontDetail = {
   subsets: string[];
   npmVersion: string;
   unicodeRange?: Record<string, string>;
-  variants?: Record<string, Record<string, Record<string, FontVariant>>>;
-}
+  variants?: Sparse<Sparse<Sparse<FontVariant>>>;
+} & FontListing;
 
-export interface Dimension {
+export type Dimension = {
   value: number;
   unit: string;
-}
+};
 
 export type Alias = string | { $ref: string };
 export type OrAlias<T> = T | Alias;
@@ -146,65 +148,65 @@ export type FontFamily = string | string[];
 export type FontWeight = number | string;
 export type StrokeStyle = string | Record<string, unknown>;
 
-export interface ShadowLayer {
+export type ShadowLayer = {
   color: OrAlias<DtcgColor>;
   offsetX: OrAlias<Dimension>;
   offsetY: OrAlias<Dimension>;
   blur: OrAlias<Dimension>;
   spread: OrAlias<Dimension>;
   inset?: boolean;
-}
+};
 
 export type Shadow = ShadowLayer | OrAlias<ShadowLayer>[];
 
-export interface Border {
+export type Border = {
   color: OrAlias<DtcgColor>;
   width: OrAlias<Dimension>;
   style: OrAlias<StrokeStyle>;
-}
+};
 
-export interface Transition {
+export type Transition = {
   duration: OrAlias<Dimension>;
   delay: OrAlias<Dimension>;
   timingFunction: OrAlias<CubicBezier>;
-}
+};
 
-export interface Typography {
+export type Typography = {
   fontFamily: OrAlias<FontFamily>;
   fontSize: OrAlias<Dimension>;
   fontWeight: OrAlias<FontWeight>;
   letterSpacing: OrAlias<Dimension>;
   lineHeight: OrAlias<number>;
-}
+};
 
-export interface FlatToken {
+export type FlatToken = {
   type?: string;
   value: unknown;
   extensions?: Record<string, unknown>;
   description?: string;
-}
+};
 
-export interface ResolvedToken extends FlatToken {
+export type ResolvedToken = {
   resolved: unknown;
-}
+} & FlatToken;
 
 export type Tokens = Map<string, ResolvedToken>;
 
 export type FileData = Blob | Uint8Array;
 export type SessionFiles = Map<string, FileData>;
 
-export interface AssetContext {
+export type AssetContext = {
   session: SessionFiles;
   library: Set<string>;
   fonts: FontProvider;
-}
+};
 
-export interface Problem {
+export type Problem = {
   path?: string;
   message: string;
-}
+};
 
-export interface ContrastResult {
+export type ContrastResult = {
   context: string;
   fg: string;
   bg: string;
@@ -212,4 +214,4 @@ export interface ContrastResult {
   label: string;
   ratio: number;
   pass: boolean;
-}
+};

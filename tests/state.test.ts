@@ -1,7 +1,10 @@
 import { isDeepStrictEqual } from 'node:util';
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { memoryFileStore, memoryKeyValueStore } from '../src/adapters/memory.js';
+import {
+  memoryFileStore,
+  memoryKeyValueStore,
+} from '../src/adapters/memory.js';
 import { createStore } from '../src/lib/state.js';
 import type { ResolverDoc } from '../src/lib/types.js';
 
@@ -11,14 +14,19 @@ const memFiles = (fail = false) => {
   if (!fail) return files;
   return {
     ...files,
-    put: async () => {
+    put: () => {
       const quota = new Error('quota');
       quota.name = 'QuotaExceededError';
-      throw quota;
+      return Promise.reject(quota);
     },
   };
 };
-const doc = (name: string): ResolverDoc => ({ version: '2025.10', name, sets: {}, resolutionOrder: [] });
+const doc = (name: string): ResolverDoc => ({
+  version: '2025.10',
+  name,
+  sets: {},
+  resolutionOrder: [],
+});
 const a = doc('A');
 const b = doc('B');
 const edit = (d: ResolverDoc): ResolverDoc => ({ ...d, description: 'edited' });
@@ -41,7 +49,10 @@ test('autosave writes the draft and a new store resumes it', () => {
   const s = createStore({ doc: a, storage, fileStore: memFiles() });
   s.update(edit);
   s.flush();
-  assert.deepEqual(createStore({ doc: a, storage, fileStore: memFiles() }).get(), edit(a));
+  assert.deepEqual(
+    createStore({ doc: a, storage, fileStore: memFiles() }).get(),
+    edit(a),
+  );
 });
 
 test('quota exceeded is reported, the file stays in the session', async () => {
@@ -86,7 +97,8 @@ test('prune deletes files no draft refers to', async () => {
   );
   await s.prune(new Set(['g/keep.svg']));
   assert.deepEqual([...s.files.keys()], ['g/keep.svg']);
-  assert.deepEqual([...(await fileStore.getAll()).keys()], ['g/keep.svg']);
+  const saved = await fileStore.getAll();
+  assert.deepEqual([...saved.keys()], ['g/keep.svg']);
 });
 
 test('undo and redo step through edits; a new edit drops the redo steps', () => {
@@ -115,7 +127,11 @@ test('loading can be undone', () => {
 });
 
 test('undo history is capped', () => {
-  const s = createStore({ doc: doc('0'), storage: mem(), fileStore: memFiles() });
+  const s = createStore({
+    doc: doc('0'),
+    storage: mem(),
+    fileStore: memFiles(),
+  });
   for (let n = 1; n <= 60; n++) s.set(doc(String(n)));
   let steps = 0;
   while (s.undo()) steps++;

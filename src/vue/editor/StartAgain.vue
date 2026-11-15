@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { errorMessage } from '../../lib/io.js';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context.js';
 
 const { ctx } = defineProps<{ ctx: EditorContext }>();
-const presets = ctx.session.manifest.brands.map((brand) => ({ value: brand.path, label: brand.name }));
+const presets = computed(() =>
+  ctx.session.manifest.brands.map((brand) => ({
+    value: brand.path,
+    label: brand.name,
+  })),
+);
 
 async function startOver(path: string) {
   try {
@@ -16,7 +22,9 @@ async function startOver(path: string) {
 </script>
 
 <template>
-  <p class="cd-hint">Both replace the whole brand. Undo (Ctrl+Z) brings your work back.</p>
+  <p class="cd-hint">
+    Both replace the whole brand. Undo (Ctrl+Z) brings your work back.
+  </p>
   <div class="cd-field-row">
     <Choice
       label="Replace with a preset"
@@ -25,7 +33,16 @@ async function startOver(path: string) {
       value=""
       @update:value="startOver"
     />
-    <button type="button" class="btn btn-secondary" @click="ctx.session.reset()">Clear to blank</button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      @click="ctx.session.reset()"
+    >
+      Clear to blank
+    </button>
   </div>
-  <p class="cd-hint">Clear keeps the spacing scale and black and white; it removes everything else.</p>
+  <p class="cd-hint">
+    Clear keeps the spacing scale and black and white; it removes everything
+    else.
+  </p>
 </template>

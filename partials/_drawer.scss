@@ -22,7 +22,8 @@
 	--ed-danger: light-dark(#b42318, #ff8f85);
 	--ed-ok: light-dark(#18794e, #6ad59b);
 	--ed-warn: light-dark(#a15c07, #f5b55c);
-	--ed-shadow: 0 #{chrome(0.5)} #{chrome(1.5)} light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5));
+	--ed-shadow: 0 #{chrome(0.5)} #{chrome(1.5)}
+		light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5));
 	--ed-1: #{chrome(0.25)};
 	--ed-2: #{chrome(0.5)};
 	--ed-3: #{chrome(0.75)};

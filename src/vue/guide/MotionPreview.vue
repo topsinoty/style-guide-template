@@ -6,7 +6,10 @@ const moved = ref(false);
 const style = computed(() =>
   props.type === 'duration'
     ? { transitionDuration: `var(${props.name})` }
-    : { transitionDuration: '600ms', transitionTimingFunction: `var(${props.name})` },
+    : {
+        transitionDuration: '600ms',
+        transitionTimingFunction: `var(${props.name})`,
+      },
 );
 </script>
 

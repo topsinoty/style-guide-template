@@ -4,13 +4,16 @@ import { resolve } from '../lib/resolver.js';
 import type { BrandMeta, FontFile, Tokens } from '../lib/types.js';
 import { urlFor } from './urls.js';
 
-export interface View {
+export type View = {
   tokens: Tokens;
   meta: BrandMeta;
   css: string;
-}
+};
 
-export type ViewSession = Pick<Session, 'doc' | 'preset' | 'vendor' | 'ctx' | 'meta' | 'fallBack'>;
+export type ViewSession = Pick<
+  Session,
+  'doc' | 'preset' | 'vendor' | 'ctx' | 'meta' | 'fallBack'
+>;
 
 export function deriveView(session: ViewSession, theme: string): View {
   const build = (): View => {
@@ -19,7 +22,11 @@ export function deriveView(session: ViewSession, theme: string): View {
     return {
       tokens: resolve(doc, { theme }),
       meta: session.meta,
-      css: generateCss(doc, { vendor: session.vendor, fontSrc, elementScope: 'main' }),
+      css: generateCss(doc, {
+        vendor: session.vendor,
+        fontSrc,
+        elementScope: 'main',
+      }),
     };
   };
   try {

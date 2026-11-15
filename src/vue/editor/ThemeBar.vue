@@ -9,7 +9,12 @@ const themes = computed(() => E.themesOf(props.ctx.doc));
 </script>
 
 <template>
-  <div v-if="themes.length > 1" class="ed-theme-bar" role="group" aria-labelledby="ed-theme-bar-label">
+  <div
+    v-if="themes.length > 1"
+    class="ed-theme-bar"
+    role="group"
+    aria-labelledby="ed-theme-bar-label"
+  >
     <span id="ed-theme-bar-label" class="cd-hint">Editing colors for</span>
     <div class="ed-segmented">
       <button

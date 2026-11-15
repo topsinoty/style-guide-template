@@ -8,7 +8,9 @@ import CopyButton from './CopyButton.vue';
 
 const props = defineProps<{ doc: ResolverDoc; vendor: string }>();
 const selected = ref(exportFormats[0].key);
-const format = computed(() => exportFormats.find((f) => f.key === selected.value) ?? exportFormats[0]);
+const format = computed(
+  () => exportFormats.find((f) => f.key === selected.value) ?? exportFormats[0],
+);
 const code = computed(() => format.value.render(props.doc, props.vendor));
 </script>
 
@@ -16,7 +18,11 @@ const code = computed(() => format.value.render(props.doc, props.vendor));
   <TabsRoot v-model="selected" activation-mode="automatic">
     <div class="cd-code-bar">
       <TabsList class="cd-tabs" aria-label="Code format">
-        <TabsTrigger v-for="item in exportFormats" :key="item.key" :value="item.key">
+        <TabsTrigger
+          v-for="item in exportFormats"
+          :key="item.key"
+          :value="item.key"
+        >
           {{ item.label }}
         </TabsTrigger>
       </TabsList>
@@ -31,7 +37,12 @@ const code = computed(() => format.value.render(props.doc, props.vendor));
         </CopyButton>
       </div>
     </div>
-    <TabsContent v-for="item in exportFormats" :key="item.key" :value="item.key" class="cd-code">
+    <TabsContent
+      v-for="item in exportFormats"
+      :key="item.key"
+      :value="item.key"
+      class="cd-code"
+    >
       <pre><code>{{ code }}</code></pre>
     </TabsContent>
   </TabsRoot>

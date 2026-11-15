@@ -6,7 +6,7 @@ import { checkContrast } from './contrast.js';
 import { brandMeta, withBrandMeta, resolveAsset, META_KEYS } from './assets.js';
 import type { FontProvider, Validator } from '../ports.js';
 import { extension, fileName, uniquePath } from './path.js';
-import { entriesOf, keysOf } from './records.js';
+import { entriesOf, keysOf, valueAt } from './records.js';
 import { holds, isNode } from './tree.js';
 import type {
   AssetItem,
@@ -18,16 +18,28 @@ import type {
   SessionFiles,
 } from './types.js';
 
-export type FileKind = 'resolver' | 'tokens' | 'zip' | 'font' | 'image' | 'file';
-export const errorMessage = (e: unknown) => (e instanceof Error ? e.message : String(e));
+export type FileKind =
+  'resolver' | 'tokens' | 'zip' | 'font' | 'image' | 'file';
+export const errorMessage = (e: unknown) =>
+  e instanceof Error ? e.message : String(e);
 
 export function classify(name: string): FileKind {
   const n = name.toLowerCase();
   if (n.endsWith('.resolver.json')) return 'resolver';
-  if (n.endsWith('.tokens.json') || n.endsWith('.tokens') || n.endsWith('.json')) return 'tokens';
+  if (
+    n.endsWith('.tokens.json') ||
+    n.endsWith('.tokens') ||
+    n.endsWith('.json')
+  )
+    return 'tokens';
   if (n.endsWith('.zip')) return 'zip';
   if (['woff2', 'woff', 'ttf', 'otf'].includes(extension(n))) return 'font';
-  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'ico'].includes(extension(n))) return 'image';
+  if (
+    ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'ico'].includes(
+      extension(n),
+    )
+  )
+    return 'image';
   return 'file';
 }
 
@@ -52,9 +64,18 @@ export function parseBrandJson(
   try {
     json = JSON.parse(text);
   } catch (e) {
-    return { doc: null, errors: [{ path: '', message: `Invalid JSON in ${name}: ${errorMessage(e)}` }] };
+    return {
+      doc: null,
+      errors: [
+        { path: '', message: `Invalid JSON in ${name}: ${errorMessage(e)}` },
+      ],
+    };
   }
-  if (!isNode(json)) return { doc: null, errors: [{ path: '', message: `${name} must hold a JSON object` }] };
+  if (!isNode(json))
+    return {
+      doc: null,
+      errors: [{ path: '', message: `${name} must hold a JSON object` }],
+    };
   const doc = toResolver(json, baseName(name));
   return { doc, errors: checkBrand(doc, validator) };
 }
@@ -63,8 +84,14 @@ export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
   const checked = validator.parseBrand(doc);
   if (!checked.ok) return checked.problems;
   const errors: Problem[] = [];
-  if (!doc.sets?.foundation)
-    return [{ path: 'sets', message: 'This site needs the brand tokens in a set named "foundation".' }];
+  if (!valueAt(doc.sets, 'foundation'))
+    return [
+      {
+        path: 'sets',
+        message:
+          'This site needs the brand tokens in a set named "foundation".',
+      },
+    ];
   const ext = doc.sets.foundation.$extensions ?? {};
   for (const [key, meta] of entriesOf(ext)) {
     if (META_KEYS.some((k) => holds(meta, k)))
@@ -73,12 +100,18 @@ export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
   if (errors.length) return errors;
   try {
     const inputs = defaultInputs(doc);
-    for (const c of contexts(doc)) resolve(doc, { ...inputs, [c.modifier]: c.context });
-    const vendor = keysOf(ext).find((k) => META_KEYS.some((m) => holds(ext[k], m)));
+    for (const c of contexts(doc))
+      resolve(doc, { ...inputs, [c.modifier]: c.context });
+    const vendor = keysOf(ext).find((k) =>
+      META_KEYS.some((m) => holds(ext[k], m)),
+    );
     generateCss(doc, { vendor, fontSrc: (f) => f.src });
     checkContrast(doc, vendor ? brandMeta(doc, vendor).contrast : []);
   } catch (e) {
-    errors.push({ path: e instanceof ResolveError ? e.path : '', message: errorMessage(e) });
+    errors.push({
+      path: e instanceof ResolveError ? e.path : '',
+      message: errorMessage(e),
+    });
   }
   return errors;
 }
@@ -98,28 +131,45 @@ export function loadZip(
     return {
       doc: null,
       files: new Map(),
-      errors: [{ path: '', message: `Not a readable ZIP file (${errorMessage(e)})` }],
+      errors: [
+        { path: '', message: `Not a readable ZIP file (${errorMessage(e)})` },
+      ],
     };
   }
   const names = keysOf(entries).filter((n) => !n.includes('/'));
   const brand =
-    names.find((n) => classify(n) === 'resolver') ?? names.find((n) => /\.tokens(\.json)?$/i.test(n));
+    names.find((n) => classify(n) === 'resolver') ??
+    names.find((n) => /\.tokens(\.json)?$/i.test(n));
   if (!brand)
     return {
       doc: null,
       files: new Map(),
-      errors: [{ path: '', message: 'The ZIP has no .resolver.json or .tokens.json at its root' }],
+      errors: [
+        {
+          path: '',
+          message: 'The ZIP has no .resolver.json or .tokens.json at its root',
+        },
+      ],
     };
-  const { doc, errors } = parseBrandJson(new TextDecoder().decode(entries[brand]), brand, validator);
+  const { doc, errors } = parseBrandJson(
+    new TextDecoder().decode(entries[brand]),
+    brand,
+    validator,
+  );
   const files: SessionFiles = new Map(
     entriesOf(entries).filter(
-      ([n]) => n !== brand && n !== 'README.md' && !n.startsWith('css/') && !n.endsWith('/'),
+      ([n]) =>
+        n !== brand &&
+        n !== 'README.md' &&
+        !n.startsWith('css/') &&
+        !n.endsWith('/'),
     ),
   );
   return { doc, files, errors };
 }
 
-export const saveJson = (doc: ResolverDoc) => `${JSON.stringify(inlineResolver(doc), null, 2)}\n`;
+export const saveJson = (doc: ResolverDoc) =>
+  `${JSON.stringify(inlineResolver(doc), null, 2)}\n`;
 
 export function exportLayout(meta: BrandMeta): Map<string, string> {
   const layout = new Map<string, string>();
@@ -129,7 +179,8 @@ export function exportLayout(meta: BrandMeta): Map<string, string> {
     used.add(target);
     layout.set(src, target);
   };
-  for (const g of meta.assetGroups) for (const item of g.items) place(item.src, g.id);
+  for (const g of meta.assetGroups)
+    for (const item of g.items) place(item.src, g.id);
   for (const f of meta.fontFiles) place(f.src, 'fonts');
   return layout;
 }
@@ -141,7 +192,12 @@ export function readme(
     contrast,
     missing,
     failedDownloads,
-  }: { hostedUrl: string; contrast: ContrastResult[]; missing: string[]; failedDownloads: string[] },
+  }: {
+    hostedUrl: string;
+    contrast: ContrastResult[];
+    missing: string[];
+    failedDownloads: string[];
+  },
 ): string {
   const file = `${slug(doc.name ?? 'brand')}.resolver.json`;
   const lines = [
@@ -161,12 +217,19 @@ export function readme(
     '| Theme | Pair | Ratio | Minimum | Result |',
     '|---|---|---|---|---|',
     ...contrast.map(
-      (r) => `| ${r.context} | ${r.label} | ${r.ratio} | ${r.min} | ${r.pass ? 'pass' : 'warning'} |`,
+      (r) =>
+        `| ${r.context} | ${r.label} | ${r.ratio} | ${r.min} | ${r.pass ? 'pass' : 'warning'} |`,
     ),
   ];
-  if (missing.length) lines.push('', '## Missing files', '', ...missing.map((m) => `- \`${m}\``));
+  if (missing.length)
+    lines.push('', '## Missing files', '', ...missing.map((m) => `- \`${m}\``));
   if (failedDownloads.length)
-    lines.push('', '## Files that could not be downloaded', '', ...failedDownloads.map((m) => `- \`${m}\``));
+    lines.push(
+      '',
+      '## Files that could not be downloaded',
+      '',
+      ...failedDownloads.map((m) => `- \`${m}\``),
+    );
   return `${lines.join('\n')}\n`;
 }
 
@@ -210,7 +273,11 @@ export async function buildExport(
       failedDownloads.push(target);
     }
   };
-  await Promise.all([...meta.assetGroups.flatMap((g) => g.items), ...meta.fontFiles].map(collect));
+  await Promise.all(
+    [...meta.assetGroups.flatMap((g) => g.items), ...meta.fontFiles].map(
+      collect,
+    ),
+  );
 
   const licenses = new Map(
     meta.fontFiles
@@ -240,15 +307,22 @@ export async function buildExport(
   const enc = new TextEncoder();
   const contrast = checkContrast(doc, meta.contrast);
   out[`${name}.resolver.json`] = enc.encode(saveJson(outDoc));
-  out['css/theme.css'] = enc.encode(generateCss(outDoc, { vendor, fontSrc: (f) => `../${f.src}` }));
-  out['README.md'] = enc.encode(readme(doc, { hostedUrl, contrast, missing, failedDownloads }));
+  out['css/theme.css'] = enc.encode(
+    generateCss(outDoc, { vendor, fontSrc: (f) => `../${f.src}` }),
+  );
+  out['README.md'] = enc.encode(
+    readme(doc, { hostedUrl, contrast, missing, failedDownloads }),
+  );
 
   const warnings = [
     ...missing.map((m) => `Missing file: ${m}`),
     ...failedDownloads.map((m) => `Could not download: ${m}`),
     ...contrast
       .filter((r) => !r.pass)
-      .map((r) => `Contrast ${r.context}: ${r.label} is ${r.ratio}:1 (minimum ${r.min}:1)`),
+      .map(
+        (r) =>
+          `Contrast ${r.context}: ${r.label} is ${r.ratio}:1 (minimum ${r.min}:1)`,
+      ),
   ];
   return { zip: zipSync(out), warnings };
 }

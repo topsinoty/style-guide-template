@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, type CSSProperties } from 'vue';
+import { computed, type CSSProperties, useId } from 'vue';
 
 const props = defineProps<{
   label: string;
@@ -10,13 +10,23 @@ const props = defineProps<{
   preview?: CSSProperties;
 }>();
 const emit = defineEmits<{ commit: [value: string] }>();
-const text = computed({ get: () => props.value ?? '', set: (value) => emit('commit', value) });
+const text = computed({
+  get: () => props.value ?? '',
+  set: (value) => emit('commit', value),
+});
+const uid = useId();
 </script>
 
 <template>
-  <label class="cd-field"
+  <label :for="inputId ?? uid" class="cd-field"
     ><span>{{ label }}</span>
-    <input :id="inputId" v-model.lazy.trim="text" type="text" :placeholder="placeholder" :style="preview" />
+    <input
+      :id="inputId ?? uid"
+      v-model.lazy.trim="text"
+      type="text"
+      :placeholder="placeholder"
+      :style="preview"
+    />
     <span v-if="hint" class="cd-hint">{{ hint }}</span>
   </label>
 </template>

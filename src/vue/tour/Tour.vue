@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
-import { useElementSize, useEventListener, useMediaQuery, useStorage, useWindowSize } from '@vueuse/core';
+import {
+  useElementSize,
+  useEventListener,
+  useMediaQuery,
+  useStorage,
+  useWindowSize,
+} from '@vueuse/core';
 import { FocusScope } from 'reka-ui';
 import { areaId, scrollToArea } from '../editor/areas.js';
 import type { TourStep } from './steps.js';
@@ -16,10 +22,19 @@ const KEYS = new Set(['Escape', 'ArrowRight', 'ArrowLeft']);
 
 const tab = useStorage('styleguide:editor-tab', 'Brand');
 const index = ref(0);
-const box = ref<{ top: number; left: number; width: number; height: number } | null>(null);
+const box = ref<{
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+} | null>(null);
 const card = useTemplateRef<HTMLElement>('card');
 const primary = useTemplateRef<HTMLButtonElement>('primary');
-const { width: cardWidth, height: cardHeight } = useElementSize(card, undefined, { box: 'border-box' });
+const { width: cardWidth, height: cardHeight } = useElementSize(
+  card,
+  undefined,
+  { box: 'border-box' },
+);
 const { width: vw, height: vh } = useWindowSize();
 const narrow = useMediaQuery('(max-width: 47.99rem)');
 const step = computed(() => props.steps[index.value]);
@@ -29,7 +44,10 @@ let frame = 0;
 let returnTo: HTMLElement | null = null;
 
 const find = (s: TourStep) => {
-  if (s.area) return document.querySelector(`section[aria-labelledby="${areaId(s.area)}"]`);
+  if (s.area)
+    return document.querySelector(
+      `section[aria-labelledby="${areaId(s.area)}"]`,
+    );
   return s.target ? document.querySelector(s.target) : null;
 };
 
@@ -60,7 +78,10 @@ async function go(to: number, dir: 1 | -1) {
 
 async function move(to: number, dir: 1 | -1): Promise<void> {
   if (to < 0) return;
-  if (to >= props.steps.length) return finish();
+  if (to >= props.steps.length) {
+    finish();
+    return;
+  }
   const s = props.steps[to];
   const el = await settle(s);
   if (el === undefined) return move(to + dir, dir);
@@ -79,7 +100,10 @@ function visible(el: Element) {
   if (scroller) {
     const frameRect = scroller.getBoundingClientRect();
     const bar = scroller.querySelector('.ed-sticky');
-    const sticky = bar && !bar.contains(el) ? bar.getBoundingClientRect().bottom : frameRect.top;
+    const sticky =
+      bar && !bar.contains(el)
+        ? bar.getBoundingClientRect().bottom
+        : frameRect.top;
     top = Math.max(top, sticky);
     bottom = Math.min(bottom, frameRect.bottom);
   }
@@ -87,7 +111,12 @@ function visible(el: Element) {
   left = Math.max(left, 0);
   bottom = Math.min(bottom, window.innerHeight);
   right = Math.min(right, window.innerWidth);
-  return { top: top - PAD, left: left - PAD, width: right - left + 2 * PAD, height: bottom - top + 2 * PAD };
+  return {
+    top: top - PAD,
+    left: left - PAD,
+    width: right - left + 2 * PAD,
+    height: bottom - top + 2 * PAD,
+  };
 }
 
 function track() {
@@ -102,7 +131,8 @@ function track() {
   frame = requestAnimationFrame(track);
 }
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), Math.max(min, max));
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), Math.max(min, max));
 
 const placement = computed(() => {
   const w = cardWidth.value;
@@ -110,9 +140,14 @@ const placement = computed(() => {
   const r = box.value;
   if (narrow.value) {
     const low = r !== null && r.top + r.height / 2 > vh.value / 2;
-    return { left: `${MARGIN}px`, right: `${MARGIN}px`, [low ? 'top' : 'bottom']: `${MARGIN}px` };
+    return {
+      left: `${MARGIN}px`,
+      right: `${MARGIN}px`,
+      [low ? 'top' : 'bottom']: `${MARGIN}px`,
+    };
   }
-  if (!r) return { left: `${(vw.value - w) / 2}px`, top: `${(vh.value - h) / 2}px` };
+  if (!r)
+    return { left: `${(vw.value - w) / 2}px`, top: `${(vh.value - h) / 2}px` };
   const x = clamp(r.left, MARGIN, vw.value - w - MARGIN);
   const y = clamp(r.top, MARGIN, vh.value - h - MARGIN);
   const below = {
@@ -120,15 +155,28 @@ const placement = computed(() => {
     top: r.top + r.height + GAP,
     fits: r.top + r.height + GAP + h <= vh.value - MARGIN,
   };
-  const above = { left: x, top: r.top - GAP - h, fits: r.top - GAP - h >= MARGIN };
-  const before = { left: r.left - GAP - w, top: y, fits: r.left - GAP - w >= MARGIN };
+  const above = {
+    left: x,
+    top: r.top - GAP - h,
+    fits: r.top - GAP - h >= MARGIN,
+  };
+  const before = {
+    left: r.left - GAP - w,
+    top: y,
+    fits: r.left - GAP - w >= MARGIN,
+  };
   const after = {
     left: r.left + r.width + GAP,
     top: y,
     fits: r.left + r.width + GAP + w <= vw.value - MARGIN,
   };
-  const options = inDrawer.value ? [before, below, above, after] : [below, above, before, after];
-  const best = options.find((o) => o.fits) ?? { left: MARGIN, top: vh.value - h - MARGIN };
+  const options = inDrawer.value
+    ? [before, below, above, after]
+    : [below, above, before, after];
+  const best = options.find((o) => o.fits) ?? {
+    left: MARGIN,
+    top: vh.value - h - MARGIN,
+  };
   return { left: `${best.left}px`, top: `${best.top}px` };
 });
 
@@ -140,7 +188,8 @@ watch(
   open,
   async (isOpen) => {
     if (isOpen) {
-      if (document.activeElement instanceof HTMLElement) returnTo = document.activeElement;
+      if (document.activeElement instanceof HTMLElement)
+        returnTo = document.activeElement;
       box.value = null;
       target = null;
       frame = requestAnimationFrame(track);
@@ -155,12 +204,18 @@ watch(
   { immediate: true },
 );
 
-useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+function stepBy(dir: 1 | -1) {
+  go(index.value + dir, dir).catch((e: unknown) => {
+    console.warn(e);
+  });
+}
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (!open.value || !KEYS.has(e.key)) return;
   e.preventDefault();
   if (e.key === 'Escape') finish();
-  else if (e.key === 'ArrowRight') await go(index.value + 1, 1);
-  else if (index.value > 0) await go(index.value - 1, -1);
+  else if (e.key === 'ArrowRight') stepBy(1);
+  else if (index.value > 0) stepBy(-1);
 });
 </script>
 
@@ -173,7 +228,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       aria-hidden="true"
       :style="
         box
-          ? { top: `${box.top}px`, left: `${box.left}px`, width: `${box.width}px`, height: `${box.height}px` }
+          ? {
+              top: `${box.top}px`,
+              left: `${box.left}px`,
+              width: `${box.width}px`,
+              height: `${box.height}px`,
+            }
           : undefined
       "
     ></div>
@@ -193,13 +253,35 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <p id="cd-tour-body">{{ step.body }}</p>
         </div>
         <div class="cd-tour-actions">
-          <button type="button" class="btn btn-secondary btn-quiet" @click="finish">Skip tour</button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-quiet"
+            @click="finish"
+          >
+            Skip tour
+          </button>
           <span class="cd-tour-nav">
-            <button v-if="index > 0" type="button" class="btn btn-secondary" @click="go(index - 1, -1)">
+            <button
+              v-if="index > 0"
+              type="button"
+              class="btn btn-secondary"
+              @click="go(index - 1, -1)"
+            >
               Back
             </button>
-            <button ref="primary" type="button" class="btn" @click="go(index + 1, 1)">
-              {{ index === steps.length - 1 ? 'Finish' : index === 0 ? 'Start' : 'Next' }}
+            <button
+              ref="primary"
+              type="button"
+              class="btn"
+              @click="go(index + 1, 1)"
+            >
+              {{
+                index === steps.length - 1
+                  ? 'Finish'
+                  : index === 0
+                    ? 'Start'
+                    : 'Next'
+              }}
             </button>
           </span>
         </div>

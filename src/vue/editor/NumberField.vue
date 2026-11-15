@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -20,11 +20,19 @@ const number = computed<number | ''>({
     else if (value !== '' && Number.isFinite(value)) emit('commit', value);
   },
 });
+const uid = useId();
 </script>
 
 <template>
-  <label class="cd-field"
+  <label :for="uid" class="cd-field"
     ><span>{{ label }}</span>
-    <input v-model.lazy="number" type="number" :min="min" :max="max" :step="step" />
+    <input
+      :id="uid"
+      v-model.lazy="number"
+      type="number"
+      :min="min"
+      :max="max"
+      :step="step"
+    />
   </label>
 </template>

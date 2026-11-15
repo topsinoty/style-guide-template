@@ -1,7 +1,7 @@
 import { holds, isNode } from './tree.js';
 import { fileName, isSafeSrc } from './path.js';
 import { isFontStyle } from './values.js';
-import { entriesOf, keysOf, without } from './records.js';
+import { entriesOf, keysOf, valueAt, without } from './records.js';
 import type {
   AssetContext,
   AssetGroup,
@@ -19,19 +19,29 @@ export type SrcEntry =
   | { src: string; kind: 'asset'; groupId: string; entry: AssetItem }
   | { src: string; kind: 'font'; entry: FontFile };
 
-export const META_KEYS = ['assetGroups', 'fontFiles', 'sections', 'contrast', 'rootSize'];
+export const META_KEYS = [
+  'assetGroups',
+  'fontFiles',
+  'sections',
+  'contrast',
+  'rootSize',
+];
 export const DEFAULT_ROOT_SIZE = 16;
-export const isRootSize = (n: unknown): n is number => typeof n === 'number' && n >= 4 && n <= 64;
+export const isRootSize = (n: unknown): n is number =>
+  typeof n === 'number' && n >= 4 && n <= 64;
 const basename = (p: string) => fileName(p).toLowerCase();
 
 function metaKey(doc: ResolverDoc, vendor: string): string | null {
-  const ext = doc.sets?.foundation?.$extensions ?? {};
+  const ext = valueAt(doc.sets, 'foundation')?.$extensions ?? {};
   if (ext[vendor]) return vendor;
-  const others = keysOf(ext).filter((k) => META_KEYS.some((m) => holds(ext[k], m)));
+  const others = keysOf(ext).filter((k) =>
+    META_KEYS.some((m) => holds(ext[k], m)),
+  );
   return others.length === 1 ? others[0] : null;
 }
 
-const optionalString = (value: unknown) => (typeof value === 'string' ? value : undefined);
+const optionalString = (value: unknown) =>
+  typeof value === 'string' ? value : undefined;
 
 function readItem(value: unknown): AssetItem | null {
   if (!isNode(value) || !isSafeSrc(value.src)) return null;
@@ -48,12 +58,21 @@ function readItem(value: unknown): AssetItem | null {
 
 function readFontFile(value: unknown): FontFile | null {
   const item = readItem(value);
-  if (!item || !isNode(value) || typeof value.family !== 'string' || !value.family) return null;
+  if (
+    !item ||
+    !isNode(value) ||
+    typeof value.family !== 'string' ||
+    !value.family
+  )
+    return null;
   const { weight, style } = value;
   return {
     ...item,
     family: value.family,
-    weight: typeof weight === 'number' && weight >= 1 && weight <= 1000 ? weight : 400,
+    weight:
+      typeof weight === 'number' && weight >= 1 && weight <= 1000
+        ? weight
+        : 400,
     style: isFontStyle(style) ? style : 'normal',
     subset: optionalString(value.subset),
     unicodeRange: optionalString(value.unicodeRange),
@@ -63,7 +82,12 @@ function readFontFile(value: unknown): FontFile | null {
 }
 
 function readGroup(value: unknown): AssetGroup | null {
-  if (!isNode(value) || typeof value.id !== 'string' || !Array.isArray(value.items)) return null;
+  if (
+    !isNode(value) ||
+    typeof value.id !== 'string' ||
+    !Array.isArray(value.items)
+  )
+    return null;
   return {
     ...value,
     id: value.id,
@@ -74,23 +98,42 @@ function readGroup(value: unknown): AssetGroup | null {
 
 function readSection(value: unknown): TextSection | null {
   if (!isNode(value) || typeof value.id !== 'string' || !value.id) return null;
-  return { id: value.id, title: optionalString(value.title), body: optionalString(value.body) };
+  return {
+    id: value.id,
+    title: optionalString(value.title),
+    body: optionalString(value.body),
+  };
 }
 
 function readPair(value: unknown): ContrastPair | null {
-  if (!isNode(value) || typeof value.fg !== 'string' || typeof value.bg !== 'string') return null;
-  return { fg: value.fg, bg: value.bg, min: typeof value.min === 'number' ? value.min : 4.5 };
+  if (
+    !isNode(value) ||
+    typeof value.fg !== 'string' ||
+    typeof value.bg !== 'string'
+  )
+    return null;
+  return {
+    fg: value.fg,
+    bg: value.bg,
+    min: typeof value.min === 'number' ? value.min : 4.5,
+  };
 }
 
 export function readBrandMeta(value: unknown): BrandMeta {
-  const { logo, sections, contrast, rootSize, ...meta } = isNode(value) ? value : {};
+  const { logo, sections, contrast, rootSize, ...meta } = isNode(value)
+    ? value
+    : {};
   const list = (key: string) => (Array.isArray(meta[key]) ? meta[key] : []);
   return {
     ...meta,
     ...(typeof logo === 'string' ? { logo } : {}),
     ...(isRootSize(rootSize) ? { rootSize } : {}),
-    ...(Array.isArray(sections) ? { sections: sections.flatMap((s) => readSection(s) ?? []) } : {}),
-    ...(Array.isArray(contrast) ? { contrast: contrast.flatMap((p) => readPair(p) ?? []) } : {}),
+    ...(Array.isArray(sections)
+      ? { sections: sections.flatMap((s) => readSection(s) ?? []) }
+      : {}),
+    ...(Array.isArray(contrast)
+      ? { contrast: contrast.flatMap((p) => readPair(p) ?? []) }
+      : {}),
     assetGroups: list('assetGroups').flatMap((group) => readGroup(group) ?? []),
     fontFiles: list('fontFiles').flatMap((file) => readFontFile(file) ?? []),
   };
@@ -101,16 +144,23 @@ export const BUILT_IN_GROUPS = new Set(['logos', 'favicons', 'icons']);
 export function mainLogo(meta: BrandMeta): AssetItem | undefined {
   const items = meta.assetGroups.flatMap((group) => group.items);
   return (
-    items.find((item) => item.src === meta.logo) ?? meta.assetGroups.find((g) => g.id === 'logos')?.items[0]
+    items.find((item) => item.src === meta.logo) ??
+    meta.assetGroups.find((g) => g.id === 'logos')?.items[0]
   );
 }
 
 export function brandMeta(doc: ResolverDoc, vendor: string): BrandMeta {
   const key = metaKey(doc, vendor);
-  return readBrandMeta(key ? doc.sets.foundation.$extensions?.[key] : undefined);
+  return readBrandMeta(
+    key ? doc.sets.foundation.$extensions?.[key] : undefined,
+  );
 }
 
-export function withBrandMeta(doc: ResolverDoc, vendor: string, meta: BrandMeta): ResolverDoc {
+export function withBrandMeta(
+  doc: ResolverDoc,
+  vendor: string,
+  meta: BrandMeta,
+): ResolverDoc {
   const out = structuredClone(doc);
   const key = metaKey(doc, vendor);
   const foreign = key !== vendor ? key : null;
@@ -123,9 +173,18 @@ export function withBrandMeta(doc: ResolverDoc, vendor: string, meta: BrandMeta)
 
 export const allSrcs = (meta: BrandMeta): SrcEntry[] => [
   ...meta.assetGroups.flatMap((g) =>
-    g.items.map((entry) => ({ src: entry.src, kind: 'asset' as const, groupId: g.id, entry })),
+    g.items.map((entry) => ({
+      src: entry.src,
+      kind: 'asset' as const,
+      groupId: g.id,
+      entry,
+    })),
   ),
-  ...meta.fontFiles.map((entry) => ({ src: entry.src, kind: 'font' as const, entry })),
+  ...meta.fontFiles.map((entry) => ({
+    src: entry.src,
+    kind: 'font' as const,
+    entry,
+  })),
 ];
 
 export function resolveAsset(
@@ -134,8 +193,10 @@ export function resolveAsset(
 ): { source: AssetSource; url?: string } {
   if (!isSafeSrc(item.src)) return { source: 'missing' };
   if (session.has(item.src)) return { source: 'session' };
-  if (library.has(item.src)) return { source: 'library', url: `library/${item.src}` };
-  if (item.provider === fonts.id) return { source: 'provider', url: fonts.fileUrl(item as FontFile) };
+  if (library.has(item.src))
+    return { source: 'library', url: `library/${item.src}` };
+  const font = item.provider === fonts.id ? readFontFile(item) : null;
+  if (font) return { source: 'provider', url: fonts.fileUrl(font) };
   return { source: 'missing' };
 }
 
@@ -146,12 +207,15 @@ export const missingAssets = (meta: BrandMeta, ctx: AssetContext): string[] =>
 
 export function matchDropped(missing: string[], files: File[]) {
   const matched: SessionFiles = new Map();
-  const ambiguous: Array<{ name: string; candidates: string[] }> = [];
+  const ambiguous: { name: string; candidates: string[] }[] = [];
   const unmatched: File[] = [];
   for (const file of files) {
-    const candidates = missing.filter((p) => basename(p) === file.name.toLowerCase());
+    const candidates = missing.filter(
+      (p) => basename(p) === file.name.toLowerCase(),
+    );
     if (candidates.length === 1) matched.set(candidates[0], file);
-    else if (candidates.length > 1) ambiguous.push({ name: file.name, candidates });
+    else if (candidates.length > 1)
+      ambiguous.push({ name: file.name, candidates });
     else unmatched.push(file);
   }
   return { matched, ambiguous, unmatched };

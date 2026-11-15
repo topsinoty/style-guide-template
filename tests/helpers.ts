@@ -10,23 +10,37 @@ export function present<T>(value: T | null | undefined, what = 'value'): T {
   return value;
 }
 
-export const token = (tokens: Tokens, path: string) => present(tokens.get(path), path);
+export const token = (tokens: Tokens, path: string) =>
+  present(tokens.get(path), path);
 
 export const V = 'com.example.styleguide';
 
 const readJson = (url: URL): unknown => JSON.parse(readFileSync(url, 'utf8'));
 
-export const fixture = (name: string) => readJson(new URL(`./fixtures/${name}`, import.meta.url));
+export const fixture = (name: string) =>
+  readJson(new URL(`./fixtures/${name}`, import.meta.url));
 
-export const load = (): ResolverDoc => z.parse(resolverDoc, fixture('minimal.resolver.json'));
+export const load = (): ResolverDoc =>
+  z.parse(resolverDoc, fixture('minimal.resolver.json'));
 
 export const preset = (): ResolverDoc =>
-  z.parse(resolverDoc, readJson(new URL('../public/library/brands/default.resolver.json', import.meta.url)));
+  z.parse(
+    resolverDoc,
+    readJson(
+      new URL(
+        '../public/library/brands/default.resolver.json',
+        import.meta.url,
+      ),
+    ),
+  );
 
 function parentOf(tree: TokenNode, path: string): [TokenNode, string] {
   const keys = path.split('.');
   const last = keys.pop() ?? path;
-  const parent = keys.reduce<unknown>((node, key) => (isNode(node) ? node[key] : undefined), tree);
+  const parent = keys.reduce<unknown>(
+    (node, key) => (isNode(node) ? node[key] : undefined),
+    tree,
+  );
   assert.ok(isNode(parent), `${path} has no parent`);
   return [parent, last];
 }

@@ -1,14 +1,20 @@
-import { inject, markRaw, provide, shallowRef, triggerRef, type InjectionKey, type ShallowRef } from 'vue';
-import { tryOnScopeDispose } from '@vueuse/core';
+import {
+  type App,
+  inject,
+  markRaw,
+  shallowRef,
+  triggerRef,
+  type InjectionKey,
+  type ShallowRef,
+} from 'vue';
 import type { Session } from '../app/session.js';
 
 const SESSION: InjectionKey<ShallowRef<Session>> = Symbol('session');
 
-export function provideSession(session: Session) {
+export function provideSession(app: App, session: Session) {
   const live = shallowRef(markRaw(session));
-  tryOnScopeDispose(session.subscribe(() => triggerRef(live)));
-  provide(SESSION, live);
-  return live;
+  app.onUnmount(session.subscribe(() => triggerRef(live)));
+  app.provide(SESSION, live);
 }
 
 export function injectSession() {

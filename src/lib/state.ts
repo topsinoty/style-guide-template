@@ -38,7 +38,10 @@ export function createStore({
   let typing: { key: string; at: number } | null = null;
   const record = (key?: string) => {
     const now = Date.now();
-    const sameBurst = key !== undefined && typing?.key === key && now - typing.at < TYPING_PAUSE;
+    const sameBurst =
+      key !== undefined &&
+      typing?.key === key &&
+      now - typing.at < TYPING_PAUSE;
     typing = key === undefined ? null : { key, at: now };
     if (sameBurst) return;
     past = [...past, current].slice(-HISTORY);
@@ -47,7 +50,7 @@ export function createStore({
   const show = (next: ResolverDoc) => {
     current = next;
     clearTimeout(timer);
-    timer = setTimeout(store.flush, 300);
+    timer = setTimeout(() => store.flush(), 300);
     for (const fn of subs) fn(current);
   };
 
@@ -75,7 +78,7 @@ export function createStore({
       return true;
     },
     redo() {
-      const [next] = future;
+      const next = future.at(0);
       if (!next) return false;
       typing = null;
       past = [...past, current];
@@ -101,7 +104,10 @@ export function createStore({
       } catch (e) {
         store.saveError = e;
       }
-      if (newFiles) store.addFiles(newFiles);
+      if (newFiles)
+        store.addFiles(newFiles).catch((e: unknown) => {
+          store.saveError = e;
+        });
       record();
       show(next);
       store.flush();
@@ -116,8 +122,12 @@ export function createStore({
       for (const [path, data] of map) files.set(path, data);
       for (const fn of subs) fn(current);
       const entries = [...map];
-      const results = await Promise.allSettled(entries.map(([path, data]) => fileStore.put(path, data)));
-      const notPersisted = entries.filter((_, i) => results[i].status === 'rejected').map(([path]) => path);
+      const results = await Promise.allSettled(
+        entries.map(([path, data]) => fileStore.put(path, data)),
+      );
+      const notPersisted = entries
+        .filter((_, i) => results[i].status === 'rejected')
+        .map(([path]) => path);
       return { notPersisted };
     },
     ready: fileStore
@@ -125,7 +135,9 @@ export function createStore({
       .then((saved) => {
         for (const [p, data] of saved) if (!files.has(p)) files.set(p, data);
       })
-      .catch(() => {}),
+      .catch((e: unknown) => {
+        console.warn('Could not read the saved files', e);
+      }),
   };
   return store;
 }

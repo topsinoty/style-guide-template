@@ -1,28 +1,41 @@
 <script setup lang="ts">
-import { onClickOutside, onKeyStroke, useResizeObserver, useScrollLock } from '@vueuse/core';
+import {
+  onClickOutside,
+  onKeyStroke,
+  useResizeObserver,
+  useScrollLock,
+} from '@vueuse/core';
 import { FocusScope } from 'reka-ui';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
 import Icon from '../Icon.vue';
 
-const props = withDefaults(defineProps<{ as?: string; label?: string }>(), { as: 'div', label: 'this card' });
+const props = withDefaults(defineProps<{ as?: string; label?: string }>(), {
+  as: 'div',
+  label: 'this card',
+});
 const open = ref(false);
 const clipped = ref(false);
-const title = computed(() => props.label.charAt(0).toUpperCase() + props.label.slice(1));
+const title = computed(
+  () => props.label.charAt(0).toUpperCase() + props.label.slice(1),
+);
 const card = useTemplateRef<HTMLElement>('card');
 const opener = useTemplateRef<HTMLButtonElement>('opener');
 const closer = useTemplateRef<HTMLButtonElement>('closer');
 const locked = useScrollLock(document.body);
 
-const scrolls = (overflow: string) => overflow === 'auto' || overflow === 'scroll';
-function isClipped(el: Element) {
+const scrolls = (overflow: string): boolean =>
+  overflow === 'auto' || overflow === 'scroll';
+function isClipped(el: Element): boolean {
   const { overflowX, overflowY } = getComputedStyle(el);
   return (
     (scrolls(overflowX) && el.scrollWidth > el.clientWidth + 1) ||
     (scrolls(overflowY) && el.scrollHeight > el.clientHeight + 1)
   );
 }
-function measure() {
-  clipped.value = [...(card.value?.querySelectorAll('*') ?? [])].some(isClipped);
+function measure(): void {
+  clipped.value = [...(card.value?.querySelectorAll('*') ?? [])].some(
+    isClipped,
+  );
 }
 
 watch(open, async (isOpen) => {

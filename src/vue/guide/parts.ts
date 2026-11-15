@@ -2,12 +2,27 @@ import { cssName } from '../../lib/css.js';
 import { isNode } from '../../lib/tree.js';
 
 export function dim(value: unknown): string {
-  if (isNode(value) && typeof value.value === 'number' && typeof value.unit === 'string')
+  if (
+    isNode(value) &&
+    typeof value.value === 'number' &&
+    typeof value.unit === 'string'
+  )
     return `${value.value}${value.unit}`;
-  return typeof value === 'number' || typeof value === 'string' ? String(value) : '';
+  return typeof value === 'number' || typeof value === 'string'
+    ? String(value)
+    : '';
 }
 
-const images = new Set(['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'ico']);
+const images = new Set([
+  'svg',
+  'png',
+  'jpg',
+  'jpeg',
+  'gif',
+  'webp',
+  'avif',
+  'ico',
+]);
 
 export const isImage = (ext: string) => images.has(ext);
 
@@ -20,9 +35,11 @@ export function formatSize(bytes: number) {
   return `${(bytes / MB).toFixed(1)} MB`;
 }
 
-export const cap = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+export const cap = (value: string) =>
+  value.charAt(0).toUpperCase() + value.slice(1);
 
 export function cssBackground(value: string | undefined): string | undefined {
-  const ref = value && /^\{(.+)\}$/.exec(value);
-  return ref ? `var(${cssName(ref[1])})` : value || undefined;
+  if (!value) return undefined;
+  const ref = /^\{(.+)\}$/.exec(value);
+  return ref ? `var(${cssName(ref[1])})` : value;
 }
