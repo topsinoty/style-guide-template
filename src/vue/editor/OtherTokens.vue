@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
-import { toHex } from '../../lib/color';
+import { COLOR_ERROR, toHex } from '../../lib/color';
 import { cssName } from '../../lib/css';
 import * as E from '../../lib/edit';
 import { paletteColors } from '../../lib/palette';
 import { narrow, isColor } from '../../lib/values';
-import { COLOR_ERROR } from '../../lib/color';
 import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context';

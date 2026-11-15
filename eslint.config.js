@@ -86,6 +86,7 @@ export default defineConfig(
       'no-else-return': 'error',
       'no-useless-return': 'error',
       'no-await-in-loop': 'error',
+      'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
       'default-param-last': 'error',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],

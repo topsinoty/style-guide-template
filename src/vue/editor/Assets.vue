@@ -2,13 +2,12 @@
 import AddPanel from './AddPanel.vue';
 import { computed, ref, shallowReactive, useId } from 'vue';
 import { mainLogo } from '../../lib/assets';
-import { toHex } from '../../lib/color';
+import { COLOR_ERROR, toHex } from '../../lib/color';
 import * as E from '../../lib/edit';
 import { paletteColors } from '../../lib/palette';
 import { extension, fileName } from '../../lib/path';
 import type { AssetGroup, AssetItem } from '../../lib/types';
 import { isColor, narrow } from '../../lib/values';
-import { COLOR_ERROR } from '../../lib/color';
 import { urlFor } from '../urls';
 import Listbox from '../Listbox.vue';
 import IconButton from './IconButton.vue';

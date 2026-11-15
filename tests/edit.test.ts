@@ -1,11 +1,10 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { nodeAt } from '../src/lib/tree';
+import { nodeAt, vendorData } from '../src/lib/tree';
 import { token, load } from './helpers';
 import type { BrandMeta } from '../src/lib/types';
 import * as E from '../src/lib/edit';
 import { removeStep } from '../src/lib/scale';
-import { vendorData } from '../src/lib/tree';
 import { uniquePath } from '../src/lib/path';
 import { resolve } from '../src/lib/resolver';
 

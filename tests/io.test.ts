@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { zodValidator } from '../src/adapters/zod-validator';
 import { keysOf } from '../src/lib/records';
 import { setToken } from '../src/lib/edit';
-import { isNode, nodeAt } from '../src/lib/tree';
+import { isNode, nodeAt, withVendorData } from '../src/lib/tree';
 import { fontsource } from '../src/adapters/fontsource';
 import { present, load, preset, token, V } from './helpers';
 import { unzipSync } from 'fflate';
@@ -21,7 +21,6 @@ import { resolve } from '../src/lib/resolver';
 import { brandMeta, withBrandMeta } from '../src/lib/assets';
 import { blankBrand } from '../src/lib/palette';
 import { addScaleStep } from '../src/lib/scale';
-import { withVendorData } from '../src/lib/tree';
 
 const bytes = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);

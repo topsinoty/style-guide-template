@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { checkContrast, ROLES } from '../../lib/contrast';
-import { toHex } from '../../lib/color';
+import { COLOR_ERROR, toHex } from '../../lib/color';
 import { cssName } from '../../lib/css';
 import * as E from '../../lib/edit';
 import { entriesOf } from '../../lib/records';
 import { paletteColors, roleFromShade } from '../../lib/palette';
 import Choice from './Choice.vue';
 import { narrow, isColor } from '../../lib/values';
-import { COLOR_ERROR } from '../../lib/color';
 import { cap } from '../guide/parts';
 import type { EditorContext } from './context';
 import { colorOptions, roleEntry, roleText } from './role-color';
