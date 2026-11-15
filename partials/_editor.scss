@@ -653,7 +653,8 @@
 	gap: var(--spacing-lg);
 	font-size: var(--font-size-sm);
 
-	figure {
+	figure,
+	figcaption {
 		display: grid;
 		gap: var(--spacing-xs);
 	}

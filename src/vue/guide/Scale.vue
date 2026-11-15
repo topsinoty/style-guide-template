@@ -35,9 +35,8 @@ function radiusText(value: unknown) {
         :style="kind === 'radius' ? { borderRadius: value(path) } : { boxShadow: value(path) }"
       ></div>
       <figcaption>
-        <code>{{ cssName(path) }}</code><span v-if="kind === 'radius'" class="cd-token-value">
-          {{ radiusText(token.resolved) }}</span
-        >
+        <code>{{ cssName(path) }}</code>
+        <span v-if="kind === 'radius'" class="cd-token-value">{{ radiusText(token.resolved) }}</span>
         <small v-if="token.description" class="cd-usage">{{ token.description }}</small>
       </figcaption>
     </figure>
