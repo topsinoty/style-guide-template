@@ -149,7 +149,6 @@ main {
 	max-width: $M;
 	margin: 0 auto;
 	padding: var(--header-h) 0 3.125rem;
-	counter-reset: section;
 
 	> h1 {
 		text-align: center;
@@ -163,6 +162,7 @@ main {
 		padding-top: calc(var(--header-h) + 2.5rem);
 
 		> h1,
+		> .cd-intro,
 		> .cd-panels {
 			column-span: all;
 		}
@@ -177,12 +177,7 @@ main {
 section {
 	margin: 3em 0;
 	scroll-margin-top: 3em;
-	counter-increment: section;
 	min-width: 0;
-
-	h2::before {
-		content: counter(section) '. ';
-	}
 
 	@include MQ(S) {
 		margin: 3em 0 5em;
@@ -192,6 +187,54 @@ section {
 		margin: 0 0 4em;
 		scroll-margin-top: 0;
 	}
+}
+
+.cd-intro {
+	max-width: 40em;
+	margin: -2em auto 3em;
+	font-size: var(--font-size-lg);
+	text-align: center;
+}
+
+.cd-prose {
+	max-width: 40em;
+	line-height: 1.6;
+
+	> * + * {
+		margin-top: var(--spacing-sm);
+	}
+
+	h3 {
+		margin-top: var(--spacing-lg);
+	}
+
+	ul {
+		padding-left: 1.25em;
+		list-style: disc;
+	}
+
+	strong {
+		font-weight: 700;
+	}
+
+	em {
+		font-style: italic;
+	}
+
+	+ .cd-section-body {
+		margin-top: var(--spacing-lg);
+	}
+}
+
+.cd-usage {
+	display: block;
+	font-family: var(--font-body);
+	font-size: var(--font-size-xs);
+	font-weight: 400;
+	letter-spacing: normal;
+	line-height: 1.4;
+	color: var(--color-muted-foreground);
+	text-transform: none;
 }
 
 .cd-branding {
@@ -373,5 +416,76 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 
 	&:hover {
 		background: $scrollbar-color;
+	}
+}
+
+// Plays a duration or easing token: the dot crosses the track on each click.
+.cd-motion {
+	position: relative;
+	width: 6rem;
+	height: 1.5rem;
+	padding: 0;
+	border: var(--hairline) solid var(--color-card-border);
+	border-radius: 999px; // ds-allow-hardcode: pill
+	background: var(--color-card-background);
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: 0.125rem solid var(--color-focus-border);
+		outline-offset: 0.125rem;
+	}
+}
+
+.cd-motion-dot {
+	position: absolute;
+	top: 0.25rem;
+	left: 0.25rem;
+	width: 0.875rem;
+	height: 0.875rem;
+	border-radius: 50%;
+	background: var(--color-primary-background);
+	transition-property: transform;
+
+	[aria-pressed='true'] > & {
+		transform: translateX(4.5rem);
+	}
+}
+
+// The guide's text inspector: an outline on the hovered text and a note on what it is.
+.cd-inspect-box {
+	position: fixed;
+	z-index: 20;
+	outline: 1px dashed var(--ed-accent); // ds-allow-hardcode: inspector outline
+	outline-offset: 2px;
+	pointer-events: none;
+}
+
+.cd-inspect-tip {
+	position: fixed;
+	z-index: 21;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 0.5rem;
+	max-width: min(28rem, calc(100vw - 1rem));
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.375rem;
+	background: var(--ed-text);
+	color: var(--ed-surface);
+	font: 400 0.75rem / 1.4 var(--ed-font);
+	letter-spacing: normal;
+	text-transform: none;
+	pointer-events: none;
+
+	&.above {
+		transform: translateY(-100%);
+	}
+
+	code {
+		font-family: var(--ed-mono);
+		font-weight: 600;
+	}
+
+	.cd-inspect-font {
+		opacity: 0.75;
 	}
 }

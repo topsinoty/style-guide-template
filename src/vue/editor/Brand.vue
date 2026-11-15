@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import { errorMessage } from '../../lib/io.js';
-import Choice from './Choice.vue';
+import { computed } from 'vue';
 import type { EditorContext } from './context.js';
+import { elementPreview } from './preview.js';
+import TextArea from './TextArea.vue';
 import TextField from './TextField.vue';
 
 const { ctx } = defineProps<{ ctx: EditorContext }>();
 
-const presets = ctx.session.manifest.brands.map((brand) => ({ value: brand.path, label: brand.name }));
+const preview = (element: string) => computed(() => elementPreview(ctx.tree, ctx.vendor, element));
+const h1 = preview('h1');
+const p = preview('p');
 
-async function startOver(path: string) {
-  try {
-    ctx.session.store.load(await ctx.session.loadPreset(path));
-  } catch (e) {
-    ctx.session.warn(`Could not load the preset: ${errorMessage(e)}`);
-  }
-}
+const FORMAT_HINT =
+  'Shown under the name. Markdown works here and in section text: **bold**, *italic*, `code`, [link](https://…), - lists, ## headings.';
 </script>
 
 <template>
   <TextField
     label="Name"
     input-id="cd-brand-name"
+    :preview="h1"
     :value="ctx.doc.name"
     @commit="(value) => value && ctx.edit((doc) => ({ ...doc, name: value }))"
   />
-  <Choice label="Start over from" :options="presets" value="" @update:value="startOver" />
-  <div class="cd-field-row">
-    <button type="button" class="btn btn-secondary btn-small" @click="ctx.session.store.reset()">
-      Reset
-    </button>
-  </div>
-  <p class="cd-hint">Reset discards your edits since the last load. Undo (Ctrl+Z) brings them back.</p>
+  <TextArea
+    label="Introduction"
+    :preview="p"
+    :value="ctx.doc.description"
+    :hint="FORMAT_HINT"
+    placeholder="Who the brand is for and what it should feel like."
+    @commit="(value, key) => ctx.edit((doc) => ({ ...doc, description: value || undefined }), key)"
+  />
 </template>

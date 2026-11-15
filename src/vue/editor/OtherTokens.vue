@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AddPanel from './AddPanel.vue';
 import { computed, ref } from 'vue';
 import { toHex } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
@@ -15,6 +16,7 @@ import { NEW_TOKEN_TYPES, UNITS, tokenValue, valueExample } from './other-tokens
 import { colorOptions, roleEntry, roleText } from './role-color.js';
 import RoleColorCombobox from './RoleColorCombobox.vue';
 import TextField from './TextField.vue';
+import ThemeBar from './ThemeBar.vue';
 
 const props = defineProps<{ ctx: EditorContext }>();
 
@@ -46,7 +48,9 @@ const setValue = (path: string, type: string, value: unknown) =>
 function setColor(path: string, text: string) {
   const value = roleEntry(text, shades.value);
   if (!value) return props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
-  setValue(path, 'color', value);
+  if (path.startsWith('color.'))
+    props.ctx.edit((doc) => E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value));
+  else setValue(path, 'color', value);
 }
 
 function setJson(path: string, type: string, text: string) {
@@ -59,7 +63,7 @@ function setJson(path: string, type: string, text: string) {
 
 const hexOf = (resolved: unknown) => {
   const color = narrow(resolved, isColor);
-  return color ? toHex(color) : '#000000';
+  return color ? toHex(color) : '#000000'; // ds-allow-hardcode: picker fallback for an unresolved color
 };
 
 const newName = ref('');
@@ -82,15 +86,18 @@ function add() {
   error.value =
     nameProblem(path) ??
     (value === null ? `That is not a ${newType.value}. Try ${valueExample(newType.value)}.` : undefined);
-  if (error.value) return;
+  if (error.value) return false;
   setValue(path, newType.value, value);
   newName.value = '';
   newValue.value = '';
+  return true;
 }
 </script>
 
 <template>
-  <div v-for="row in rows" :key="row.path" class="cd-field-row">
+  <p class="cd-hint">Tokens outside the palette, scales and type: durations, easing, extra colors.</p>
+  <ThemeBar v-if="rows.some((row) => row.type === 'color')" :ctx="ctx" />
+  <div v-for="row in rows" :key="row.path" class="cd-field-row ed-token-row">
     <div v-if="row.type === 'color' && typeof row.value !== 'number'" class="cd-field">
       <span>{{ row.label }}</span>
       <RoleColorCombobox
@@ -139,26 +146,28 @@ function add() {
     />
   </div>
   <p v-if="!rows.length" class="cd-hint">No other tokens yet. Add one below.</p>
-  <form @submit.prevent="add">
-    <h4>Add a token</h4>
-    <div class="cd-field-row">
-      <label class="cd-field"
-        ><span>Name</span><input v-model="newName" type="text" placeholder="duration.slow"
-      /></label>
-      <Choice v-model:value="newType" label="Type" :options="NEW_TOKEN_TYPES" />
-    </div>
-    <div class="cd-field-row">
-      <label class="cd-field"
-        ><span>Value</span
-        ><input
-          v-model="newValue"
-          type="text"
-          :placeholder="valueExample(newType)"
-          :aria-invalid="error ? 'true' : undefined"
-          :aria-describedby="error ? 'cd-add-token-error' : undefined"
-      /></label>
-      <button type="submit" class="btn btn-small">Add token</button>
-    </div>
-    <p v-if="error" id="cd-add-token-error" class="cd-error" role="alert">{{ error }}</p>
-  </form>
+  <AddPanel label="Add a token">
+    <template #default="{ close }">
+      <form class="ed-add ed-add-stack" @submit.prevent="add() && close()">
+        <div class="ed-grid-2 ed-span-all">
+          <label class="cd-field"
+            ><span>New token name</span><input v-model="newName" type="text" placeholder="e.g. duration.slow"
+          /></label>
+          <Choice v-model:value="newType" label="Type" :options="NEW_TOKEN_TYPES" />
+        </div>
+        <label class="cd-field"
+          ><span>Value</span
+          ><input
+            v-model="newValue"
+            type="text"
+            :placeholder="valueExample(newType)"
+            :aria-invalid="error ? 'true' : undefined"
+            :aria-describedby="error ? 'cd-add-token-error' : undefined"
+        /></label>
+        <button type="submit" class="btn">Add token</button>
+        <button type="button" class="btn btn-secondary btn-quiet" @click="close">Cancel</button>
+        <p v-if="error" id="cd-add-token-error" class="cd-error" role="alert">{{ error }}</p>
+      </form>
+    </template>
+  </AddPanel>
 </template>

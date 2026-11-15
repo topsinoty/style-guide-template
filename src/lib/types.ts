@@ -83,10 +83,26 @@ export interface FontFile extends AssetItem {
   version?: string;
 }
 
+export interface TextSection {
+  id: string;
+  title?: string;
+  body?: string;
+}
+
+export interface ContrastPair {
+  fg: string;
+  bg: string;
+  min: number;
+}
+
 export interface BrandMeta {
   assetGroups: AssetGroup[];
   fontFiles: FontFile[];
   logo?: string;
+  sections?: TextSection[];
+  contrast?: ContrastPair[];
+  /** Pixels in one rem on the page; the browser default is 16. */
+  rootSize?: number;
   [key: string]: unknown;
 }
 

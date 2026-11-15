@@ -44,16 +44,6 @@ test('autosave writes the draft and a new store resumes it', () => {
   assert.deepEqual(createStore({ doc: a, storage, fileStore: memFiles() }).get(), edit(a));
 });
 
-test('reset goes back to the last loaded doc', () => {
-  const storage = mem();
-  const s = createStore({ doc: a, storage, fileStore: memFiles() });
-  s.load(b);
-  s.update(edit);
-  s.reset();
-  assert.deepEqual(s.get(), b);
-  assert.equal(storage.getItem('styleguide:draft'), null);
-});
-
 test('quota exceeded is reported, the file stays in the session', async () => {
   const s = createStore({ doc: a, storage: mem(), fileStore: memFiles(true) });
   const r = await s.addFiles(new Map([['photos/big.jpg', new Uint8Array(4)]]));
@@ -61,10 +51,10 @@ test('quota exceeded is reported, the file stays in the session', async () => {
   assert.ok(s.files.has('photos/big.jpg'));
 });
 
-test('resetting again changes nothing, so one undo goes back to the edit', () => {
+test('loading the same doc again changes nothing, so one undo goes back to the edit', () => {
   const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
   s.update(edit);
-  for (let i = 0; i < 50; i++) s.reset();
+  for (let i = 0; i < 50; i++) s.load(b);
   s.undo();
   assert.deepEqual(s.get(), edit(a));
 });
@@ -72,7 +62,7 @@ test('resetting again changes nothing, so one undo goes back to the edit', () =>
 test('drafts include undo history, so its files are kept', () => {
   const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
   s.update(edit);
-  s.reset();
+  s.load(b);
   assert.ok(s.drafts().some((d) => isDeepStrictEqual(d, edit(a))));
 });
 
@@ -115,18 +105,13 @@ test('undo and redo step through edits; a new edit drops the redo steps', () => 
   assert.equal(s.canRedo(), false);
 });
 
-test('loading and resetting can be undone', () => {
+test('loading can be undone', () => {
   const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
-  s.load(b);
-  s.reset();
-  assert.deepEqual(s.get(), b);
   s.update(edit);
-  s.reset();
+  s.load(b);
+  assert.deepEqual(s.get(), b);
   s.undo();
-  assert.deepEqual(s.get(), edit(b));
-  s.load(a);
-  s.undo();
-  assert.deepEqual(s.get(), edit(b));
+  assert.deepEqual(s.get(), edit(a));
 });
 
 test('undo history is capped', () => {
@@ -149,4 +134,29 @@ test('subscribers see the history as it is after an undo or redo', () => {
   assert.deepEqual(seen, [false, true]);
   s.redo();
   assert.deepEqual(seen, [true, false]);
+});
+
+test('loading a brand when browser storage is full still shows it', () => {
+  const full = {
+    ...mem(),
+    setItem: () => {
+      throw new Error('quota');
+    },
+  };
+  const s = createStore({ doc: a, storage: full, fileStore: memFiles() });
+  s.load(b);
+  assert.equal(s.get(), b);
+  assert.ok(s.saveError);
+});
+
+test('a burst of typing in one field is one undo step; another field starts a new one', () => {
+  const s = createStore({ doc: a, storage: mem(), fileStore: memFiles() });
+  s.set(doc('A1'), 'intro');
+  s.set(doc('A12'), 'intro');
+  s.set(doc('A123'), 'intro');
+  s.set(doc('B'), 'other');
+  s.undo();
+  assert.equal(s.get().name, 'A123');
+  s.undo();
+  assert.equal(s.get().name, 'A');
 });

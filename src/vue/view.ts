@@ -19,7 +19,7 @@ export function deriveView(session: ViewSession, theme: string): View {
     return {
       tokens: resolve(doc, { theme }),
       meta: session.meta,
-      css: generateCss(doc, { vendor: session.vendor, fontSrc }),
+      css: generateCss(doc, { vendor: session.vendor, fontSrc, elementScope: 'main' }),
     };
   };
   try {

@@ -2,6 +2,7 @@ import { HOSTED_URL } from '../config.js';
 import {
   adoptVendor,
   allSrcs,
+  BUILT_IN_GROUPS,
   readBrandMeta,
   brandMeta,
   matchDropped,
@@ -19,6 +20,7 @@ import {
   saveJson,
   slug,
 } from '../lib/io.js';
+import { blankBrand } from '../lib/palette.js';
 import { createStore, type Store } from '../lib/state.js';
 import type { AssetContext, BrandMeta, Manifest, Problem, ResolverDoc, SessionFiles } from '../lib/types.js';
 import { uniquePath } from '../lib/path.js';
@@ -87,6 +89,14 @@ export class Session {
     const store = createStore({ doc: preset, storage: drafts, fileStore: files });
     await store.ready;
     return new Session(store, manifest, preset, fonts, validator);
+  }
+
+  reset() {
+    const groups = brandMeta(this.preset, this.vendor).assetGroups.filter((group) =>
+      BUILT_IN_GROUPS.has(group.id),
+    );
+    const meta = { assetGroups: groups.map((group) => ({ ...group, items: [] })), fontFiles: [] };
+    this.store.load(withBrandMeta(blankBrand(this.preset, this.vendor), this.vendor, meta));
   }
 
   loadPreset(path: string): Promise<ResolverDoc> {

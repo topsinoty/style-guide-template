@@ -88,3 +88,16 @@ test('a corrupt cache is refetched and a full storage drops it', async () => {
   assert.ok(list.some((f) => f.id === 'merriweather'));
   assert.equal(cache.getItem('styleguide:fontsource-list'), null);
 });
+
+test('previewUrl falls back to the first weight and style a font has', () => {
+  const font = {
+    id: 'x',
+    family: 'X',
+    category: 'serif',
+    weights: [300],
+    styles: ['italic'],
+    defSubset: 'latin',
+    license: 'OFL',
+  };
+  assert.match(fontsource().previewUrl(font), /\/x@latest\/latin-300-italic\.woff2$/);
+});

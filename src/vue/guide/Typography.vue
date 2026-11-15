@@ -16,7 +16,7 @@ const styles = computed(() =>
     if (!style) return [];
     const family = [style.fontFamily].flat()[0];
     const summary = `${family} ${style.fontWeight} ${dim(style.fontSize)} / ${style.lineHeight}`;
-    return [{ path, name: path.slice('typography.'.length), summary }];
+    return [{ path, name: path.slice('typography.'.length), summary, description: token.description }];
   }),
 );
 const families = computed(() => [...Map.groupBy(props.meta.fontFiles, (f: FontFile) => f.family)]);
@@ -34,14 +34,15 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
     >
       Aa
       <span class="cd-type-meta"
-        ><code>{{ cssName(path) }}</code> <span class="cd-token-value">{{ dim(token.resolved) }}</span></span
+        ><code>{{ cssName(path) }}</code> <span class="cd-token-value">{{ dim(token.resolved) }}</span>
+        <small v-if="token.description" class="cd-usage">{{ token.description }}</small></span
       >
     </p>
   </div>
   <div class="cd-box">
     <h3>Text styles</h3>
     <p
-      v-for="{ path, name, summary } in styles"
+      v-for="{ path, name, summary, description } in styles"
       :key="path"
       class="cd-type-sample"
       :style="{
@@ -54,6 +55,7 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
     >
       {{ name }}
       <span class="cd-type-meta">{{ summary }}</span>
+      <small v-if="description" class="cd-usage">{{ description }}</small>
     </p>
   </div>
   <div class="cd-box">

@@ -7,6 +7,7 @@ export type Store = ReturnType<typeof createStore>;
 const DRAFT = 'styleguide:draft';
 const BASE = 'styleguide:base';
 const HISTORY = 50;
+const TYPING_PAUSE = 2000;
 const noError: unknown = null;
 
 const read = (storage: KeyValueStore, key: string): ResolverDoc | null => {
@@ -34,7 +35,13 @@ export function createStore({
   const files: SessionFiles = new Map();
   let past: ResolverDoc[] = [];
   let future: ResolverDoc[] = [];
-  const record = () => {
+  let typing: { key: string; at: number } | null = null;
+  const record = (key?: string) => {
+    const now = Date.now();
+    // Keystrokes in one field, without a long pause, are one undo step.
+    const sameBurst = key !== undefined && typing?.key === key && now - typing.at < TYPING_PAUSE;
+    typing = key === undefined ? null : { key, at: now };
+    if (sameBurst) return;
     past = [...past, current].slice(-HISTORY);
     future = [];
   };
@@ -53,8 +60,8 @@ export function createStore({
       subs.add(fn);
       return () => subs.delete(fn);
     },
-    set(next: ResolverDoc) {
-      if (next !== current) record();
+    set(next: ResolverDoc, typingKey?: string) {
+      if (next !== current) record(typingKey);
       show(next);
     },
     canUndo: () => past.length > 0,
@@ -62,6 +69,7 @@ export function createStore({
     undo() {
       const prev = past.at(-1);
       if (!prev) return false;
+      typing = null;
       future = [current, ...future];
       past = past.slice(0, -1);
       show(prev);
@@ -70,6 +78,7 @@ export function createStore({
     redo() {
       const [next] = future;
       if (!next) return false;
+      typing = null;
       past = [...past, current];
       future = future.slice(1);
       show(next);
@@ -86,20 +95,17 @@ export function createStore({
       }
     },
     load(next: ResolverDoc, newFiles?: SessionFiles) {
+      if (!newFiles && JSON.stringify(next) === JSON.stringify(current)) return;
       base = next;
-      storage.setItem(BASE, JSON.stringify(base));
+      try {
+        storage.setItem(BASE, JSON.stringify(base));
+      } catch (e) {
+        store.saveError = e;
+      }
       if (newFiles) store.addFiles(newFiles);
       record();
       show(next);
       store.flush();
-    },
-    reset() {
-      if (current === base) return;
-      clearTimeout(timer);
-      storage.removeItem(DRAFT);
-      record();
-      current = base;
-      for (const fn of subs) fn(current);
     },
     async prune(keep: Set<string>) {
       const unused = [...files.keys()].filter((path) => !keep.has(path));

@@ -15,13 +15,13 @@ export function tailwindCss(
   { fontSrc, vendor }: { fontSrc: (f: FontFile) => string; vendor?: string },
 ): string {
   const css = generateCss(doc, { fontSrc, vendor, name: tailwindName, rootSelector: '@theme' });
-  return [
-    '@import "tailwindcss";',
-    '',
-    '@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));',
-    '',
-    css,
-  ].join('\n');
+  const variants = contexts(doc)
+    .filter((c) => c.modifier === 'theme' && !c.isDefault && /^[a-z0-9-]+$/i.test(c.context))
+    .map(
+      ({ context }) =>
+        `@custom-variant ${context} (&:where([data-theme="${context}"], [data-theme="${context}"] *));`,
+    );
+  return ['@import "tailwindcss";', '', ...variants, '', css].join('\n');
 }
 
 const SHADCN: Array<[name: string, paths: string[]]> = [

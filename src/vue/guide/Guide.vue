@@ -13,9 +13,12 @@ import Colors from './Colors.vue';
 import FileCard from './FileCard.vue';
 import ContrastStatus from './ContrastStatus.vue';
 import Panels from './Panels.vue';
+import Prose from './Prose.vue';
 import Scale from './Scale.vue';
 import Typography from './Typography.vue';
 import { isOtherToken, sectionsOf } from './sections.js';
+import MotionPreview from './MotionPreview.vue';
+import Inspector from './Inspector.vue';
 
 const props = defineProps<{
   session: Session;
@@ -28,6 +31,7 @@ const props = defineProps<{
 const current = defineModel<string[]>('current', { required: true });
 
 const sections = computed(() => sectionsOf(props.meta, props.tokens));
+const guideRoot = useTemplateRef<HTMLElement>('guideRoot');
 const itemsOf = (id: string) => props.meta.assetGroups.find((g) => g.id === id)?.items ?? [];
 
 const otherTokens = computed(() => [...props.tokens].filter(([path]) => isOtherToken(path)));
@@ -71,8 +75,10 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
 </script>
 
 <template>
-  <main :inert="covered || undefined">
+  <main ref="guideRoot" :inert="covered || undefined">
+    <Inspector :doc="doc" :vendor="session.vendor" :root="guideRoot" />
     <h1>{{ doc.name ?? 'Style Guide' }}</h1>
+    <Prose v-if="doc.description" class="cd-intro" :text="doc.description" />
     <div class="cd-panels" aria-live="polite">
       <Panels :missing="missingAssets(meta, session.ctx)" />
     </div>
@@ -84,6 +90,7 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
       :class="section.cls"
     >
       <h2>{{ section.title }}</h2>
+      <Prose v-if="section.body" :text="section.body" />
       <div v-if="section.id === 'typography'" class="cd-box">
         <h1 ref="specimenText" role="presentation">
           Heading, <span class="cd-specimen-label">{{ specimen[0] }}</span>
@@ -95,7 +102,7 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
           Quidem neque illum, blanditiis!
         </p>
       </div>
-      <div class="cd-section-body">
+      <div v-if="!section.text" class="cd-section-body">
         <template v-if="section.id === 'branding'">
           <ul class="cd-logos">
             <li v-for="item in itemsOf('logos')" :key="item.src" class="cd-box">
@@ -130,6 +137,8 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
                 <th>Token</th>
                 <th>Type</th>
                 <th>CSS value</th>
+                <th>Preview</th>
+                <th>Usage</th>
               </tr>
             </thead>
             <tbody>
@@ -141,6 +150,14 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
                 <td>
                   <code>{{ cssValue(token.type, token.value) ?? '' }}</code>
                 </td>
+                <td>
+                  <MotionPreview
+                    v-if="token.type === 'duration' || token.type === 'cubicBezier'"
+                    :name="cssName(path)"
+                    :type="token.type"
+                  />
+                </td>
+                <td>{{ token.description }}</td>
               </tr>
             </tbody>
           </table>
@@ -155,10 +172,10 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
               :ctx="session.ctx"
             />
           </div>
-          <p v-else>No files in this group yet.</p>
+          <p v-else-if="!section.body">No files in this group yet.</p>
         </template>
       </div>
     </section>
-    <ContrastStatus :contrast="checkContrast(doc)" />
+    <ContrastStatus :contrast="checkContrast(doc, meta.contrast)" />
   </main>
 </template>

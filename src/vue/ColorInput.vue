@@ -1,6 +1,5 @@
 <script lang="ts">
-export const COLOR_ERROR =
-  'Not a CSS color. Try #2e59aa, rgb(46 89 170), hsl(219 57% 42%), oklch(0.48 0.14 262) or a name like teal.';
+export const COLOR_ERROR = 'Enter a CSS color, such as #2e59aa.';
 </script>
 <script setup lang="ts">
 import { computed, ref } from 'vue';
@@ -36,11 +35,12 @@ function commit() {
     <span>{{ label }}</span>
     <span class="cd-color-input">
       <input
-        v-model.lazy="text"
+        v-model="text"
         type="text"
         :placeholder="placeholder"
         :aria-invalid="error ? 'true' : undefined"
         :aria-describedby="error ? errorId : undefined"
+        @input="invalid = false"
         @change="commit"
       />
       <input v-if="picker" v-model="hex" type="color" :aria-label="`Pick ${label}`" @change="commit" />

@@ -1,7 +1,8 @@
-import { anchoredScale, oklch, toOklch } from './color.js';
+import { anchoredScale, contrastRatio, oklch, toOklch } from './color.js';
 import { ROLES } from './contrast.js';
 import { foundation } from './edit.js';
-import { entriesOf, isEmpty, mapValues, renameKey, valuesOf, without } from './records.js';
+import { entriesOf, isEmpty, keysOf, mapValues, renameKey, valuesOf, without } from './records.js';
+import { defaultInputs, resolve } from './resolver.js';
 import { child, children, ensureChild, isHandSet, isNode, vendorData, withVendorData } from './tree.js';
 import type { DtcgColor, ResolverDoc, TokenNode } from './types.js';
 import { narrow, isColor } from './values.js';
@@ -168,6 +169,22 @@ function monochromeRoles(doc: ResolverDoc) {
     });
 }
 
+export function renameColor(doc: ResolverDoc, from: string, to: string): ResolverDoc {
+  const original = child(colorsOf(doc), from);
+  if (!original || !isPaletteGroup(from, original) || !to || from === to || ROLES.includes(to)) return doc;
+  if (treesOf(doc).some(([, tree]) => child(child(tree, 'color'), to))) return doc;
+  const out = clone(doc);
+  const shades = new Set(
+    treesOf(doc).flatMap(([, tree]) => children(child(child(tree, 'color'), from)).map(([shade]) => shade)),
+  );
+  for (const [, tree] of treesOf(out)) {
+    const colors = child(tree, 'color');
+    if (colors && child(colors, from)) tree.color = renameKey(colors, from, to);
+  }
+  for (const shade of shades) repoint(out, from, shade, aliasOf(to, shade));
+  return out;
+}
+
 export function removeColor(doc: ResolverDoc, id: string): ResolverDoc {
   const out = clone(doc);
   const colors = colorsOf(out);
@@ -260,7 +277,10 @@ export function generateShades(
   const base = group && baseShadeOf(group, vendor);
   const baseColor = base ? narrow(child(group, base)?.$value, isColor) : null;
   if (!group || !base || !baseColor) return doc;
-  const { scale } = anchoredScale(baseColor);
+  const { scale, anchor } = anchoredScale(baseColor);
+  // A lone shade with no step name (like "base") becomes the step it sits at, so 50 to 950 make 11.
+  if (!(base in scale) && !child(group, anchor))
+    return generateShades(renameShade(doc, colorId, base, anchor, vendor), colorId, vendor, mode);
   for (const [step, color] of entriesOf(scale)) {
     if (step === base) continue;
     const token = child(group, step) ?? {};
@@ -268,4 +288,87 @@ export function generateShades(
     group[step] = generated(token, vendor, color);
   }
   return out;
+}
+
+const MONOCHROME = { black: oklch(0, 0, 0), white: oklch(1, 0, 0) };
+
+const FILLED_ROLES = new Set(['primary', 'destructive', 'success']);
+
+function monochromeRole(path: string, paper: string, ink: string): string {
+  const [, role, name = ''] = path.split('.');
+  const filled = FILLED_ROLES.has(role);
+  if (name.startsWith('foreground')) return aliasOf(filled ? paper : ink, 'base');
+  if (name.startsWith('background')) return aliasOf(filled ? ink : paper, 'base');
+  return aliasOf(ink, 'base');
+}
+
+function keepOnlyRoles(tree: TokenNode, inputs: Record<string, string>, doc: ResolverDoc) {
+  for (const key of keysOf(tree))
+    if (key !== 'color' && key !== 'spacing' && !key.startsWith('$')) Reflect.deleteProperty(tree, key);
+  const colors = child(tree, 'color');
+  if (!colors) return;
+  for (const [key] of children(colors)) if (!ROLES.includes(key)) Reflect.deleteProperty(colors, key);
+  const page = narrow(resolve(doc, inputs).get('color.page.background')?.resolved, isColor);
+  const darkPage = page !== null && toOklch(page)[0] < 0.5;
+  const [paper, ink] = darkPage ? ['black', 'white'] : ['white', 'black'];
+  walkValues(colors, 'color', (token, path) => {
+    token.$value = monochromeRole(path, paper, ink);
+  });
+}
+
+export function blankBrand(doc: ResolverDoc, vendor: string): ResolverDoc {
+  const out = clone(doc);
+  out.name = 'Untitled brand';
+  delete out.description;
+  for (const { sources } of valuesOf(out.sets))
+    for (const tree of sources) keepOnlyRoles(tree, defaultInputs(doc), doc);
+  for (const [modifier, { contexts }] of entriesOf(out.modifiers ?? {}))
+    for (const [context, sources] of entriesOf(contexts))
+      for (const tree of sources) keepOnlyRoles(tree, { ...defaultInputs(doc), [modifier]: context }, doc);
+  let blank = out;
+  for (const [id, color] of entriesOf(MONOCHROME)) blank = addColor(blank, id, color, vendor);
+  return blank;
+}
+
+const chroma = (color: PaletteColor) => {
+  const cs = color.shades.flatMap((s) => (s.color ? [toOklch(s.color)[1]] : []));
+  return cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : Infinity;
+};
+
+/**
+ * Role parts drawn from one shade, the way a designer fills a button: the shade for background and
+ * border, the next two shades for hover and active (darker on a light page, lighter on a dark one),
+ * and the end of the least colorful palette color that reads best on it for text.
+ */
+export function roleFromShade(
+  colors: PaletteColor[],
+  colorId: string,
+  shadeName: string,
+  darkPage: boolean,
+  /** Shades between background and border: 0 for buttons, more for surfaces and fields. */
+  borderSteps = 0,
+): Record<string, string> {
+  const color = colors.find((c) => c.id === colorId);
+  const i = color?.shades.findIndex((s) => s.name === shadeName) ?? -1;
+  if (!color || i < 0) return {};
+  const step = darkPage ? -1 : 1;
+  const at = (k: number) => {
+    const shade = color.shades[Math.min(Math.max(i + k * step, 0), color.shades.length - 1)];
+    return `{color.${color.id}.${shade.name}}`;
+  };
+  const background = color.shades[i].color;
+  // Prefer a full grey scale for text; lone black and white only when there is none.
+  const scales = colors.filter((c) => c.shades.length > 1);
+  const ink = (scales.length ? scales : colors).toSorted((a, b) => chroma(a) - chroma(b))[0];
+  const ends = ink ? [ink.shades[0], ink.shades.at(-1)] : [];
+  const readable = (shade: Shade | undefined) =>
+    shade?.color && background ? contrastRatio(shade.color, background) : 0;
+  const text = ends.toSorted((a, b) => readable(b) - readable(a))[0];
+  return {
+    background: at(0),
+    'background-hover': at(1),
+    'background-active': at(2),
+    border: at(borderSteps),
+    ...(text && ink ? { foreground: `{color.${ink.id}.${text.name}}` } : {}),
+  };
 }

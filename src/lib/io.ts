@@ -3,7 +3,7 @@ import { toResolver } from './document.js';
 import { ResolveError, resolve, contexts, defaultInputs } from './resolver.js';
 import { generateCss } from './css.js';
 import { checkContrast } from './contrast.js';
-import { brandMeta, withBrandMeta, resolveAsset } from './assets.js';
+import { brandMeta, withBrandMeta, resolveAsset, META_KEYS } from './assets.js';
 import type { FontProvider, Validator } from '../ports.js';
 import { extension, fileName, uniquePath } from './path.js';
 import { entriesOf, keysOf } from './records.js';
@@ -67,16 +67,16 @@ export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
     return [{ path: 'sets', message: 'This site needs the brand tokens in a set named "foundation".' }];
   const ext = doc.sets.foundation.$extensions ?? {};
   for (const [key, meta] of entriesOf(ext)) {
-    if (holds(meta, 'assetGroups') || holds(meta, 'fontFiles'))
+    if (META_KEYS.some((k) => holds(meta, k)))
       errors.push(...validator.checkBrandMeta(meta, `$extensions.${key}`));
   }
   if (errors.length) return errors;
   try {
     const inputs = defaultInputs(doc);
     for (const c of contexts(doc)) resolve(doc, { ...inputs, [c.modifier]: c.context });
-    const vendor = keysOf(ext).find((k) => holds(ext[k], 'fontFiles'));
+    const vendor = keysOf(ext).find((k) => META_KEYS.some((m) => holds(ext[k], m)));
     generateCss(doc, { vendor, fontSrc: (f) => f.src });
-    checkContrast(doc);
+    checkContrast(doc, vendor ? brandMeta(doc, vendor).contrast : []);
   } catch (e) {
     errors.push({ path: e instanceof ResolveError ? e.path : '', message: errorMessage(e) });
   }
@@ -238,7 +238,7 @@ export async function buildExport(
   const outDoc = withBrandMeta(doc, vendor, moved);
   const name = slug(doc.name ?? 'brand');
   const enc = new TextEncoder();
-  const contrast = checkContrast(doc);
+  const contrast = checkContrast(doc, meta.contrast);
   out[`${name}.resolver.json`] = enc.encode(saveJson(outDoc));
   out['css/theme.css'] = enc.encode(generateCss(outDoc, { vendor, fontSrc: (f) => `../${f.src}` }));
   out['README.md'] = enc.encode(readme(doc, { hostedUrl, contrast, missing, failedDownloads }));

@@ -6,10 +6,6 @@
 
 :root {
 	color-scheme: light;
-
-	&[data-theme='dark'] {
-		color-scheme: dark;
-	}
 }
 
 body {
@@ -170,3 +166,4 @@ p {
 
 @include meta.load-css('../partials/basic-style');
 @include meta.load-css('../partials/editor');
+@include meta.load-css('../partials/drawer');

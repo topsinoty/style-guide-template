@@ -4,6 +4,8 @@ import { nodeAt } from '../src/lib/tree.js';
 import { token, load } from './helpers.js';
 import type { BrandMeta } from '../src/lib/types.js';
 import * as E from '../src/lib/edit.js';
+import { removeStep } from '../src/lib/scale.js';
+import { vendorData } from '../src/lib/tree.js';
 import { uniquePath } from '../src/lib/path.js';
 import { resolve } from '../src/lib/resolver.js';
 
@@ -16,6 +18,17 @@ test('setRole in light writes the foundation, in dark writes the dark context', 
     '{color.neutral.50}',
   );
   assert.equal(token(resolve(doc), 'color.primary.foreground').value, '{color.neutral.900}');
+});
+
+test('setThemed writes only the theme, removeThemed falls back to the default theme', () => {
+  const shadow = { $type: 'shadow', $value: { offsetY: { value: 9, unit: 'px' } } };
+  let doc = E.setThemed(load(), 'dark', 'shadow.xl', shadow);
+  assert.deepEqual(nodeAt(E.themeSource(doc, 'dark') ?? {}, 'shadow.xl'), shadow);
+  assert.equal(nodeAt(E.foundation(doc), 'shadow.xl'), undefined);
+  doc = E.setThemed(doc, 'light', 'shadow.xl', shadow);
+  doc = E.removeThemed(doc, 'dark', 'shadow.xl');
+  assert.equal(nodeAt(E.themeSource(doc, 'dark') ?? {}, 'shadow.xl'), undefined);
+  assert.deepEqual(nodeAt(E.foundation(doc), 'shadow.xl'), shadow);
 });
 
 test('setToken writes a path, creating groups', () => {
@@ -40,6 +53,19 @@ test('removing the logo item clears the logo choice', () => {
     'logos/a.svg',
   );
   assert.equal(meta.logo, undefined);
+});
+
+test('removing a group clears its selected logo but preserves logos in other groups', () => {
+  const meta: BrandMeta = {
+    assetGroups: [
+      { id: 'logos', items: [{ src: 'logos/a.svg' }] },
+      { id: 'icons', items: [{ src: 'icons/b.svg' }] },
+    ],
+    fontFiles: [],
+    logo: 'logos/a.svg',
+  };
+  assert.equal(E.removeGroup(meta, 'logos').logo, undefined);
+  assert.equal(E.removeGroup({ ...meta, logo: 'icons/b.svg' }, 'logos').logo, 'icons/b.svg');
 });
 
 test('asset groups: add with a unique id, rename, move, remove', () => {
@@ -109,4 +135,15 @@ test('fontFromFileName guesses family, weight and style', () => {
     style: 'italic',
   });
   assert.deepEqual(E.fontFromFileName('my_font.ttf'), { family: 'my font', weight: 400, style: 'normal' });
+});
+
+test('removeStep drops the token and its place in the scale, so regenerating does not bring it back', () => {
+  const group = {
+    $extensions: { v: { scale: { base: { value: 4, unit: 'px' }, steps: { sm: 1, md: 2 } } } },
+    sm: { $value: { value: 4, unit: 'px' } },
+    md: { $value: { value: 8, unit: 'px' } },
+  };
+  const out = removeStep(group, 'md', 'v');
+  assert.equal(out.md, undefined);
+  assert.deepEqual(vendorData(out, 'v').scale, { base: { value: 4, unit: 'px' }, steps: { sm: 1 } });
 });

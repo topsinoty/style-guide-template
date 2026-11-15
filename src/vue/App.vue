@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, ref, useTemplateRef, watch, watchEffect } from 'vue';
 import {
   onKeyStroke,
-  useColorMode,
   useDropZone,
   useElementBounding,
   useEventListener,
   useFileDialog,
   useMediaQuery,
+  usePreferredDark,
   usePreferredReducedMotion,
+  useStorage,
   useStyleTag,
   useTitle,
   watchDebounced,
@@ -25,7 +26,12 @@ import {
 } from 'reka-ui';
 import type { Session } from '../app/session.js';
 import { download } from './download.js';
-import { mainLogo } from '../lib/assets.js';
+import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets.js';
+import { toOklch } from '../lib/color.js';
+import { defaultTheme, themesOf } from '../lib/edit.js';
+import { narrow, isColor } from '../lib/values.js';
+import Listbox from './Listbox.vue';
+import { cap } from './guide/parts.js';
 import { errorMessage } from '../lib/io.js';
 import { urlFor } from './urls.js';
 import Action from './Action.vue';
@@ -39,10 +45,22 @@ import { deriveView } from './view.js';
 const props = defineProps<{ session: Session }>();
 const session = provideSession(props.session);
 
-const { state: theme, store: themeChoice } = useColorMode({
-  attribute: 'data-theme',
-  storageKey: 'styleguide:theme',
+const themeChoice = useStorage('styleguide:theme', 'auto');
+const prefersDark = usePreferredDark();
+const themes = computed(() => themesOf(session.value.doc));
+// The stored choice may name a theme this brand does not have; fall back to the system's, then the default.
+const theme = computed(() => {
+  const system = prefersDark.value ? 'dark' : 'light';
+  return (
+    [themeChoice.value, system].find((t) => themes.value.includes(t)) ??
+    defaultTheme(session.value.doc) ??
+    system
+  );
 });
+const lightDark = computed(
+  () => themes.value.length === 2 && themes.value.every((t) => t === 'light' || t === 'dark'),
+);
+const themeOptions = computed(() => themes.value.map((t) => ({ value: t, label: cap(t) })));
 const wide = useMediaQuery('(min-width: 48rem)');
 const reduceMotion = usePreferredReducedMotion();
 const { height: headerHeight } = useElementBounding(useTemplateRef('header'));
@@ -55,6 +73,17 @@ const view = computed(() => deriveView(session.value, theme.value));
 const sections = computed(() => sectionsOf(view.value.meta, view.value.tokens));
 const logo = computed(() => mainLogo(view.value.meta));
 const logoUrl = computed(() => logo.value && urlFor(logo.value, session.value.ctx));
+
+watchEffect(() => {
+  const root = document.documentElement;
+  root.dataset.theme = theme.value;
+  root.style.setProperty(
+    '--ed-rem',
+    `${DEFAULT_ROOT_SIZE / (view.value.meta.rootSize ?? DEFAULT_ROOT_SIZE)}rem`,
+  );
+  const page = narrow(view.value.tokens.get('color.page.background')?.resolved, isColor);
+  root.style.colorScheme = page && toOklch(page)[0] < 0.5 ? 'dark' : 'light';
+});
 
 useTitle(() => `${session.value.doc.name ?? 'Brand'} | Style Guide`);
 useStyleTag(
@@ -69,20 +98,29 @@ useEventListener(document.fonts, 'loadingerror', (e: FontFaceSetLoadEvent) => {
   session.value.warn(...failed.map((font) => `Font could not be loaded: ${font}`));
 });
 
+// Cross-fade the whole page between themes instead of snapping.
 function previewTheme(next: string) {
-  if (next === 'light' || next === 'dark') themeChoice.value = next;
+  const apply = async () => {
+    themeChoice.value = next;
+    await nextTick();
+  };
+  if (next === theme.value || !document.startViewTransition || reduceMotion.value === 'reduce') void apply();
+  else document.startViewTransition(apply);
 }
 
 async function focusBrandName(event: Event) {
   event.preventDefault();
   await nextTick();
-  document.getElementById('cd-brand-name')?.focus();
+  const target =
+    document.getElementById('cd-brand-name') ??
+    document.querySelector<HTMLElement>('#cd-drawer [role="tab"][aria-selected="true"]');
+  target?.focus();
 }
 
 const dark = computed({
   get: () => theme.value === 'dark',
   set: (on) => {
-    themeChoice.value = on ? 'dark' : 'light';
+    previewTheme(on ? 'dark' : 'light');
   },
 });
 
@@ -180,10 +218,18 @@ function onNavWheel(e: WheelEvent) {
           </ul>
         </nav>
         <div class="cd-actions">
-          <SwitchRoot id="theme-toggle" v-model="dark" class="cd-action" title="Dark mode">
+          <SwitchRoot v-if="lightDark" id="theme-toggle" v-model="dark" class="cd-action" title="Dark mode">
             <Icon name="moon" /><span class="cd-action-label">Dark mode</span>
             <span class="cd-switch" aria-hidden="true"><SwitchThumb class="cd-switch-thumb" /></span>
           </SwitchRoot>
+          <Listbox
+            v-else-if="themes.length > 1"
+            id="theme-toggle"
+            label="Theme"
+            :options="themeOptions"
+            :value="theme"
+            @update:value="previewTheme"
+          />
           <DialogTrigger as-child>
             <Action id="edit-toggle" icon="edit" label="Edit" title="Edit the brand" />
           </DialogTrigger>

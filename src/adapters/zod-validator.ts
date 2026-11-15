@@ -255,10 +255,31 @@ const fontFile: z.ZodMiniType<FontFile> = z
     ),
   );
 
+const textSection = z.object({
+  id: z.string().check(
+    z.regex(/^[a-z0-9][a-z0-9-]*$/, {
+      error: (iss) => `section id "${String(iss.input)}" must use a-z, 0-9 and -`,
+    }),
+  ),
+  title: z.optional(z.string()),
+  body: z.optional(z.string()),
+});
+const tokenPath = z.string().check(z.regex(/^[^{}]+$/, 'must be a token path like color.ink'));
+const contrastPair = z.object({
+  fg: tokenPath,
+  bg: tokenPath,
+  min: z.number().check(z.gte(1, 'min must be 1..21'), z.lte(21, 'min must be 1..21')),
+});
+
 export const brandMeta: z.ZodMiniType<BrandMeta> = z.looseObject({
   assetGroups: z._default(z.array(assetGroup), []),
   fontFiles: z._default(z.array(fontFile), []),
   logo: z.optional(z.string()),
+  sections: z.optional(z.array(textSection)),
+  contrast: z.optional(z.array(contrastPair)),
+  rootSize: z.optional(
+    z.number().check(z.gte(4, 'rootSize must be 4..64'), z.lte(64, 'rootSize must be 4..64')),
+  ),
 });
 
 export function validateBrandMeta(meta: unknown, path = 'brand'): Problem[] {

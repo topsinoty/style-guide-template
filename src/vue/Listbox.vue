@@ -15,7 +15,7 @@ export interface ListboxOption {
   label: string;
   swatch?: string;
 }
-const props = defineProps<{ label: string; options: ListboxOption[] }>();
+const props = defineProps<{ label: string; options: ListboxOption[]; placeholder?: string }>();
 const value = defineModel<string>('value', { required: true });
 const open = ref(false);
 function choose(next: unknown) {
@@ -36,7 +36,7 @@ const selected = computed(() => props.options.find((o) => o.value === value.valu
             aria-hidden="true"
             :style="{ background: selected.swatch }"
           ></span
-          >{{ selected?.label ?? 'Choose' }}</span
+          >{{ selected?.label ?? placeholder ?? 'Choose' }}</span
         >
         <Icon name="chevron" />
       </SelectTrigger>

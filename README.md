@@ -25,11 +25,14 @@ Set the site's address in `src/config.ts` (`HOSTED_URL`). The README in every ex
 
 - **Load:** drop a `.resolver.json`, a `.tokens.json` or a brand kit ZIP anywhere on the page, or use Load. Fonts and other files can be dropped too.
 - **Edit:** palette (11 OKLCH shades per hue, with CMYK and Pantone), roles per theme, fonts and text styles, spacing / radius / font-size scales, shadows, and asset groups.
+- **Write the brand book:** an introduction under the brand name, text for every section (voice, logo rules, imagery, how to use each color), and text-only sections of your own, in any order. Text fields take `**bold**`, `*italic*`, `` `code` ``, `[links](https://…)`, `- ` lists and `## ` headings.
+- **Usage notes:** a note on any token says what it is for; the guide shows it next to the token.
+- **Themes:** any number, with any names (light and dark, or poster and web). The header switches between them; the default theme holds every value and the others hold what differs.
 - **Fonts:** pick from [Fontsource](https://fontsource.org) (no API key), upload font files, or use the library.
 - **Save JSON** downloads the brand file. **Export ZIP** downloads the kit: the brand file, `css/theme.css`, fonts with their licenses, and one folder per asset group.
 - Undo and Redo (Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z) step back and forward through every edit.
 - Edits are kept in the browser (localStorage and IndexedDB) until you clear the draft.
-- The Contrast panel checks every role's text against its background, and input and focus borders against the page, in both themes. Failures are warnings.
+- The Contrast panel checks every role's text against its background, input and focus borders against the page, and any pairs the brand declares (such as ink on ground), in every theme. Failures are warnings.
 
 ## The brand file
 
@@ -38,12 +41,11 @@ One DTCG 2025.10 resolver document with the tokens inline:
 - `color.<hue>.<50..950>`: the palette; `color.<role>.<background|foreground|border>[-hover|-active]`: the roles (`primary`, `secondary`, `destructive`, `success`, `warning`, `info`, `page`, `card`, `muted`, `input`, `focus`)
 - `spacing`, `radius`, `font-size`: generated scales; the generator lives in the group's `$extensions`
 - `font`, `typography`, `shadow`, `duration`
-- a `theme` modifier with `light` and `dark` contexts
-- logos, icons, other asset groups and font files in the `foundation` set's `$extensions`
+- a `theme` modifier with one context per theme
+- a token's `$description` is its usage note
+- in the `foundation` set's `$extensions`: logos, icons, other asset groups and font files; `sections` (`{ id, title, body }`, in page order; text-only sections have ids starting `text-`); `contrast` (`{ fg, bg, min }` token paths)
 
-CSS custom properties are the token path joined with `-`: `color.primary.background` becomes `--color-primary-background`. Dark values apply under `:root[data-theme="dark"]`.
-
-The full design is in `docs/superpowers/specs/2026-11-12-styleguide-editor-design.md`.
+CSS custom properties are the token path joined with `-`: `color.primary.background` becomes `--color-primary-background`. Each other theme's values apply under `:root[data-theme="<theme>"]`.
 
 ## For maintainers: the library
 

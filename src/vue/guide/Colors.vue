@@ -16,12 +16,14 @@ interface Shade {
   step: string;
   name: string;
   hex: string;
+  description?: string;
   copies: { text: string; shown: string }[];
 }
 interface Row {
   path: string;
   source: string;
   hex: string;
+  description?: string;
 }
 
 const props = defineProps<{ tokens: Tokens; vendor: string }>();
@@ -41,7 +43,7 @@ function shade(path: string, token: ResolvedToken): Shade | null {
   copies.push({ text: cmykText, shown: printedCmyk ? cmykText : `${cmykText} (approx.)` });
   if (typeof own.pantone === 'string') copies.push({ text: own.pantone, shown: own.pantone });
   const name = palette.step ? `${palette.group}-${palette.step}` : palette.group;
-  return { path, ...palette, name, hex: toHex(color), copies };
+  return { path, ...palette, name, hex: toHex(color), description: token.description, copies };
 }
 
 function sourceOf(value: unknown, color: DtcgColor): string {
@@ -52,7 +54,14 @@ function sourceOf(value: unknown, color: DtcgColor): string {
 
 function row(path: string, token: ResolvedToken): Row | null {
   const color = narrow(token.resolved, isColor);
-  return color && { path, source: sourceOf(token.value, color), hex: toHex(color) };
+  return (
+    color && {
+      path,
+      source: sourceOf(token.value, color),
+      hex: toHex(color),
+      description: token.description,
+    }
+  );
 }
 
 const color = computed(() => {
@@ -100,6 +109,7 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
         >
           <small>{{ copy.shown }}</small>
         </CopyButton>
+        <small v-if="s.description" class="cd-usage">{{ s.description }}</small>
       </li>
     </RovingFocusGroup>
   </template>
@@ -112,6 +122,7 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
             <th>Token</th>
             <th>Value</th>
             <th>Hex</th>
+            <th>Usage</th>
           </tr>
         </thead>
         <tbody>
@@ -123,6 +134,7 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
               <code>{{ r.source }}</code>
             </td>
             <td>{{ r.hex }}</td>
+            <td>{{ r.description }}</td>
           </tr>
         </tbody>
       </table>

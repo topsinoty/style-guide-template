@@ -7,9 +7,11 @@ import type {
   AssetGroup,
   AssetItem,
   BrandMeta,
+  ContrastPair,
   FontFile,
   ResolverDoc,
   SessionFiles,
+  TextSection,
 } from './types.js';
 
 export type AssetSource = 'session' | 'library' | 'provider' | 'missing';
@@ -17,7 +19,9 @@ export type SrcEntry =
   | { src: string; kind: 'asset'; groupId: string; entry: AssetItem }
   | { src: string; kind: 'font'; entry: FontFile };
 
-const META_KEYS = ['assetGroups', 'fontFiles'];
+export const META_KEYS = ['assetGroups', 'fontFiles', 'sections', 'contrast', 'rootSize'];
+export const DEFAULT_ROOT_SIZE = 16;
+export const isRootSize = (n: unknown): n is number => typeof n === 'number' && n >= 4 && n <= 64;
 const basename = (p: string) => fileName(p).toLowerCase();
 
 function metaKey(doc: ResolverDoc, vendor: string): string | null {
@@ -66,16 +70,31 @@ function readGroup(value: unknown): AssetGroup | null {
   };
 }
 
+function readSection(value: unknown): TextSection | null {
+  if (!isNode(value) || typeof value.id !== 'string' || !value.id) return null;
+  return { id: value.id, title: optionalString(value.title), body: optionalString(value.body) };
+}
+
+function readPair(value: unknown): ContrastPair | null {
+  if (!isNode(value) || typeof value.fg !== 'string' || typeof value.bg !== 'string') return null;
+  return { fg: value.fg, bg: value.bg, min: typeof value.min === 'number' ? value.min : 4.5 };
+}
+
 export function readBrandMeta(value: unknown): BrandMeta {
-  const { logo, ...meta } = isNode(value) ? value : {};
+  const { logo, sections, contrast, rootSize, ...meta } = isNode(value) ? value : {};
   const list = (key: string) => (Array.isArray(meta[key]) ? meta[key] : []);
   return {
     ...meta,
     ...(typeof logo === 'string' ? { logo } : {}),
+    ...(isRootSize(rootSize) ? { rootSize } : {}),
+    ...(Array.isArray(sections) ? { sections: sections.flatMap((s) => readSection(s) ?? []) } : {}),
+    ...(Array.isArray(contrast) ? { contrast: contrast.flatMap((p) => readPair(p) ?? []) } : {}),
     assetGroups: list('assetGroups').flatMap((group) => readGroup(group) ?? []),
     fontFiles: list('fontFiles').flatMap((file) => readFontFile(file) ?? []),
   };
 }
+
+export const BUILT_IN_GROUPS = new Set(['logos', 'favicons', 'icons']);
 
 export function mainLogo(meta: BrandMeta): AssetItem | undefined {
   const items = meta.assetGroups.flatMap((group) => group.items);

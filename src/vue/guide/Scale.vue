@@ -21,7 +21,8 @@ function radiusText(value: unknown) {
   <div v-if="kind === 'spacing'" class="cd-box cd-token-list">
     <div v-for="[path, token] in steps" :key="path" class="cd-token-row">
       <span
-        ><code>{{ cssName(path) }}</code> <span class="cd-token-value">{{ dim(token.resolved) }}</span></span
+        ><code>{{ cssName(path) }}</code> <span class="cd-token-value">{{ dim(token.resolved) }}</span>
+        <small v-if="token.description" class="cd-usage">{{ token.description }}</small></span
       >
       <div class="cd-bar" :style="{ width: value(path) }"></div>
     </div>
@@ -36,6 +37,7 @@ function radiusText(value: unknown) {
         <code>{{ cssName(path) }}</code><span v-if="kind === 'radius'" class="cd-token-value">
           {{ radiusText(token.resolved) }}</span
         >
+        <small v-if="token.description" class="cd-usage">{{ token.description }}</small>
       </figcaption>
     </figure>
   </div>

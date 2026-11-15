@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { FontFile } from '../src/lib/types.js';
 import { load, V } from './helpers.js';
 import { tailwindCss, shadcnCss } from '../src/lib/exports.js';
+import * as E from '../src/lib/edit.js';
 
 const opts = { vendor: V, fontSrc: (f: FontFile) => f.src };
 
@@ -36,4 +37,10 @@ test('shadcn: standard variable names with resolved values, .dark block, @theme 
 test('shadcn skips variables the brand has no role for', () => {
   const css = shadcnCss(load());
   assert.doesNotMatch(css, /--destructive:/);
+});
+
+test('tailwind v4: every non-default theme gets its own variant', () => {
+  const css = tailwindCss(E.renameTheme(load(), 'dark', 'web'), opts);
+  assert.match(css, /@custom-variant web \(&:where\(\[data-theme="web"\], \[data-theme="web"\] \*\)\);/);
+  assert.doesNotMatch(css, /@custom-variant (dark|light)/);
 });

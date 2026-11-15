@@ -62,6 +62,15 @@ export function fontFiles(detail: FontDetail, { weights, styles, subsets }: Font
 const fileUrl = (file: Partial<FontFile>) =>
   `${CDN}/fontsource/fonts/${file.fontsourceId}@${file.version}/${file.subset}-${file.weight}-${file.style}.woff2`;
 
+const previewUrl = (font: FontListing) =>
+  fileUrl({
+    fontsourceId: font.id,
+    version: 'latest',
+    subset: font.defSubset,
+    weight: font.weights.includes(400) ? 400 : font.weights[0],
+    style: font.styles.includes('normal') ? 'normal' : font.styles.find(isFontStyle),
+  });
+
 const licenseUrl = (file: Partial<FontFile>) =>
   `${CDN}/npm/@fontsource/${file.fontsourceId}@${file.version}/LICENSE`;
 
@@ -99,6 +108,7 @@ export function fontsource({ fetch: fetchFn = fetch, cache }: { fetch?: Fetch; c
     files: fontFiles,
     fileUrl,
     licenseUrl,
+    previewUrl,
   };
   return provider;
 }

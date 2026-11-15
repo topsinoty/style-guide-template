@@ -6,18 +6,24 @@ import { checkBrand } from '../src/lib/io.js';
 import {
   addColor,
   addShade,
+  blankBrand,
   generateShades,
   handSetShades,
   paletteColors,
   referencesTo,
   removeColor,
+  renameColor,
   removeShade,
   renameShade,
   setBase,
   setShade,
 } from '../src/lib/palette.js';
 import type { ResolverDoc } from '../src/lib/types.js';
-import { nodeAt } from '../src/lib/tree.js';
+import { nodeAt, withVendorData } from '../src/lib/tree.js';
+import { resolve } from '../src/lib/resolver.js';
+import { checkContrast, ROLES } from '../src/lib/contrast.js';
+import { setToken } from '../src/lib/edit.js';
+import { setStep } from '../src/lib/scale.js';
 import { narrow, isColor } from '../src/lib/values.js';
 import { present, preset, V } from './helpers.js';
 
@@ -56,8 +62,8 @@ test('named shades come before numeric ones', () => {
   doc = generateShades(doc, 'accent', V, 'keep');
   doc = addShade(doc, 'accent', 'light', pink, V);
   const names = colorOf(doc, 'accent').shades.map((s) => s.name);
-  assert.deepEqual(names.slice(0, 3), ['base', 'light', '50']);
-  assert.equal(names.length, 13);
+  assert.deepEqual(names.slice(0, 2), ['light', '50']);
+  assert.equal(names.length, 12);
   valid(doc);
 });
 
@@ -189,4 +195,100 @@ test('edits never mutate the input', () => {
   removeColor(doc, 'brand');
   generateShades(doc, 'brand', V, 'overwrite');
   assert.equal(JSON.stringify(doc), snapshot);
+});
+
+test('reset keeps the preset spacing scale as a starting point', () => {
+  const doc = preset();
+  const blank = blankBrand(doc, V);
+  assert.deepEqual(
+    nodeAt(blank.sets.foundation.sources[0], 'spacing'),
+    nodeAt(doc.sets.foundation.sources[0], 'spacing'),
+  );
+  assert.ok(resolve(blank).has('spacing.md'));
+});
+
+test('a blank brand can set a scale base before adding steps', () => {
+  const blank = blankBrand(preset(), V);
+  const group = withVendorData({ $type: 'dimension' }, V, {
+    scale: { base: { value: 8, unit: 'px' }, steps: {} },
+  });
+  const withBase = setToken(blank, 'spacing', group);
+  assert.deepEqual(checkBrand(withBase, zodValidator), []);
+  assert.deepEqual(nodeAt(withBase.sets.foundation.sources[0], 'spacing'), group);
+});
+
+test('a blank brand can gain a new scale step without loading a preset', () => {
+  const blank = blankBrand(preset(), V);
+  const withSpacing = setToken(
+    blank,
+    'spacing',
+    setStep({ $type: 'dimension' }, 'sm', { value: 8, unit: 'px' }, V),
+  );
+  assert.deepEqual(checkBrand(withSpacing, zodValidator), []);
+  assert.deepEqual(resolve(withSpacing).get('spacing.sm')?.resolved, { value: 8, unit: 'px' });
+});
+
+test('renaming a palette color preserves shades and updates role references in both themes', () => {
+  const doc = preset();
+  const before = resolve(doc, { theme: 'light' }).get('color.primary.background')?.resolved;
+  const darkBefore = resolve(doc, { theme: 'dark' }).get('color.primary.background')?.resolved;
+  const renamed = renameColor(doc, 'brand', 'ocean');
+  assert.ok(renamed !== doc);
+  assert.equal(nodeAt(renamed.sets.foundation.sources[0], 'color.brand'), undefined);
+  assert.ok(nodeAt(renamed.sets.foundation.sources[0], 'color.ocean.600'));
+  assert.deepEqual(resolve(renamed, { theme: 'light' }).get('color.primary.background')?.resolved, before);
+  assert.deepEqual(resolve(renamed, { theme: 'dark' }).get('color.primary.background')?.resolved, darkBefore);
+  assert.deepEqual(checkBrand(renamed, zodValidator), []);
+  assert.equal(renameColor(renamed, 'ocean', 'red'), renamed);
+  assert.equal(renameColor(renamed, 'ocean', 'ocean'), renamed);
+});
+
+test('a blank brand accepts new shadow and typography styles', () => {
+  let blank = blankBrand(preset(), V);
+  blank = setToken(blank, 'shadow.soft', {
+    $type: 'shadow',
+    $value: {
+      color: { colorSpace: 'srgb', components: [0, 0, 0], alpha: 0.1 },
+      offsetX: { value: 0, unit: 'px' },
+      offsetY: { value: 2, unit: 'px' },
+      blur: { value: 4, unit: 'px' },
+      spread: { value: 0, unit: 'px' },
+    },
+  });
+  blank = setToken(blank, 'font.body', { $type: 'fontFamily', $value: ['sans-serif'] });
+  blank = setToken(blank, 'typography.caption', {
+    $type: 'typography',
+    $value: {
+      fontFamily: ['sans-serif'],
+      fontSize: { value: 1, unit: 'rem' },
+      fontWeight: 400,
+      letterSpacing: { value: 0, unit: 'px' },
+      lineHeight: 1.5,
+    },
+  });
+  assert.deepEqual(checkBrand(blank, zodValidator), []);
+  assert.ok(resolve(blank).has('font.body'));
+  assert.ok(resolve(blank).has('shadow.soft'));
+  assert.ok(resolve(blank).has('typography.caption'));
+});
+
+test('a blank brand keeps only role colors, pointing at a black and white palette', () => {
+  const blank = blankBrand(preset(), V);
+  assert.deepEqual(checkBrand(blank, zodValidator), []);
+  assert.deepEqual(
+    paletteColors(blank, V).map((color) => color.id),
+    ['black', 'white'],
+  );
+  for (const theme of ['light', 'dark'])
+    for (const [path, token] of resolve(blank, { theme })) {
+      assert.ok(path.startsWith('color.') || path.startsWith('spacing.'), path);
+      const group = path.split('.')[1];
+      if (!ROLES.includes(group)) continue;
+      const color = narrow(token.resolved, isColor);
+      assert.ok(color && (color.components[0] === 0 || color.components[0] === 1), path);
+    }
+  assert.deepEqual(
+    checkContrast(blank).filter((result) => result.ratio < 21),
+    [],
+  );
 });

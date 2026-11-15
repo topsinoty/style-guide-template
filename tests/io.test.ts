@@ -5,7 +5,7 @@ import { keysOf } from '../src/lib/records.js';
 import { setToken } from '../src/lib/edit.js';
 import { isNode, nodeAt } from '../src/lib/tree.js';
 import { fontsource } from '../src/adapters/fontsource.js';
-import { present, load, V } from './helpers.js';
+import { present, load, preset, V } from './helpers.js';
 import { unzipSync } from 'fflate';
 import {
   classify,
@@ -18,7 +18,10 @@ import {
   readme,
 } from '../src/lib/io.js';
 import { resolve } from '../src/lib/resolver.js';
-import { brandMeta } from '../src/lib/assets.js';
+import { brandMeta, withBrandMeta } from '../src/lib/assets.js';
+import { blankBrand } from '../src/lib/palette.js';
+import { addScaleStep } from '../src/lib/scale.js';
+import { withVendorData } from '../src/lib/tree.js';
 
 const bytes = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);
@@ -125,6 +128,43 @@ test('round trip', async () => {
   assert.equal(text(dots), '<svg/>');
   assert.equal(back.files.has('README.md'), false);
   assert.equal(back.files.has('css/theme.css'), false);
+});
+
+test('a brand built from reset can save, reload and export', async () => {
+  let doc = blankBrand(preset(), V);
+  const radius = withVendorData({ $type: 'dimension' }, V, {
+    scale: { base: { value: 4, unit: 'px' }, steps: {} },
+  });
+  doc = setToken(doc, 'radius', addScaleStep(radius, 'md', 2, V));
+  doc = setToken(doc, 'font.body', { $type: 'fontFamily', $value: ['sans-serif'] });
+  doc = setToken(doc, 'font-size.md', { $type: 'dimension', $value: { value: 1, unit: 'rem' } });
+  doc = setToken(doc, 'typography.body', {
+    $type: 'typography',
+    $value: {
+      fontFamily: '{font.body}',
+      fontSize: '{font-size.md}',
+      fontWeight: 400,
+      letterSpacing: { value: 0, unit: 'px' },
+      lineHeight: 1.5,
+    },
+  });
+  doc = withBrandMeta(doc, V, {
+    assetGroups: [{ id: 'logos', items: [{ src: 'logos/new.svg', label: 'New logo' }] }],
+    fontFiles: [],
+    logo: 'logos/new.svg',
+  });
+  const loaded = parseBrandJson(saveJson(doc), 'untitled-brand.resolver.json', zodValidator);
+  assert.deepEqual(loaded.errors, []);
+  assert.deepEqual(resolve(present(loaded.doc)), resolve(doc));
+  const { zip, warnings } = await buildExport(
+    doc,
+    ctx({ files: new Map([['logos/new.svg', bytes('<svg/>')]]) }),
+  );
+  assert.deepEqual(warnings, []);
+  const back = loadZip(zip, zodValidator);
+  assert.deepEqual(back.errors, []);
+  assert.deepEqual(resolve(present(back.doc)), resolve(doc));
+  assert.equal(brandMeta(present(back.doc), V).logo, 'logos/new.svg');
 });
 
 test('foreign tokens and extensions round-trip unchanged', async () => {

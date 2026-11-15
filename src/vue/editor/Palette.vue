@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AddPanel from './AddPanel.vue';
 import { computed, ref } from 'vue';
 import { PopoverContent, PopoverRoot, PopoverTrigger } from 'reka-ui';
 import { parseCssColor } from '../../lib/color.js';
@@ -12,8 +13,10 @@ import {
   referencesTo,
   removeColor,
   removeShade,
+  renameColor,
 } from '../../lib/palette.js';
 import ColorInput, { COLOR_ERROR } from '../ColorInput.vue';
+import Icon from '../Icon.vue';
 import Confirm, { type ConfirmChoice } from '../Confirm.vue';
 import { cap } from '../guide/parts.js';
 import type { EditorContext } from './context.js';
@@ -35,6 +38,9 @@ const colors = computed(() => paletteColors(props.ctx.doc, props.ctx.vendor));
 
 const question = ref<Question>();
 const addingTo = ref<Record<string, boolean>>({});
+const renaming = ref<Record<string, boolean>>({});
+const renameDraft = ref<Record<string, string>>({});
+const renameError = ref<Record<string, string>>({});
 const asking = ref(false);
 
 function ask(next: Question) {
@@ -90,6 +96,7 @@ function generate(id: string) {
 
 const newName = ref('');
 const newColor = ref('');
+const withShades = ref(true);
 const nameError = ref<string>();
 const colorError = ref<string>();
 
@@ -99,22 +106,74 @@ function colorNameProblem(id: string) {
   return undefined;
 }
 
+function prepareRename(id: string, open: boolean) {
+  if (!open) return;
+  renameDraft.value[id] = id;
+  renameError.value[id] = '';
+}
+
+function renamePaletteColor(from: string) {
+  const to = paletteId(renameDraft.value[from] ?? from);
+  if (to === from) {
+    renaming.value[from] = false;
+    return;
+  }
+  renameError.value[from] = colorNameProblem(to) ?? '';
+  if (renameError.value[from]) return;
+  props.ctx.edit((doc) => renameColor(doc, from, to));
+  renaming.value[from] = false;
+}
+
 function addNewColor() {
   const id = paletteId(newName.value);
   const value = parseCssColor(newColor.value.trim());
   nameError.value = colorNameProblem(id);
   colorError.value = value ? undefined : COLOR_ERROR;
-  if (nameError.value || !value) return;
-  props.ctx.edit((doc) => addColor(doc, id, value, props.ctx.vendor));
+  if (nameError.value || !value) return false;
+  props.ctx.edit((doc) => {
+    const added = addColor(doc, id, value, props.ctx.vendor);
+    return withShades.value ? generateShades(added, id, props.ctx.vendor, 'keep') : added;
+  });
   newName.value = '';
   newColor.value = '';
+  return true;
 }
 </script>
 
 <template>
-  <section v-for="color in colors" :key="color.id" class="cd-hue" :aria-label="`${cap(color.id)} color`">
-    <div class="cd-hue-header">
+  <p v-if="colors.length" class="cd-hint">
+    Select a shade to edit it. The outlined shade is the base the others are generated from; a dot marks a
+    shade set by hand.
+  </p>
+  <p v-if="!colors.length" class="cd-hint">
+    No palette colors yet. Add one below; roles can still use any CSS color.
+  </p>
+  <section v-for="color in colors" :key="color.id" class="ed-group" :aria-label="`${cap(color.id)} color`">
+    <div class="ed-group-head">
       <h4>{{ cap(color.id) }}</h4>
+      <span class="cd-hint"
+        >{{ color.shades.length }} {{ color.shades.length === 1 ? 'shade' : 'shades' }}</span
+      >
+      <PopoverRoot v-model:open="renaming[color.id]" @update:open="prepareRename(color.id, $event)">
+        <PopoverTrigger class="cd-action" :aria-label="`Rename ${color.id}`" :title="`Rename ${color.id}`">
+          <Icon name="edit" />
+        </PopoverTrigger>
+        <PopoverContent class="cd-popover" side="bottom" align="end" :side-offset="6">
+          <form class="ed-popover-form" @submit.prevent="renamePaletteColor(color.id)">
+            <label class="cd-field">
+              <span>Color name</span>
+              <input
+                :value="renameDraft[color.id] ?? color.id"
+                type="text"
+                :aria-invalid="renameError[color.id] ? 'true' : undefined"
+                @input="renameDraft[color.id] = ($event.target as HTMLInputElement).value"
+              />
+            </label>
+            <p v-if="renameError[color.id]" class="cd-error" role="alert">{{ renameError[color.id] }}</p>
+            <button type="submit" class="btn">Rename</button>
+          </form>
+        </PopoverContent>
+      </PopoverRoot>
       <IconButton name="trash" :label="`Remove ${color.id}`" @click="removeWholeColor(color.id)" />
     </div>
     <ol class="cd-mini-scale" :aria-label="`${color.id} shades`">
@@ -127,16 +186,12 @@ function addNewColor() {
         />
       </li>
     </ol>
-    <p class="cd-hint">
-      {{ color.shades.length }} {{ color.shades.length === 1 ? 'shade' : 'shades' }}. Select a shade to edit
-      it; the outlined one is the base and a dot marks shades set by hand.
-    </p>
     <div class="cd-field-row">
-      <button type="button" class="btn btn-secondary btn-small" @click="generate(color.id)">
+      <button type="button" class="btn btn-secondary btn-quiet" @click="generate(color.id)">
         {{ color.shades.length === 1 ? 'Generate shades 50 to 950' : 'Regenerate shades' }}
       </button>
       <PopoverRoot v-model:open="addingTo[color.id]">
-        <PopoverTrigger class="btn btn-secondary btn-small">Add shade</PopoverTrigger>
+        <PopoverTrigger class="btn btn-secondary btn-quiet">Add shade</PopoverTrigger>
         <PopoverContent
           class="cd-popover"
           side="bottom"
@@ -149,24 +204,36 @@ function addNewColor() {
       </PopoverRoot>
     </div>
   </section>
-  <p v-if="!colors.length" class="cd-hint">
-    No palette colors yet. Add one here; role colors can still reference independent values.
-  </p>
-  <form class="cd-field-row cd-new-color" @submit.prevent="addNewColor">
-    <label class="cd-field"
-      ><span>New color name</span>
-      <input
-        v-model="newName"
-        type="text"
-        placeholder="accent"
-        :aria-invalid="nameError ? 'true' : undefined"
-        :aria-describedby="nameError ? 'new-color-name-error' : undefined"
-      />
-      <span v-if="nameError" id="new-color-name-error" class="cd-error">{{ nameError }}</span>
-    </label>
-    <ColorInput v-model="newColor" label="Color" placeholder="any CSS color" :error="colorError" />
-    <button type="submit" class="btn btn-small">Add color</button>
-  </form>
+  <AddPanel label="Add a color">
+    <template #default="{ close }">
+      <form class="ed-add" @submit.prevent="addNewColor() && close()">
+        <label class="cd-field"
+          ><span>New color</span>
+          <input
+            v-model="newName"
+            type="text"
+            placeholder="e.g. accent"
+            :aria-invalid="nameError ? 'true' : undefined"
+            :aria-describedby="nameError ? 'new-color-name-error' : undefined"
+            @input="nameError = undefined"
+          />
+          <span v-if="nameError" id="new-color-name-error" class="cd-error">{{ nameError }}</span>
+        </label>
+        <ColorInput
+          v-model="newColor"
+          label="Base color"
+          placeholder="e.g. #2e59aa"
+          :error="colorError"
+          @update:model-value="colorError = undefined"
+        />
+        <label class="ed-check"
+          ><input v-model="withShades" type="checkbox" /> Generate shades 50 to 950 around it</label
+        >
+        <button type="submit" class="btn">Add color</button>
+        <button type="button" class="btn btn-secondary btn-quiet" @click="close">Cancel</button>
+      </form>
+    </template>
+  </AddPanel>
   <Confirm
     v-if="question"
     v-model:open="asking"

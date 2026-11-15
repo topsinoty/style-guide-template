@@ -1,7 +1,8 @@
 import { flatten, contexts, defaultInputs, mergedTree, aliasTarget } from './resolver.js';
 import { cssColor } from './color.js';
 import { fontFaceRules, cssString } from './fonts.js';
-import { readBrandMeta } from './assets.js';
+import { DEFAULT_ROOT_SIZE, readBrandMeta } from './assets.js';
+import { elementStyles } from './elements.js';
 import { isNode } from './tree.js';
 import type { FlatToken, FontFile, ResolverDoc, Dimension } from './types.js';
 import {
@@ -181,9 +182,26 @@ export function block(selector: string, lines: string[]) {
   return `${selector} {\n${body}\n}\n`;
 }
 
-function fontFilesOf(doc: ResolverDoc, vendor?: string): FontFile[] {
-  if (!vendor) return [];
-  return readBrandMeta(doc.sets?.foundation?.$extensions?.[vendor]).fontFiles;
+const metaOf = (doc: ResolverDoc, vendor?: string) =>
+  readBrandMeta(vendor ? doc.sets?.foundation?.$extensions?.[vendor] : undefined);
+
+// A percentage keeps the reader's own browser font size in play: 10px per rem is 62.5%.
+function rootRule(size = DEFAULT_ROOT_SIZE): string {
+  if (size === DEFAULT_ROOT_SIZE) return '';
+  return block('html', [`font-size: ${Math.round((size / DEFAULT_ROOT_SIZE) * 1e6) / 1e4}%;`]);
+}
+
+// Each element a text style applies to reads that style's variables.
+function elementRules(doc: ResolverDoc, vendor: string, name: Namer, scope: string): string {
+  const styles = elementStyles(doc.sets?.foundation?.sources?.[0], vendor);
+  return [...styles]
+    .map(([element, style]) =>
+      block(
+        scope ? `${scope} ${element}` : element,
+        TYPO_FIELDS.map(([, prop]) => `${prop}: var(${name('typography.' + style)}-${prop});`),
+      ),
+    )
+    .join('');
 }
 
 export function generateCss(
@@ -193,11 +211,20 @@ export function generateCss(
     vendor,
     name = cssName,
     rootSelector = ':root',
-  }: { fontSrc: (f: FontFile) => string; vendor?: string; name?: Namer; rootSelector?: string },
+    elementScope = '',
+  }: {
+    fontSrc: (f: FontFile) => string;
+    vendor?: string;
+    name?: Namer;
+    rootSelector?: string;
+    /** Limits element rules to part of a page, such as the guide's main. */
+    elementScope?: string;
+  },
 ): string {
   const inputs = defaultInputs(doc);
   const base = cssDeclarations(flatten(mergedTree(doc, inputs)), name);
-  let css = block(rootSelector, base);
+  const meta = metaOf(doc, vendor);
+  let css = (rootSelector === ':root' ? rootRule(meta.rootSize) : '') + block(rootSelector, base);
   const known = new Set(base);
   for (const { modifier, context, isDefault } of contexts(doc)) {
     if (isDefault) continue;
@@ -206,6 +233,7 @@ export function generateCss(
     );
     if (lines.length) css += block(`:root[data-${ident(modifier)}="${ident(context)}"]`, lines);
   }
-  const faces = fontFaceRules(fontFilesOf(doc, vendor), fontSrc);
+  if (rootSelector === ':root' && vendor) css += elementRules(doc, vendor, name, elementScope);
+  const faces = fontFaceRules(meta.fontFiles, fontSrc);
   return faces ? `${css}${faces}\n` : css;
 }
