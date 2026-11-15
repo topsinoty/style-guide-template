@@ -190,6 +190,15 @@ const { isOverDropZone: dragging } = useDropZone(document, {
   },
 });
 
+useEventListener(document, 'paste', async (e: ClipboardEvent) => {
+  if (!session.value.editable || (e.target instanceof Element && e.target.closest(TEXT_ENTRY))) return;
+  const files = [...(e.clipboardData?.files ?? [])];
+  const text = e.clipboardData?.getData('text/plain').trim() ?? '';
+  if (!files.length && !text.startsWith('{')) return;
+  e.preventDefault();
+  await session.value.receive(files.length ? files : [new File([text], 'pasted.json')]);
+});
+
 const current = ref<string[]>([]);
 const links = useTemplateRef<HTMLAnchorElement[]>('links');
 

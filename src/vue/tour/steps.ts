@@ -109,7 +109,7 @@ export const EDIT_STEPS: TourStep[] = [
   },
   {
     title: 'Assets',
-    body: 'Logos, icons, favicons and groups of your own. Upload files, pick them from the library, or drop them anywhere on the page.',
+    body: 'Logos, icons, favicons and groups of your own. Upload files, pick them from the library, or drop or paste them anywhere on the page.',
     drawer: true,
     tab: 'Assets',
     area: 'Asset groups',

@@ -92,7 +92,8 @@ const emit = defineEmits<{ tour: [] }>();
               <li>
                 <strong>Load</strong> opens a brand file (<code>.resolver.json</code> or
                 <code>.tokens.json</code>), a brand kit ZIP, font files or assets. You can also drop files
-                anywhere on the page.
+                anywhere on the page, or paste them, or a brand's JSON, with <kbd>Ctrl</kbd> or
+                <kbd>Cmd</kbd> + <kbd>V</kbd>.
               </li>
               <li>
                 Edits are kept in this browser, separately for each site address, until you load or start

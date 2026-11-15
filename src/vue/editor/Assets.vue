@@ -185,7 +185,7 @@ const rowKey = (group: AssetGroup, item: AssetItem) => `${group.id}/${item.src}`
         </div>
       </ItemRow>
     </ul>
-    <p v-else class="cd-hint">No files yet. Upload some, or drop them anywhere on the page.</p>
+    <p v-else class="cd-hint">No files yet. Upload some, or drop or paste them anywhere on the page.</p>
     <AddPanel label="Add files">
       <template #default="{ close }">
         <div class="ed-add ed-add-files">
@@ -204,7 +204,7 @@ const rowKey = (group: AssetGroup, item: AssetItem) => `${group.id}/${item.src}`
             <button type="submit" class="btn btn-secondary" :disabled="!pick(group)">Add from library</button>
           </form>
           <button type="button" class="btn btn-secondary btn-quiet" @click="close">Cancel</button>
-          <p class="cd-hint">You can also drop files anywhere on the page.</p>
+          <p class="cd-hint">You can also drop or paste files anywhere on the page.</p>
         </div>
       </template>
     </AddPanel>
