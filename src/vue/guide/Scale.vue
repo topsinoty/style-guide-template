@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import Card from './Card.vue';
-import { cssName, narrow, isShadow, isShadowLayer, isSize } from '~/lib';
+import { cssName } from '~/lib';
 import type { Tokens } from '~/lib';
-import { dim } from './parts';
+import { dim, radiusText, shadowText } from './parts';
 
 const props = defineProps<{
   tokens: Tokens;
@@ -13,32 +13,6 @@ const steps = computed(() =>
   [...props.tokens].filter(([path]) => path.startsWith(`${props.kind}.`)),
 );
 const value = (path: string): string => `var(${cssName(path)})`;
-
-function shadowText(value: unknown): string {
-  const shadow = narrow(value, isShadow);
-  const layers = Array.isArray(shadow) ? shadow : [shadow];
-  const [first] = layers;
-
-  if (!isShadowLayer(first)) {
-    return '';
-  }
-
-  const text = [first.offsetX, first.offsetY, first.blur].map(dim).join(' ');
-
-  return layers.length > 1 ? `${text} +${String(layers.length - 1)}` : text;
-}
-
-function radiusText(value: unknown): string {
-  const radius = narrow(value, isSize);
-
-  if (!radius) {
-    return dim(value);
-  }
-
-  const px = radius.unit === 'rem' ? radius.value * 16 : radius.value;
-
-  return px >= 9999 ? 'full' : dim(radius);
-}
 </script>
 
 <template>

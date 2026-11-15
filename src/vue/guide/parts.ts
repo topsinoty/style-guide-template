@@ -1,4 +1,11 @@
-import { cssName, isNode } from '~/lib';
+import {
+  cssName,
+  isNode,
+  isShadow,
+  isShadowLayer,
+  isSize,
+  narrow,
+} from '~/lib';
 
 export function dim(value: unknown): string {
   if (
@@ -53,4 +60,30 @@ export function cssBackground(value: string | undefined): string | undefined {
   const ref = /^\{(.+)\}$/.exec(value);
 
   return ref ? `var(${cssName(ref[1])})` : value;
+}
+
+export function shadowText(value: unknown): string {
+  const shadow = narrow(value, isShadow);
+  const layers = Array.isArray(shadow) ? shadow : [shadow];
+  const [first] = layers;
+
+  if (!isShadowLayer(first)) {
+    return '';
+  }
+
+  const text = [first.offsetX, first.offsetY, first.blur].map(dim).join(' ');
+
+  return layers.length > 1 ? `${text} +${String(layers.length - 1)}` : text;
+}
+
+export function radiusText(value: unknown): string {
+  const radius = narrow(value, isSize);
+
+  if (!radius) {
+    return dim(value);
+  }
+
+  const px = radius.unit === 'rem' ? radius.value * 16 : radius.value;
+
+  return px >= 9999 ? 'full' : dim(radius);
 }

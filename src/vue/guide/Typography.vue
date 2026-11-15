@@ -1,44 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import Card from './Card.vue';
-import { cssName, cssString, sortFontFiles, narrow, isTypography } from '~/lib';
-import type { BrandMeta, FontFile, Tokens } from '~/lib';
+import { cssName, cssString } from '~/lib';
+import type { BrandMeta, Tokens } from '~/lib';
 import { dim } from './parts';
+import { fontFamilies, fontSizes, textStyles } from './typography';
 
 const props = defineProps<{ tokens: Tokens; meta: BrandMeta }>();
-const sizes = computed(() =>
-  [...props.tokens].filter(
-    ([p, t]) => p.startsWith('font-size.') && t.type === 'dimension',
-  ),
-);
-const styles = computed(() =>
-  [...props.tokens].flatMap(([path, token]) => {
-    const style =
-      token.type === 'typography' ? narrow(token.resolved, isTypography) : null;
-
-    if (!style) {
-      return [];
-    }
-
-    const family = [style.fontFamily].flat()[0];
-    const summary = `${dim(family)} ${dim(style.fontWeight)} ${dim(style.fontSize)} / ${dim(style.lineHeight)}`;
-
-    return [
-      {
-        path,
-        name: path.slice('typography.'.length),
-        summary,
-        description: token.description,
-      },
-    ];
-  }),
-);
-const families = computed(() => [
-  ...Map.groupBy(
-    sortFontFiles(props.meta.fontFiles),
-    (f: FontFile) => f.family,
-  ),
-]);
+const sizes = computed(() => fontSizes(props.tokens));
+const styles = computed(() => textStyles(props.tokens));
+const families = computed(() => fontFamilies(props.meta));
 const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
 </script>
 
