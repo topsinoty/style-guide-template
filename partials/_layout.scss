@@ -35,7 +35,7 @@ $L: 100rem;
 	white-space: nowrap;
 }
 
-// Editor sizes ignore the brand's root size: --ed-rem is one browser-default rem.
-@function ed($n) {
-	@return calc(#{$n} * var(--ed-rem, 1rem));
+// Page and editor chrome ignore the brand's root size: --chrome-rem is one browser-default rem.
+@function chrome($n) {
+	@return calc(#{$n} * var(--chrome-rem, 1rem));
 }

@@ -107,8 +107,11 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 const placement = computed(() => {
   const w = cardWidth.value;
   const h = cardHeight.value;
-  if (narrow.value) return { left: `${MARGIN}px`, right: `${MARGIN}px`, bottom: `${MARGIN}px` };
   const r = box.value;
+  if (narrow.value) {
+    const low = r !== null && r.top + r.height / 2 > vh.value / 2;
+    return { left: `${MARGIN}px`, right: `${MARGIN}px`, [low ? 'top' : 'bottom']: `${MARGIN}px` };
+  }
   if (!r) return { left: `${(vw.value - w) / 2}px`, top: `${(vh.value - h) / 2}px` };
   const x = clamp(r.left, MARGIN, vw.value - w - MARGIN);
   const y = clamp(r.top, MARGIN, vh.value - h - MARGIN);

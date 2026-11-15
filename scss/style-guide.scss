@@ -20,8 +20,8 @@ body {
 }
 
 :focus-visible {
-	outline: 0.125rem solid var(--color-focus-border);
-	outline-offset: 0.125rem;
+	outline: chrome(0.125) solid var(--color-focus-border);
+	outline-offset: chrome(0.125);
 }
 
 header {
@@ -31,14 +31,14 @@ header {
 
 .cd-logo {
 	background-color: var(--color-primary-background);
-	width: 5.5rem;
+	width: chrome(5.5);
 
 	@include MQ(S) {
-		width: 7.5rem;
+		width: chrome(7.5);
 	}
 
 	@include MQ(M) {
-		width: 11.25rem;
+		width: chrome(11.25);
 	}
 }
 
@@ -48,7 +48,7 @@ header {
 
 		&.selected {
 			color: var(--color-page-foreground);
-			box-shadow: inset 0 -0.125rem 0 var(--color-primary-background);
+			box-shadow: inset 0 chrome(-0.125) 0 var(--color-primary-background);
 		}
 
 		@include hover {
@@ -158,7 +158,7 @@ p {
 }
 
 .cd-icons li {
-	min-width: 4rem;
+	min-width: chrome(4);
 }
 
 @include meta.load-css('../partials/basic-style');

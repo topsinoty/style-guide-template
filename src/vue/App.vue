@@ -96,7 +96,7 @@ watchEffect(() => {
   const root = document.documentElement;
   root.dataset.theme = theme.value;
   root.style.setProperty(
-    '--ed-rem',
+    '--chrome-rem',
     `${DEFAULT_ROOT_SIZE / (view.value.meta.rootSize ?? DEFAULT_ROOT_SIZE)}rem`,
   );
   const page = narrow(view.value.tokens.get('color.page.background')?.resolved, isColor);

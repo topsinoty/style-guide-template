@@ -49,11 +49,11 @@ button {
 }
 
 :root {
-	--header-h: 5.875rem;
+	--header-h: #{chrome(5.875)};
 	--hairline: 1px;
 
 	@include MQ(M) {
-		--header-h: 5rem;
+		--header-h: #{chrome(5)};
 	}
 }
 
@@ -75,7 +75,7 @@ header {
 
 .cd-logo {
 	flex: none;
-	height: 3.125rem;
+	height: chrome(3.125);
 	position: relative;
 
 	img {
@@ -112,7 +112,7 @@ nav {
 	position: relative;
 	display: flex;
 	align-items: center;
-	height: 2.75rem;
+	height: chrome(2.75);
 	padding: 0 var(--spacing-sm);
 	overflow-x: auto;
 	scrollbar-width: none;
@@ -126,7 +126,7 @@ nav {
 	li a {
 		display: inline-flex;
 		align-items: center;
-		min-height: 2.75rem;
+		min-height: chrome(2.75);
 		font-size: var(--font-size-sm);
 		padding: 0 0.2em;
 		transition:
@@ -148,7 +148,7 @@ main {
 	width: 90%;
 	max-width: $M;
 	margin: 0 auto;
-	padding: var(--header-h) 0 3.125rem;
+	padding: var(--header-h) 0 chrome(3.125);
 
 	> h1 {
 		text-align: center;
@@ -159,7 +159,7 @@ main {
 		max-width: none;
 		columns: 2;
 		column-gap: 4%;
-		padding-top: calc(var(--header-h) + 2.5rem);
+		padding-top: calc(var(--header-h) + chrome(2.5));
 
 		> h1,
 		> .cd-intro,
@@ -264,8 +264,8 @@ section {
 
 		img {
 			display: block;
-			width: 5.625rem;
-			height: 5.625rem;
+			width: chrome(5.625);
+			height: chrome(5.625);
 			object-fit: contain;
 			border-radius: var(--radius-lg);
 		}
@@ -287,7 +287,7 @@ section {
 .cd-colors {
 	.cd-scale {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(chrome(6.5), 1fr));
 		gap: var(--spacing-sm);
 	}
 
@@ -378,8 +378,8 @@ section {
 
 	img {
 		display: block;
-		width: 2rem;
-		height: 2rem;
+		width: chrome(2);
+		height: chrome(2);
 	}
 }
 
@@ -398,8 +398,8 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 }
 
 ::-webkit-scrollbar {
-	width: 0.5rem;
-	height: 0.5rem;
+	width: chrome(0.5);
+	height: chrome(0.5);
 }
 
 ::-webkit-scrollbar-button {
@@ -421,8 +421,8 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 
 .cd-motion {
 	position: relative;
-	width: 6rem;
-	height: 1.5rem;
+	width: chrome(6);
+	height: chrome(1.5);
 	padding: 0;
 	border: var(--hairline) solid var(--color-card-border);
 	border-radius: 999px;
@@ -430,23 +430,23 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	cursor: pointer;
 
 	&:focus-visible {
-		outline: 0.125rem solid var(--color-focus-border);
-		outline-offset: 0.125rem;
+		outline: chrome(0.125) solid var(--color-focus-border);
+		outline-offset: chrome(0.125);
 	}
 }
 
 .cd-motion-dot {
 	position: absolute;
-	top: 0.25rem;
-	left: 0.25rem;
-	width: 0.875rem;
-	height: 0.875rem;
+	top: chrome(0.25);
+	left: chrome(0.25);
+	width: chrome(0.875);
+	height: chrome(0.875);
 	border-radius: 50%;
 	background: var(--color-primary-background);
 	transition-property: transform;
 
 	[aria-pressed='true'] > & {
-		transform: translateX(4.5rem);
+		transform: translateX(chrome(4.5));
 	}
 }
 
@@ -463,13 +463,13 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	z-index: 21;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.25rem 0.5rem;
-	max-width: min(28rem, calc(100vw - 1rem));
-	padding: 0.25rem 0.5rem;
-	border-radius: 0.375rem;
+	gap: chrome(0.25) chrome(0.5);
+	max-width: min(chrome(28), calc(100vw - chrome(1)));
+	padding: chrome(0.25) chrome(0.5);
+	border-radius: chrome(0.375);
 	background: var(--ed-text);
 	color: var(--ed-surface);
-	font: 400 0.75rem / 1.4 var(--ed-font);
+	font: 400 chrome(0.75) / 1.4 var(--ed-font);
 	letter-spacing: normal;
 	text-transform: none;
 	pointer-events: none;

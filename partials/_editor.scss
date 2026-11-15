@@ -2,8 +2,8 @@
 @use 'layout' as *;
 
 .cd-icon {
-	width: 1.25rem;
-	height: 1.25rem;
+	width: chrome(1.25);
+	height: chrome(1.25);
 	flex: none;
 	stroke: currentColor;
 	fill: none;
@@ -13,7 +13,7 @@
 }
 
 :root {
-	--control-h: #{ed(2.25)};
+	--control-h: #{chrome(2.25)};
 }
 
 .btn-small {
@@ -45,8 +45,8 @@
 	align-items: center;
 	justify-content: center;
 	gap: var(--spacing-xs);
-	min-width: 2.75rem;
-	min-height: 2.75rem;
+	min-width: chrome(2.75);
+	min-height: chrome(2.75);
 	padding: 0 var(--spacing-sm);
 	border: none;
 	border-radius: var(--radius-sm);
@@ -82,15 +82,15 @@
 
 .cd-switch {
 	display: inline-flex;
-	width: 2rem;
+	width: chrome(2);
 	padding: var(--hairline);
 	border: var(--hairline) solid currentcolor;
 	border-radius: var(--radius-sm);
 }
 
 .cd-switch-thumb {
-	width: 0.75rem;
-	height: 0.75rem;
+	width: chrome(0.75);
+	height: chrome(0.75);
 	border-radius: var(--radius-sm);
 	background: currentcolor;
 
@@ -99,7 +99,7 @@
 	}
 
 	&[data-state='checked'] {
-		transform: translateX(calc(2rem - 0.75rem - 4 * var(--hairline)));
+		transform: translateX(calc(chrome(2) - chrome(0.75) - 4 * var(--hairline)));
 	}
 }
 
@@ -157,7 +157,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--spacing-xs);
-	min-height: 2.75rem;
+	min-height: chrome(2.75);
 	padding: 0 var(--spacing-md);
 	border: none;
 	border-radius: var(--radius-sm);
@@ -178,14 +178,14 @@
 	}
 
 	&:focus-visible {
-		outline: 0.125rem solid var(--color-focus-border);
-		outline-offset: 0.125rem;
+		outline: chrome(0.125) solid var(--color-focus-border);
+		outline-offset: chrome(0.125);
 	}
 }
 
 .cd-popover.cd-contrast-popover {
-	width: min(ed(36), var(--reka-popover-content-available-width, ed(36)));
-	max-height: min(ed(28), var(--reka-popover-content-available-height, ed(28)));
+	width: min(chrome(36), var(--reka-popover-content-available-width, chrome(36)));
+	max-height: min(chrome(28), var(--reka-popover-content-available-height, chrome(28)));
 }
 
 .cd-drop {
@@ -222,7 +222,7 @@
 	box-shadow: var(--ed-shadow);
 
 	@include MQ(S) {
-		width: ed(30);
+		width: chrome(30);
 		border-left: 1px solid var(--ed-border);
 	}
 
@@ -306,7 +306,7 @@
 
 	input:focus-visible,
 	textarea:focus-visible {
-		outline: ed(0.125) solid var(--ed-accent);
+		outline: chrome(0.125) solid var(--ed-accent);
 		outline-offset: 0;
 	}
 
@@ -335,7 +335,7 @@
 		align-self: stretch;
 		width: var(--ed-control);
 		height: auto;
-		padding: ed(0.125);
+		padding: chrome(0.125);
 		border: 1px solid var(--ed-border-strong);
 		border-radius: var(--ed-r-inner);
 		background: var(--ed-surface);
@@ -360,13 +360,13 @@
 }
 
 .cd-field-row.cd-cmyk > .cd-field {
-	flex: 1 1 ed(3);
+	flex: 1 1 chrome(3);
 }
 
 .cd-mini-scale {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(ed(1.75), 1fr));
-	gap: ed(0.125);
+	grid-template-columns: repeat(auto-fill, minmax(chrome(1.75), 1fr));
+	gap: chrome(0.125);
 	margin: var(--ed-1) 0 var(--ed-2);
 }
 
@@ -374,7 +374,7 @@
 	position: relative;
 	display: block;
 	width: 100%;
-	height: ed(1.75);
+	height: chrome(1.75);
 	padding: 0;
 	border: none;
 	border-radius: var(--ed-r-inner);
@@ -382,25 +382,25 @@
 	cursor: pointer;
 
 	&.is-base {
-		outline: ed(0.125) solid var(--ed-accent);
-		outline-offset: ed(0.125);
+		outline: chrome(0.125) solid var(--ed-accent);
+		outline-offset: chrome(0.125);
 	}
 
 	&.is-hand::after {
 		content: '';
 		position: absolute;
-		top: ed(0.25);
-		right: ed(0.25);
-		width: ed(0.5);
-		height: ed(0.5);
+		top: chrome(0.25);
+		right: chrome(0.25);
+		width: chrome(0.5);
+		height: chrome(0.5);
 		border-radius: 50%;
 		background: var(--ed-surface);
 		box-shadow: 0 0 0 1px var(--ed-text);
 	}
 
 	&:focus-visible {
-		outline: ed(0.125) solid var(--ed-accent);
-		outline-offset: ed(0.125);
+		outline: chrome(0.125) solid var(--ed-accent);
+		outline-offset: chrome(0.125);
 	}
 }
 
@@ -408,7 +408,7 @@
 	z-index: 35;
 	display: grid;
 	gap: var(--ed-1);
-	width: min(ed(20), var(--reka-popover-content-available-width, ed(20)));
+	width: min(chrome(20), var(--reka-popover-content-available-width, chrome(20)));
 	max-height: var(--reka-popover-content-available-height, none);
 	overflow-y: auto;
 	padding: var(--ed-3);
@@ -438,7 +438,7 @@
 	z-index: 51;
 	display: grid;
 	gap: var(--ed-2);
-	width: min(ed(28), calc(100vw - 2 * var(--ed-4)));
+	width: min(chrome(28), calc(100vw - 2 * var(--ed-4)));
 	padding: var(--ed-4);
 	border: 1px solid var(--ed-border);
 	border-radius: var(--ed-r);
@@ -462,7 +462,7 @@
 }
 
 .cd-confirm-items {
-	max-height: ed(12);
+	max-height: chrome(12);
 	margin: 0;
 	padding: 0;
 	overflow-y: auto;
@@ -483,7 +483,7 @@
 	margin-bottom: var(--ed-2);
 
 	> .cd-field {
-		flex: 1 1 ed(8);
+		flex: 1 1 chrome(8);
 		margin-bottom: 0;
 	}
 }
@@ -491,7 +491,7 @@
 .cd-listbox {
 	position: relative;
 	display: inline-block;
-	min-width: ed(12);
+	min-width: chrome(12);
 	max-width: 100%;
 
 	.cd-field & {
@@ -516,7 +516,7 @@
 	align-self: stretch;
 	width: var(--ed-control);
 	height: auto;
-	padding: ed(0.125);
+	padding: chrome(0.125);
 	border: 1px solid var(--ed-border-strong);
 	border-radius: var(--ed-r-inner);
 	background: var(--ed-surface);
@@ -536,8 +536,8 @@
 
 .cd-combobox-popup {
 	z-index: 35;
-	width: min(var(--reka-combobox-trigger-width), var(--reka-combobox-content-available-width, ed(24)));
-	max-height: min(ed(16), var(--reka-combobox-content-available-height, ed(16)));
+	width: min(var(--reka-combobox-trigger-width), var(--reka-combobox-content-available-width, chrome(24)));
+	max-height: min(chrome(16), var(--reka-combobox-content-available-height, chrome(16)));
 	overflow-y: auto;
 	padding: var(--ed-1);
 	border: 1px solid var(--ed-border);
@@ -555,8 +555,8 @@
 
 .cd-combobox-option-swatch {
 	flex: none;
-	width: ed(1);
-	height: ed(1);
+	width: chrome(1);
+	height: chrome(1);
 	border: 1px solid var(--ed-border-strong);
 	border-radius: var(--ed-r-inner);
 }
@@ -589,7 +589,7 @@
 .cd-listbox-popup {
 	z-index: 35;
 	width: var(--reka-select-trigger-width);
-	max-height: min(ed(16), var(--reka-select-content-available-height, ed(16)));
+	max-height: min(chrome(16), var(--reka-select-content-available-height, chrome(16)));
 	overflow-y: auto;
 	padding: var(--ed-1);
 	border: 1px solid var(--ed-border);
@@ -602,7 +602,7 @@
 	display: flex;
 	align-items: center;
 	gap: var(--ed-1);
-	min-height: ed(2.25);
+	min-height: chrome(2.25);
 	padding: var(--ed-1) var(--ed-2);
 	border-radius: var(--ed-r-inner);
 	cursor: pointer;
@@ -627,7 +627,7 @@
 
 .cd-token-row {
 	display: grid;
-	grid-template-columns: 12rem 1fr;
+	grid-template-columns: chrome(12) 1fr;
 	align-items: center;
 	gap: var(--spacing-sm);
 
@@ -641,7 +641,7 @@
 }
 
 .cd-bar {
-	height: 1rem;
+	height: chrome(1);
 	max-width: 100%;
 	border-radius: var(--radius-sm);
 	background: var(--color-primary-background);
@@ -649,7 +649,7 @@
 
 .cd-swatch-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(chrome(7), 1fr));
 	gap: var(--spacing-lg);
 	font-size: var(--font-size-sm);
 
@@ -661,7 +661,7 @@
 
 .cd-radius-box,
 .cd-shadow-box {
-	height: 5rem;
+	height: chrome(5);
 	background: var(--color-card-background);
 	border: var(--hairline) solid var(--color-card-border);
 }
@@ -688,7 +688,7 @@
 		align-items: center;
 		gap: var(--spacing-xs);
 		width: auto;
-		min-height: 2.75rem;
+		min-height: chrome(2.75);
 		padding: 0 var(--spacing-md);
 		font-size: var(--font-size-sm);
 		cursor: pointer;
@@ -712,7 +712,7 @@
 }
 
 .cd-code {
-	max-height: 30rem;
+	max-height: chrome(30);
 	overflow: auto;
 	padding: var(--spacing-lg);
 	border-radius: var(--radius-sm);
@@ -747,8 +747,8 @@
 .cd-chip {
 	display: inline-block;
 	flex: none;
-	width: 1rem;
-	height: 1rem;
+	width: chrome(1);
+	height: chrome(1);
 	margin-right: var(--spacing-xs);
 	vertical-align: middle;
 	border-radius: var(--radius-sm);
@@ -759,7 +759,7 @@
 	position: relative;
 	display: block;
 	width: 100%;
-	min-height: 1.5rem;
+	min-height: chrome(1.5);
 	padding: 0;
 	border: none;
 	background: none;
@@ -801,7 +801,7 @@
 	margin-bottom: var(--spacing-sm);
 
 	[role='tab'] {
-		min-height: 2.75rem;
+		min-height: chrome(2.75);
 		padding: 0 var(--spacing-md);
 		border: var(--hairline) solid var(--color-card-border);
 		border-radius: var(--radius-sm);
@@ -832,6 +832,6 @@
 }
 
 .cd-actions .cd-listbox {
-	width: 8rem;
+	width: chrome(8);
 	margin-right: var(--spacing-xs);
 }
