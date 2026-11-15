@@ -1,13 +1,12 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { zodValidator } from '../src/adapters/zod-validator';
-import { keysOf } from '../src/lib/records';
-import { setToken } from '../src/lib/edit';
-import { isNode, nodeAt, withVendorData } from '../src/lib/tree';
-import { fontsource } from '../src/adapters/fontsource';
-import { present, load, preset, token, V } from './helpers';
-import { unzipSync } from 'fflate';
+import { zodValidator, fontsource } from '~/adapters';
 import {
+  keysOf,
+  setToken,
+  isNode,
+  nodeAt,
+  withVendorData,
   classify,
   parseBrandJson,
   loadZip,
@@ -16,11 +15,14 @@ import {
   exportLayout,
   buildExport,
   readme,
-} from '../src/lib/io';
-import { resolve } from '../src/lib/resolver';
-import { brandMeta, withBrandMeta } from '../src/lib/assets';
-import { blankBrand } from '../src/lib/palette';
-import { addScaleStep } from '../src/lib/scale';
+  resolve,
+  brandMeta,
+  withBrandMeta,
+  blankBrand,
+  addScaleStep,
+} from '~/lib';
+import { present, load, preset, token, V } from './helpers';
+import { unzipSync } from 'fflate';
 
 const bytes = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);

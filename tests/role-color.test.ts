@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { parseCssColor } from '../src/lib/color';
-import {
-  colorOptions,
-  roleEntry,
-  roleText,
-} from '../src/vue/editor/role-color';
+import { parseCssColor } from '~/lib';
+import { colorOptions, roleEntry, roleText } from '~/vue';
 import { present } from './helpers';
 
 const palette = [

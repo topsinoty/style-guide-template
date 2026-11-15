@@ -1,7 +1,6 @@
-import type { Session } from '../app/session';
-import { generateCss } from '../lib/css';
-import { resolve } from '../lib/resolver';
-import type { BrandMeta, FontFile, Tokens } from '../lib/types';
+import type { Session } from '~/app';
+import { generateCss, resolve } from '~/lib';
+import type { BrandMeta, FontFile, Tokens } from '~/lib';
 import { urlFor } from './urls';
 
 export type View = {

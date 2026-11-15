@@ -1,9 +1,8 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import type { FontFile } from '../src/lib/types';
+import type { FontFile } from '~/lib';
 import { load, V } from './helpers';
-import { tailwindCss, shadcnCss } from '../src/lib/exports';
-import * as E from '../src/lib/edit';
+import { tailwindCss, shadcnCss, renameTheme } from '~/lib';
 
 const opts = { vendor: V, fontSrc: (f: FontFile) => f.src };
 
@@ -46,7 +45,7 @@ test('shadcn skips variables the brand has no role for', () => {
 });
 
 test('tailwind v4: every non-default theme gets its own variant', () => {
-  const css = tailwindCss(E.renameTheme(load(), 'dark', 'web'), opts);
+  const css = tailwindCss(renameTheme(load(), 'dark', 'web'), opts);
   assert.match(
     css,
     /@custom-variant web \(&:where\(\[data-theme="web"\], \[data-theme="web"\] \*\)\);/,

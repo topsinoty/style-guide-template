@@ -1,8 +1,24 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, useId } from 'vue';
-import * as E from '../../lib/edit';
-import { child, children } from '../../lib/tree';
-import { narrow, isFontFamily, isSize, isTypography } from '../../lib/values';
+import {
+  addFontFiles,
+  fontFromFileName,
+  removeFontFile,
+  removeToken,
+  child,
+  children,
+  narrow,
+  isFontFamily,
+  isSize,
+  isTypography,
+  cssName,
+  sortFontFiles,
+  ELEMENTS,
+  addStandardStyles,
+  elementOf,
+  elementStyles,
+  setElement,
+} from '~/lib';
 import { cap, dim } from '../guide/parts';
 import FontPicker from '../FontPicker.vue';
 import Choice from './Choice.vue';
@@ -15,15 +31,6 @@ import ItemRow from './ItemRow.vue';
 import Scales from './Scales.vue';
 import Listbox from '../Listbox.vue';
 import Icon from '../Icon.vue';
-import { cssName } from '../../lib/css';
-import { sortFontFiles } from '../../lib/fonts';
-import {
-  ELEMENTS,
-  addStandardStyles,
-  elementOf,
-  elementStyles,
-  setElement,
-} from '../../lib/elements';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const draftWeights = reactive<Record<string, number | undefined>>({});
@@ -143,13 +150,13 @@ async function focusNewFont() {
 async function uploadFonts(files: File[]) {
   await props.ctx.session.addFontUploads(files);
   if (files.length) {
-    newFontFamily.value = E.fontFromFileName(files[0].name).family;
+    newFontFamily.value = fontFromFileName(files[0].name).family;
     await focusNewFont();
   }
 }
 
-async function pickFonts(files: Parameters<typeof E.addFontFiles>[1]) {
-  props.ctx.setMeta((meta) => E.addFontFiles(meta, files));
+async function pickFonts(files: Parameters<typeof addFontFiles>[1]) {
+  props.ctx.setMeta((meta) => addFontFiles(meta, files));
   if (files.length) newFontFamily.value = files[0].family;
   catalogOpen.value = false;
   await focusNewFont();
@@ -288,7 +295,7 @@ const uid = useId();
         <IconButton
           name="trash"
           :label="`Remove ${file.family} ${file.weight} ${file.style}`"
-          @click="ctx.setMeta((m) => E.removeFontFile(m, file.src))"
+          @click="ctx.setMeta((m) => removeFontFile(m, file.src))"
         />
       </li>
     </ul>
@@ -321,7 +328,7 @@ const uid = useId();
               ? 'A text style uses this font. Change it first.'
               : undefined
           "
-          @click="ctx.edit((doc) => E.removeToken(doc, `font.${font.name}`))"
+          @click="ctx.edit((doc) => removeToken(doc, `font.${font.name}`))"
         />
       </template>
     </div>
@@ -355,7 +362,7 @@ const uid = useId();
         :remove-label="`Remove the ${style.title} style`"
         @update:open="(open) => (opened = open ? style.name : undefined)"
         @remove="
-          ctx.edit((doc) => E.removeToken(doc, `typography.${style.name}`))
+          ctx.edit((doc) => removeToken(doc, `typography.${style.name}`))
         "
       >
         <template #lead>

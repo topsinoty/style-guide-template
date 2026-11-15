@@ -1,9 +1,9 @@
 import { isDeepStrictEqual } from 'node:util';
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { memoryFileStore, memoryKeyValueStore } from '../src/adapters/memory';
-import { createStore } from '../src/lib/state';
-import type { ResolverDoc } from '../src/lib/types';
+import { memoryFileStore, memoryKeyValueStore } from '~/adapters';
+import { createStore } from '~/lib';
+import type { ResolverDoc } from '~/lib';
 
 const mem = memoryKeyValueStore;
 const memFiles = (fail = false) => {

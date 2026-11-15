@@ -1,8 +1,5 @@
-import { parseCssColor, toHex } from '../../lib/color';
-import { cssName } from '../../lib/css';
-import type { PaletteColor } from '../../lib/palette';
-import type { DtcgColor } from '../../lib/types';
-import { narrow, isColor } from '../../lib/values';
+import { parseCssColor, toHex, cssName, narrow, isColor } from '~/lib';
+import type { PaletteColor, DtcgColor } from '~/lib';
 
 export type ColorOption = {
   value: string;

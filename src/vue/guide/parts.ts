@@ -1,5 +1,4 @@
-import { cssName } from '../../lib/css';
-import { isNode } from '../../lib/tree';
+import { cssName, isNode } from '~/lib';
 
 export function dim(value: unknown): string {
   if (

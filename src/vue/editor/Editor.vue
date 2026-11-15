@@ -8,8 +8,8 @@ import {
   TabsRoot,
   TabsTrigger,
 } from 'reka-ui';
-import type { Session } from '../../app/session';
-import type { Tokens } from '../../lib/types';
+import type { Session } from '~/app';
+import type { Tokens } from '~/lib';
 import { editorContext } from './context';
 import Brand from './Brand.vue';
 import Palette from './Palette.vue';

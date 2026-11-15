@@ -10,7 +10,8 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
+    "paths": { "~/*": ["./src/*"] }
   },
   "include": ["src", "src/**/*.vue", "vite.config.ts"]
 }

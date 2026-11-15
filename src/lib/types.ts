@@ -1,4 +1,4 @@
-import type { FontProvider } from '../ports';
+import type { FontProvider } from '~/ports';
 
 export type VendorData = Record<string, unknown>;
 

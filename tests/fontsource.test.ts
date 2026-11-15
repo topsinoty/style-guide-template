@@ -1,6 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { keysOf } from '../src/lib/records';
+import { keysOf } from '~/lib';
 import * as z from 'zod/mini';
 import { fixture, present } from './helpers';
 import {
@@ -8,8 +8,8 @@ import {
   fontFiles,
   fontsource,
   parseList,
-} from '../src/adapters/fontsource';
-import { memoryKeyValueStore } from '../src/adapters/memory';
+  memoryKeyValueStore,
+} from '~/adapters';
 
 const detail = z.parse(fontDetail, fixture('fontsource-merriweather.json'));
 const listResponse = () =>

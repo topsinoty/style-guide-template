@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { fontsource } from '../src/adapters/fontsource';
-import { brandMeta } from '../src/lib/assets';
-import type { FileData, ResolverDoc } from '../src/lib/types';
+import { fontsource } from '~/adapters';
+import { brandMeta } from '~/lib';
+import type { FileData, ResolverDoc } from '~/lib';
 import { preset as presetDoc } from './helpers';
-import { deriveView, type ViewSession } from '../src/vue/view';
+import { deriveView, type ViewSession } from '~/vue';
 
 const preset = presetDoc();
 const vendor = 'com.example.styleguide';

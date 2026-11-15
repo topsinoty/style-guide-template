@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { COLOR_ERROR, parseCssColor, toHex } from '../lib/color';
-import type { DtcgColor } from '../lib/types';
+import { COLOR_ERROR, parseCssColor, toHex } from '~/lib';
+import type { DtcgColor } from '~/lib';
 
 const props = withDefaults(
   defineProps<{

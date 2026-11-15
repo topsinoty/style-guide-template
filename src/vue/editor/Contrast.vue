@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref } from 'vue';
-import { checkContrast, pairLabel } from '../../lib/contrast';
-import { cssName } from '../../lib/css';
-import type { ContrastPair } from '../../lib/types';
+import { checkContrast, pairLabel, cssName } from '~/lib';
+import type { ContrastPair } from '~/lib';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context';
 import IconButton from './IconButton.vue';

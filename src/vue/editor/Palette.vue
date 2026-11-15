@@ -2,9 +2,10 @@
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
 import { PopoverContent, PopoverRoot, PopoverTrigger } from 'reka-ui';
-import { COLOR_ERROR, parseCssColor } from '../../lib/color';
-import { ROLES } from '../../lib/contrast';
 import {
+  COLOR_ERROR,
+  parseCssColor,
+  ROLES,
   addColor,
   generateShades,
   handSetShades,
@@ -15,7 +16,7 @@ import {
   removeColor,
   removeShade,
   renameColor,
-} from '../../lib/palette';
+} from '~/lib';
 import ColorInput from '../ColorInput.vue';
 import Icon from '../Icon.vue';
 import Confirm, { type ConfirmChoice } from '../Confirm.vue';

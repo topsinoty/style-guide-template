@@ -1,16 +1,17 @@
-import type { Session } from '../../app/session';
-import { withBrandMeta } from '../../lib/assets';
-import * as E from '../../lib/edit';
-import { checkBrand, problemText } from '../../lib/io';
-import { isNode, nodeAt } from '../../lib/tree';
-import { isDark } from '../../lib/color';
-import { narrow, isColor } from '../../lib/values';
-import type {
-  BrandMeta,
-  ResolverDoc,
-  TokenNode,
-  Tokens,
-} from '../../lib/types';
+import type { Session } from '~/app';
+import {
+  withBrandMeta,
+  foundation,
+  setToken as setTokenIn,
+  checkBrand,
+  problemText,
+  isNode,
+  nodeAt,
+  isDark,
+  narrow,
+  isColor,
+} from '~/lib';
+import type { BrandMeta, ResolverDoc, TokenNode, Tokens } from '~/lib';
 
 export type EditorContext = {
   session: Session;
@@ -44,15 +45,15 @@ export function editorContext(
     else store.set(next, typingKey);
   };
   const fresh = (path: string): TokenNode =>
-    nodeAt(E.foundation(store.get()), path) ?? {};
+    nodeAt(foundation(store.get()), path) ?? {};
   const setToken = (path: string, token: TokenNode) =>
-    edit((doc) => E.setToken(doc, path, token));
+    edit((doc) => setTokenIn(doc, path, token));
 
   return {
     session,
     vendor,
     doc: store.get(),
-    tree: E.foundation(store.get()),
+    tree: foundation(store.get()),
     tokens,
     meta: session.meta,
     theme,

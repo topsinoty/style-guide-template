@@ -1,11 +1,9 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import type { FontFile } from '../src/lib/types';
-import { setToken } from '../src/lib/edit';
+import type { FontFile } from '~/lib';
+import { setToken, cssName, cssValue, generateCss, fontFaceRules } from '~/lib';
 import { load, present, V } from './helpers';
 import { readFileSync } from 'node:fs';
-import { cssName, cssValue, generateCss } from '../src/lib/css';
-import { fontFaceRules } from '../src/lib/fonts';
 
 const opts = { vendor: V, fontSrc: (e: FontFile) => e.src };
 

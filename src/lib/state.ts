@@ -1,4 +1,4 @@
-import type { FileStore, KeyValueStore } from '../ports';
+import type { FileStore, KeyValueStore } from '~/ports';
 import { isResolver } from './document';
 import type { ResolverDoc, SessionFiles } from './types';
 

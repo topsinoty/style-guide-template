@@ -1,7 +1,7 @@
 import { block, generateCss, cssName } from './css';
 import { resolve, contexts, defaultInputs } from './resolver';
 import { toOklchString } from './color';
-import type { ExportFormat } from '../ports';
+import type { ExportFormat } from '~/ports';
 import { narrow, isColor, isSize } from './values';
 import type { FontFile, ResolverDoc, Tokens } from './types';
 

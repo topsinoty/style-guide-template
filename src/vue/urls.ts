@@ -1,7 +1,6 @@
 import { blobPart } from './download';
-import { resolveAsset } from '../lib/assets';
-import { extension } from '../lib/path';
-import type { AssetContext, AssetItem, FileData } from '../lib/types';
+import { resolveAsset, extension } from '~/lib';
+import type { AssetContext, AssetItem, FileData } from '~/lib';
 
 const MIME: Record<string, string> = {
   svg: 'image/svg+xml',

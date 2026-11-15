@@ -1,6 +1,6 @@
-import { HOSTED_URL } from '../config';
-import { valueAt } from '../lib/records';
+import { HOSTED_URL } from '~/config';
 import {
+  valueAt,
   adoptVendor,
   allSrcs,
   BUILT_IN_GROUPS,
@@ -9,9 +9,10 @@ import {
   matchDropped,
   missingAssets,
   withBrandMeta,
-} from '../lib/assets';
-import * as E from '../lib/edit';
-import {
+  addFontFiles,
+  addGroup,
+  addItems,
+  fontFromFileName,
   buildExport,
   classify,
   errorMessage,
@@ -20,9 +21,12 @@ import {
   problemText,
   saveJson,
   slug,
-} from '../lib/io';
-import { blankBrand } from '../lib/palette';
-import { createStore, type Store } from '../lib/state';
+  blankBrand,
+  createStore,
+  type Store,
+  uniquePath,
+  vendorKey,
+} from '~/lib';
 import type {
   AssetContext,
   BrandMeta,
@@ -30,16 +34,14 @@ import type {
   Problem,
   ResolverDoc,
   SessionFiles,
-} from '../lib/types';
-import { uniquePath } from '../lib/path';
+} from '~/lib';
 import type {
   Parsed,
   FileStore,
   FontProvider,
   KeyValueStore,
   Validator,
-} from '../ports';
-import { vendorKey } from '../lib/vendor-key';
+} from '~/ports';
 
 export type Ambiguous = {
   file: File;
@@ -254,16 +256,16 @@ export class Session {
       src,
     }));
     await this.#persist(map);
-    this.setMeta((m) => E.addItems(m, groupId, entries));
+    this.setMeta((m) => addItems(m, groupId, entries));
   }
 
   async addFontUploads(files: File[]) {
     const { map, entries } = this.#place(files, 'fonts', (file, src) => ({
-      ...E.fontFromFileName(file.name),
+      ...fontFromFileName(file.name),
       src,
     }));
     await this.#persist(map);
-    this.setMeta((m) => E.addFontFiles(m, entries));
+    this.setMeta((m) => addFontFiles(m, entries));
   }
 
   async #loadBrand(doc: ResolverDoc, files?: SessionFiles) {
@@ -301,7 +303,7 @@ export class Session {
   async addPending(groupId: string | null) {
     let id = groupId;
     if (!id) {
-      const next = E.addGroup(this.meta, 'Uploads');
+      const next = addGroup(this.meta, 'Uploads');
       this.setMeta(() => next);
       id = next.assetGroups.at(-1)?.id ?? null;
     }

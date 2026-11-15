@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { cssName } from '../../lib/css';
-import * as E from '../../lib/edit';
-import { nodeAt } from '../../lib/tree';
+import { cssName, setDescription, nodeAt } from '~/lib';
 import type { EditorContext } from './context';
 import ItemRow from './ItemRow.vue';
 import TextAreaField from './TextAreaField.vue';
@@ -64,7 +62,7 @@ const uid = useId();
         placeholder="What it is for, and what to pair it with."
         @commit="
           (value, key) =>
-            ctx.edit((doc) => E.setDescription(doc, path, value), key)
+            ctx.edit((doc) => setDescription(doc, path, value), key)
         "
       />
     </ItemRow>

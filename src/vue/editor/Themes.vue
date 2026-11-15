@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue';
-import * as E from '../../lib/edit';
-import { paletteId } from '../../lib/palette';
+import {
+  addTheme,
+  defaultTheme,
+  removeTheme,
+  renameTheme,
+  themesOf,
+  paletteId,
+} from '~/lib';
 import type { EditorContext } from './context';
 import IconButton from './IconButton.vue';
 import NameForm from './NameForm.vue';
 
 const props = defineProps<{ ctx: EditorContext }>();
-const themes = computed(() => E.themesOf(props.ctx.doc));
-const fallback = computed(() => E.defaultTheme(props.ctx.doc));
+const themes = computed(() => themesOf(props.ctx.doc));
+const fallback = computed(() => defaultTheme(props.ctx.doc));
 
 function rename(from: string, event: Event) {
   if (!(event.target instanceof HTMLInputElement)) return;
@@ -22,12 +28,12 @@ function rename(from: string, event: Event) {
     props.ctx.session.warn(`There is already a theme named ${to}.`);
     return;
   }
-  props.ctx.edit((doc) => E.renameTheme(doc, from, to));
+  props.ctx.edit((doc) => renameTheme(doc, from, to));
   if (props.ctx.theme === from) props.ctx.setTheme(to);
 }
 
 function add(name: string) {
-  props.ctx.edit((doc) => E.addTheme(doc, name));
+  props.ctx.edit((doc) => addTheme(doc, name));
   props.ctx.setTheme(name);
 }
 const uid = useId();
@@ -56,7 +62,7 @@ const uid = useId();
         v-else
         name="trash"
         :label="`Remove the ${theme} theme`"
-        @click="ctx.edit((doc) => E.removeTheme(doc, theme))"
+        @click="ctx.edit((doc) => removeTheme(doc, theme))"
       />
     </li>
   </ul>

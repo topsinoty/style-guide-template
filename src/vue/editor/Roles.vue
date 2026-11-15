@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { checkContrast, ROLES } from '../../lib/contrast';
-import { COLOR_ERROR, toHex } from '../../lib/color';
-import { cssName } from '../../lib/css';
-import * as E from '../../lib/edit';
-import { entriesOf } from '../../lib/records';
-import { paletteColors, roleFromShade } from '../../lib/palette';
+import {
+  checkContrast,
+  ROLES,
+  COLOR_ERROR,
+  toHex,
+  cssName,
+  setRole as setRoleIn,
+  entriesOf,
+  paletteColors,
+  roleFromShade,
+  narrow,
+  isColor,
+} from '~/lib';
 import Choice from './Choice.vue';
-import { narrow, isColor } from '../../lib/values';
 import { cap } from '../guide/parts';
 import type { EditorContext } from './context';
 import { colorOptions, roleEntry, roleText } from './role-color';
@@ -100,7 +106,7 @@ function fill(role: string, option: string) {
       .filter(([part]) => has(part))
       .reduce(
         (next, [part, value]) =>
-          E.setRole(next, props.ctx.theme, `${role}.${part}`, value),
+          setRoleIn(next, props.ctx.theme, `${role}.${part}`, value),
         doc,
       ),
   );
@@ -113,7 +119,7 @@ function setRole(path: string, text: string) {
     return;
   }
   props.ctx.edit((doc) =>
-    E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value),
+    setRoleIn(doc, props.ctx.theme, path.slice('color.'.length), value),
   );
 }
 </script>

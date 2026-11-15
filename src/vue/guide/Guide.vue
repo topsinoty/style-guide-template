@@ -5,12 +5,15 @@ import {
   useIntersectionObserver,
   useWindowSize,
 } from '@vueuse/core';
-import type { Session } from '../../app/session';
-import { missingAssets } from '../../lib/assets';
-import { checkContrast } from '../../lib/contrast';
-import { cssName, cssValue } from '../../lib/css';
-import { fileName } from '../../lib/path';
-import type { BrandMeta, ResolverDoc, Tokens } from '../../lib/types';
+import type { Session } from '~/app';
+import {
+  missingAssets,
+  checkContrast,
+  cssName,
+  cssValue,
+  fileName,
+} from '~/lib';
+import type { BrandMeta, ResolverDoc, Tokens } from '~/lib';
 import AssetImage from './AssetImage.vue';
 import Card from './Card.vue';
 import Code from './Code.vue';

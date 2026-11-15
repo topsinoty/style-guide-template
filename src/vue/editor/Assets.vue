@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, shallowReactive, useId } from 'vue';
-import { mainLogo } from '../../lib/assets';
-import { COLOR_ERROR, toHex } from '../../lib/color';
-import * as E from '../../lib/edit';
-import { paletteColors } from '../../lib/palette';
-import { extension, fileName } from '../../lib/path';
-import type { AssetGroup, AssetItem } from '../../lib/types';
-import { isColor, narrow } from '../../lib/values';
+import {
+  mainLogo,
+  COLOR_ERROR,
+  toHex,
+  addGroup,
+  addItems,
+  moveGroup,
+  moveItem,
+  removeGroup,
+  removeItem,
+  renameGroup,
+  updateItem,
+  paletteColors,
+  extension,
+  fileName,
+  isColor,
+  narrow,
+} from '~/lib';
+import type { AssetGroup, AssetItem } from '~/lib';
 import { urlFor } from '../urls';
 import Listbox from '../Listbox.vue';
 import IconButton from './IconButton.vue';
@@ -46,7 +58,7 @@ function hexOf(background: string | undefined) {
 function setBackground(group: AssetGroup, item: AssetItem, text: string) {
   if (!text.trim()) {
     props.ctx.setMeta((m) =>
-      E.updateItem(m, group.id, item.src, { background: undefined }),
+      updateItem(m, group.id, item.src, { background: undefined }),
     );
     return;
   }
@@ -56,7 +68,7 @@ function setBackground(group: AssetGroup, item: AssetItem, text: string) {
     return;
   }
   const background = typeof value === 'string' ? value : toHex(value);
-  props.ctx.setMeta((m) => E.updateItem(m, group.id, item.src, { background }));
+  props.ctx.setMeta((m) => updateItem(m, group.id, item.src, { background }));
 }
 
 const count = (n: number) => (n === 1 ? '1 file' : `${n} files`);
@@ -65,14 +77,14 @@ function addFromLibrary(group: AssetGroup) {
   const src = pick(group);
   if (src && !group.items.some((item) => item.src === src))
     props.ctx.setMeta((meta) =>
-      E.addItems(meta, group.id, [{ label: fileName(src), src }]),
+      addItems(meta, group.id, [{ label: fileName(src), src }]),
     );
 }
 
-function addGroup() {
+function addNewGroup() {
   const label = newGroup.value.trim();
   if (!label) return false;
-  props.ctx.setMeta((meta) => E.addGroup(meta, label));
+  props.ctx.setMeta((meta) => addGroup(meta, label));
   newGroup.value = '';
   return true;
 }
@@ -80,7 +92,7 @@ function addGroup() {
 function rename(group: AssetGroup, event: Event) {
   if (!(event.target instanceof HTMLInputElement)) return;
   const label = event.target.value.trim();
-  if (label) props.ctx.setMeta((m) => E.renameGroup(m, group.id, label));
+  if (label) props.ctx.setMeta((m) => renameGroup(m, group.id, label));
   else event.target.value = groupName(group);
 }
 
@@ -122,18 +134,18 @@ const uid = useId();
         name="move-up"
         :label="`Move ${groupName(group)} up`"
         :disabled="g === 0"
-        @click="ctx.setMeta((m) => E.moveGroup(m, group.id, -1))"
+        @click="ctx.setMeta((m) => moveGroup(m, group.id, -1))"
       />
       <IconButton
         name="move-down"
         :label="`Move ${groupName(group)} down`"
         :disabled="g === ctx.meta.assetGroups.length - 1"
-        @click="ctx.setMeta((m) => E.moveGroup(m, group.id, 1))"
+        @click="ctx.setMeta((m) => moveGroup(m, group.id, 1))"
       />
       <IconButton
         name="trash"
         :label="`Remove the ${groupName(group)} group`"
-        @click="ctx.setMeta((m) => E.removeGroup(m, group.id))"
+        @click="ctx.setMeta((m) => removeGroup(m, group.id))"
       />
     </div>
     <ul v-if="group.items.length" class="ed-list">
@@ -150,9 +162,9 @@ const uid = useId();
           (open) => (opened = open ? rowKey(group, item) : undefined)
         "
         @move="
-          (dir) => ctx.setMeta((m) => E.moveItem(m, group.id, item.src, dir))
+          (dir) => ctx.setMeta((m) => moveItem(m, group.id, item.src, dir))
         "
-        @remove="ctx.setMeta((m) => E.removeItem(m, group.id, item.src))"
+        @remove="ctx.setMeta((m) => removeItem(m, group.id, item.src))"
       >
         <template #lead>
           <img
@@ -175,7 +187,7 @@ const uid = useId();
           :value="item.label"
           @commit="
             ctx.setMeta((m) =>
-              E.updateItem(m, group.id, item.src, { label: $event }),
+              updateItem(m, group.id, item.src, { label: $event }),
             )
           "
         />
@@ -185,7 +197,7 @@ const uid = useId();
           placeholder="When to use it, and on which backgrounds"
           @commit="
             ctx.setMeta((m) =>
-              E.updateItem(m, group.id, item.src, {
+              updateItem(m, group.id, item.src, {
                 description: $event || undefined,
               }),
             )
@@ -211,7 +223,7 @@ const uid = useId();
             :checked="item.wide === true"
             @change="
               ctx.setMeta((m) =>
-                E.updateItem(m, group.id, item.src, {
+                updateItem(m, group.id, item.src, {
                   wide: !item.wide || undefined,
                 }),
               )
@@ -280,7 +292,7 @@ const uid = useId();
   </section>
   <AddPanel label="Add a group">
     <template #default="{ close }">
-      <form class="ed-add" @submit.prevent="addGroup() && close()">
+      <form class="ed-add" @submit.prevent="addNewGroup() && close()">
         <label :for="`${uid}-new-group`" class="cd-field"
           ><span>New group</span
           ><input

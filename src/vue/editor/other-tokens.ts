@@ -1,5 +1,4 @@
-import { parseCssColor } from '../../lib/color';
-import { valueAt } from '../../lib/records';
+import { parseCssColor, valueAt } from '~/lib';
 
 export const UNITS: Record<string, string[]> = {
   duration: ['ms', 's'],

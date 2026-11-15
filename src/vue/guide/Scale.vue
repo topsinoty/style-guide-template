@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import Card from './Card.vue';
-import { cssName } from '../../lib/css';
-import type { Tokens } from '../../lib/types';
-import { narrow, isShadow, isShadowLayer, isSize } from '../../lib/values';
+import { cssName, narrow, isShadow, isShadowLayer, isSize } from '~/lib';
+import type { Tokens } from '~/lib';
 import { dim } from './parts';
 
 const props = defineProps<{

@@ -1,10 +1,9 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { keysOf } from '../src/lib/records';
-import type { ResolverDoc } from '../src/lib/types';
+import { keysOf, isResolver, toResolver } from '~/lib';
+import type { ResolverDoc } from '~/lib';
 import { load, present, removeAt, setAt } from './helpers';
-import { isResolver, toResolver } from '../src/lib/document';
-import { validateResolver } from '../src/adapters/zod-validator';
+import { validateResolver } from '~/adapters';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 

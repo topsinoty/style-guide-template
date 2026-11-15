@@ -1,10 +1,9 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { entriesOf, keysOf, valuesOf } from '../src/lib/records';
-import * as z from 'zod/mini';
-import { color } from '../src/adapters/zod-validator';
-import { present } from './helpers';
 import {
+  entriesOf,
+  keysOf,
+  valuesOf,
   oklch,
   toOklch,
   toHex,
@@ -14,8 +13,11 @@ import {
   cmyk,
   contrastRatio,
   shadeScale,
-} from '../src/lib/color';
-import type { DtcgColor } from '../src/lib/types';
+} from '~/lib';
+import * as z from 'zod/mini';
+import { color } from '~/adapters';
+import { present } from './helpers';
+import type { DtcgColor } from '~/lib';
 
 const space = (colorSpace: string, components: number[]) =>
   z.parse(color, { colorSpace, components });
@@ -94,7 +96,7 @@ test('shade scale', () => {
 });
 
 test('parseCssColor reads hex, rgb and oklch', async () => {
-  const { parseCssColor } = await import('../src/lib/color');
+  const { parseCssColor } = await import('~/lib');
   assert.equal(present(parseCssColor('#ff0000')).hex, '#ff0000');
   assert.equal(present(parseCssColor('#f00')).hex, '#ff0000');
   assert.equal(present(parseCssColor('rgb(255, 0, 0)')).hex, '#ff0000');
@@ -113,7 +115,7 @@ test('parseCssColor reads hex, rgb and oklch', async () => {
 });
 
 test('parseCssColor reads any CSS color', async () => {
-  const { parseCssColor, inGamut } = await import('../src/lib/color');
+  const { parseCssColor, inGamut } = await import('~/lib');
   assert.equal(present(parseCssColor('hsl(0 100% 50%)')).hex, '#ff0000');
   assert.equal(present(parseCssColor('rebeccapurple')).hex, '#663399');
   assert.deepEqual(present(parseCssColor('white')).components, [1, 0, 0]);
@@ -123,7 +125,7 @@ test('parseCssColor reads any CSS color', async () => {
 });
 
 test('every DTCG color space converts', async () => {
-  const { toHex } = await import('../src/lib/color');
+  const { toHex } = await import('~/lib');
   const red = {
     srgb: [1, 0, 0],
     'srgb-linear': [1, 0, 0],
@@ -139,8 +141,7 @@ test('every DTCG color space converts', async () => {
 });
 
 test('anchoredScale keeps the typed color exactly as the nearest shade', async () => {
-  const { anchoredScale, parseCssColor, toHex } =
-    await import('../src/lib/color');
+  const { anchoredScale, parseCssColor, toHex } = await import('~/lib');
   const typed = present(parseCssColor('#f0941d'));
   const { scale, anchor } = anchoredScale(typed);
   assert.equal(anchor, '300');
@@ -155,7 +156,7 @@ test('anchoredScale keeps the typed color exactly as the nearest shade', async (
 });
 
 test('every DTCG color space converts (white is white everywhere)', async () => {
-  const { toHex } = await import('../src/lib/color');
+  const { toHex } = await import('~/lib');
   const white = {
     srgb: [1, 1, 1],
     'srgb-linear': [1, 1, 1],
@@ -177,7 +178,7 @@ test('every DTCG color space converts (white is white everywhere)', async () => 
 });
 
 test('known reds in other spaces', async () => {
-  const { toHex } = await import('../src/lib/color');
+  const { toHex } = await import('~/lib');
   assert.equal(
     toHex({ colorSpace: 'lab', components: [54.2905, 80.8049, 69.891] }),
     '#ff0000',
@@ -193,7 +194,7 @@ test('known reds in other spaces', async () => {
 });
 
 test('cssColor writes each space natively', async () => {
-  const { cssColor } = await import('../src/lib/color');
+  const { cssColor } = await import('~/lib');
   assert.equal(
     cssColor({ colorSpace: 'display-p3', components: [1, 0, 0] }),
     'color(display-p3 1 0 0)',

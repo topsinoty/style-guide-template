@@ -1,7 +1,7 @@
 import * as z from 'zod/mini';
-import type { FontPicks, FontProvider, KeyValueStore } from '../ports';
-import { isFontStyle } from '../lib/values';
-import type { FontDetail, FontFile, FontListing } from '../lib/types';
+import type { FontPicks, FontProvider, KeyValueStore } from '~/ports';
+import { isFontStyle } from '~/lib';
+import type { FontDetail, FontFile, FontListing } from '~/lib';
 
 type Fetch = (url: string) => Promise<Pick<Response, 'ok' | 'status' | 'json'>>;
 

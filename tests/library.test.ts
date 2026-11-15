@@ -1,19 +1,24 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { fontsource } from '../src/adapters/fontsource';
+import {
+  fontsource,
+  manifest as manifestSchema,
+  resolverDoc,
+  validateResolver,
+} from '~/adapters';
 import { V } from './helpers';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import * as z from 'zod/mini';
 import {
-  manifest as manifestSchema,
-  resolverDoc,
-  validateResolver,
-} from '../src/adapters/zod-validator';
-import { resolve } from '../src/lib/resolver';
-import { checkContrast, ROLES } from '../src/lib/contrast';
-import { brandMeta, missingAssets } from '../src/lib/assets';
-import { keysOf, valueAt } from '../src/lib/records';
+  resolve,
+  checkContrast,
+  ROLES,
+  brandMeta,
+  missingAssets,
+  keysOf,
+  valueAt,
+} from '~/lib';
 
 const root = new URL('../public/library/', import.meta.url).pathname;
 const readJson = (path: string): unknown =>

@@ -87,6 +87,25 @@ export default defineConfig(
       'no-useless-return': 'error',
       'no-await-in-loop': 'error',
       'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: String.raw`^(\.\./)+(src|lib|adapters|app|vue|ports|config)(/|$)`,
+              message: 'Import other modules through their ~/ barrel.',
+            },
+            {
+              regex: String.raw`^\./(lib|adapters|app|vue)(/|$)`,
+              message: 'Import other modules through their ~/ barrel.',
+            },
+            {
+              regex: '^~/(lib|adapters|app|vue)/',
+              message: 'Import from the module barrel, not a file inside it.',
+            },
+          ],
+        },
+      ],
       'default-param-last': 'error',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],

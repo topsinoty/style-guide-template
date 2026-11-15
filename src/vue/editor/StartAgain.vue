@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { errorMessage } from '../../lib/io';
+import { errorMessage } from '~/lib';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context';
 

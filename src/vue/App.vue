@@ -32,15 +32,20 @@ import {
   SwitchRoot,
   SwitchThumb,
 } from 'reka-ui';
-import type { Mode } from '../app/mode';
+import type { Mode } from '~/app';
 import { download } from './download';
-import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets';
-import { isDark } from '../lib/color';
-import { defaultTheme, themesOf } from '../lib/edit';
-import { narrow, isColor } from '../lib/values';
+import {
+  DEFAULT_ROOT_SIZE,
+  mainLogo,
+  isDark,
+  defaultTheme,
+  themesOf,
+  narrow,
+  isColor,
+  errorMessage,
+} from '~/lib';
 import Listbox from './Listbox.vue';
 import { cap } from './guide/parts';
-import { errorMessage } from '../lib/io';
 import { urlFor } from './urls';
 import Action from './Action.vue';
 import Icon from './Icon.vue';

@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
-import { COLOR_ERROR, toHex } from '../../lib/color';
-import { cssName } from '../../lib/css';
-import * as E from '../../lib/edit';
-import { paletteColors } from '../../lib/palette';
-import { narrow, isColor } from '../../lib/values';
+import {
+  COLOR_ERROR,
+  toHex,
+  cssName,
+  removeToken,
+  setRole,
+  paletteColors,
+  narrow,
+  isColor,
+} from '~/lib';
 import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context';
@@ -65,7 +70,7 @@ function setColor(path: string, text: string) {
   }
   if (path.startsWith('color.'))
     props.ctx.edit((doc) =>
-      E.setRole(doc, props.ctx.theme, path.slice('color.'.length), value),
+      setRole(doc, props.ctx.theme, path.slice('color.'.length), value),
     );
   else setValue(path, 'color', value);
 }
@@ -199,7 +204,7 @@ const uid = useId();
       <IconButton
         name="trash"
         :label="`Remove ${row.label}`"
-        @click="ctx.edit((doc) => E.removeToken(doc, row.path))"
+        @click="ctx.edit((doc) => removeToken(doc, row.path))"
       />
     </li>
   </ul>

@@ -1,17 +1,15 @@
 import { createApp } from 'vue';
-import { fontsource } from './adapters/fontsource';
-import { indexedDbFileStore } from './adapters/indexeddb-file-store';
 import {
+  fontsource,
+  indexedDbFileStore,
   memoryFileStore,
   memoryKeyValueStore,
   readOnlyFileStore,
   readOnlyKeyValueStore,
-} from './adapters/memory';
-import { zodValidator } from './adapters/zod-validator';
-import { readMode } from './app/mode';
-import { Session } from './app/session';
-import App from './vue/App.vue';
-import { provideSession } from './vue/useSession';
+  zodValidator,
+} from '~/adapters';
+import { readMode, Session } from '~/app';
+import { App, provideSession } from '~/vue';
 
 const mode = readMode(location.search, import.meta.env.VITE_PUBLIC_BRAND);
 const stores = {

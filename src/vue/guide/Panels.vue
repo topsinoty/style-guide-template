@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { errorMessage } from '../../lib/io';
+import { errorMessage } from '~/lib';
 import { computed, ref, shallowReactive } from 'vue';
 import { useFileDialog } from '@vueuse/core';
 import {

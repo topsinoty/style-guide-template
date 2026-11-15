@@ -4,7 +4,7 @@ import { ResolveError, resolve, contexts, defaultInputs } from './resolver';
 import { generateCss } from './css';
 import { checkContrast } from './contrast';
 import { brandMeta, withBrandMeta, resolveAsset, META_KEYS } from './assets';
-import type { FontProvider, Validator } from '../ports';
+import type { FontProvider, Validator } from '~/ports';
 import { extension, fileName, uniquePath } from './path';
 import { entriesOf, keysOf, valueAt } from './records';
 import { holds, isNode } from './tree';

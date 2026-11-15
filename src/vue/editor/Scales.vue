@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { keysOf, mapValues, valueAt, valuesOf } from '../../lib/records';
-import { computed, reactive, useId } from 'vue';
 import {
+  keysOf,
+  mapValues,
+  valueAt,
+  valuesOf,
   addScaleStep,
   applyScale,
   removeStep,
@@ -9,10 +11,16 @@ import {
   setScaleUnit,
   setStep,
   type ScaleSpec,
-} from '../../lib/scale';
-import { DEFAULT_ROOT_SIZE, isRootSize } from '../../lib/assets';
-import { child, children, isHandSet, withVendorData } from '../../lib/tree';
-import { narrow, isSize } from '../../lib/values';
+  DEFAULT_ROOT_SIZE,
+  isRootSize,
+  child,
+  children,
+  isHandSet,
+  withVendorData,
+  narrow,
+  isSize,
+} from '~/lib';
+import { computed, reactive, useId } from 'vue';
 import type { EditorContext } from './context';
 import Choice from './Choice.vue';
 import IconButton from './IconButton.vue';

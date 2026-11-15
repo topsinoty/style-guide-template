@@ -1,9 +1,6 @@
-import { BUILT_IN_GROUPS } from '../../lib/assets';
+import { BUILT_IN_GROUPS, move, slug, uniquePath } from '~/lib';
 import { colorKind } from './color-path';
-import { move } from '../../lib/edit';
-import { slug } from '../../lib/io';
-import { uniquePath } from '../../lib/path';
-import type { BrandMeta, TextSection, Tokens } from '../../lib/types';
+import type { BrandMeta, TextSection, Tokens } from '~/lib';
 
 const OWN_SECTIONS: [prefix: string, editor: string][] = [
   ['color.', 'Palette'],

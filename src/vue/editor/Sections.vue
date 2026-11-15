@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
-import * as E from '../../lib/edit';
-import type { TextSection } from '../../lib/types';
+import { renameGroup } from '~/lib';
+import type { TextSection } from '~/lib';
 import {
   addSection,
   editSection,
@@ -34,7 +34,7 @@ const edit = (id: string, patch: Partial<TextSection>, typingKey?: string) =>
 
 function rename(section: Section, title: string) {
   if (section.group)
-    props.ctx.setMeta((m) => E.renameGroup(m, section.group ?? '', title));
+    props.ctx.setMeta((m) => renameGroup(m, section.group ?? '', title));
   else edit(section.id, { title });
 }
 

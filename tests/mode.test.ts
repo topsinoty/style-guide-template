@@ -1,16 +1,15 @@
 import { test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { readMode } from '../src/app/mode';
-import { Session } from '../src/app/session';
+import { readMode, Session } from '~/app';
 import {
   memoryFileStore,
   readOnlyFileStore,
   readOnlyKeyValueStore,
-} from '../src/adapters/memory';
-import { zodValidator } from '../src/adapters/zod-validator';
-import { fontsource } from '../src/adapters/fontsource';
-import type { KeyValueStore } from '../src/ports';
+  zodValidator,
+  fontsource,
+} from '~/adapters';
+import type { KeyValueStore } from '~/ports';
 
 test('the address picks the mode, and a hosted brand always wins', () => {
   assert.deepEqual(readMode(''), { kind: 'private' });

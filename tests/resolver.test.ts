@@ -1,19 +1,21 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { setToken } from '../src/lib/edit';
-import { nodeAt } from '../src/lib/tree';
-import { narrow, isColor, isTypography } from '../src/lib/values';
-import type { ResolverDoc, Tokens } from '../src/lib/types';
-import { load, present, token } from './helpers';
 import {
+  setToken,
+  nodeAt,
+  narrow,
+  isColor,
+  isTypography,
   ResolveError,
   resolve,
   contexts,
   defaultInputs,
   aliasTarget,
   flatten,
-} from '../src/lib/resolver';
-import { toHex } from '../src/lib/color';
+  toHex,
+} from '~/lib';
+import type { ResolverDoc, Tokens } from '~/lib';
+import { load, present, token } from './helpers';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 

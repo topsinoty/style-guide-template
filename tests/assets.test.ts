@@ -1,18 +1,19 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { keysOf } from '../src/lib/records';
-import type { FileData } from '../src/lib/types';
-import { nodeAt, vendorData } from '../src/lib/tree';
-import { fontsource } from '../src/adapters/fontsource';
-import { present, load, V } from './helpers';
 import {
+  keysOf,
+  nodeAt,
+  vendorData,
   brandMeta,
   withBrandMeta,
   allSrcs,
   resolveAsset,
   missingAssets,
   matchDropped,
-} from '../src/lib/assets';
+} from '~/lib';
+import type { FileData } from '~/lib';
+import { fontsource } from '~/adapters';
+import { present, load, V } from './helpers';
 
 const font = {
   family: 'M',
@@ -138,7 +139,7 @@ test('srcs that are not plain relative paths are treated as missing', () => {
 });
 
 test('brand metadata is validated', async () => {
-  const { validateBrandMeta } = await import('../src/adapters/zod-validator');
+  const { validateBrandMeta } = await import('~/adapters');
   assert.deepEqual(
     validateBrandMeta({
       assetGroups: [
@@ -167,7 +168,7 @@ test('brand metadata is validated', async () => {
 });
 
 test('adoptVendor moves every foreign extension (tokens and groups) to this site', async () => {
-  const { adoptVendor } = await import('../src/lib/assets');
+  const { adoptVendor } = await import('~/lib');
   const doc = load();
   const t = doc.sets.foundation.sources[0];
   const move = (owner: { $extensions?: Record<string, unknown> }) => {
@@ -191,7 +192,7 @@ test('adoptVendor moves every foreign extension (tokens and groups) to this site
 });
 
 test('readBrandMeta applies defaults, keeps unknown fields and skips unusable entries', async () => {
-  const { readBrandMeta } = await import('../src/lib/assets');
+  const { readBrandMeta } = await import('~/lib');
   const meta = readBrandMeta({
     note: 'from another tool',
     assetGroups: [

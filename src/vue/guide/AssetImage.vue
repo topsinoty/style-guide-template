@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { AssetContext, AssetItem } from '../../lib/types';
+import type { AssetContext, AssetItem } from '~/lib';
 import { urlFor } from '../urls';
 import Icon from '../Icon.vue';
 

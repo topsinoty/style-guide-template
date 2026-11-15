@@ -1,9 +1,10 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import * as z from 'zod/mini';
-import { flatten, mergedTree, defaultInputs } from '../src/lib/resolver';
-import { VALUES } from '../src/adapters/zod-validator';
 import {
+  flatten,
+  mergedTree,
+  defaultInputs,
   isAlias,
   isBorder,
   isColor,
@@ -16,7 +17,8 @@ import {
   isTransition,
   isTypography,
   narrow,
-} from '../src/lib/values';
+} from '~/lib';
+import { VALUES } from '~/adapters';
 import { preset } from './helpers';
 
 const red = { colorSpace: 'srgb', components: [1, 0, 0] };

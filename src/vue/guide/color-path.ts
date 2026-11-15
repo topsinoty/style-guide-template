@@ -1,4 +1,4 @@
-import { ROLES } from '../../lib/contrast';
+import { ROLES } from '~/lib';
 
 export type ColorKind = 'palette' | 'role' | 'other';
 

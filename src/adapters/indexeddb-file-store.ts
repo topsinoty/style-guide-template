@@ -1,6 +1,6 @@
 import { clear, createStore, del, entries, set } from 'idb-keyval';
-import type { FileStore } from '../ports';
-import type { FileData } from '../lib/types';
+import type { FileStore } from '~/ports';
+import type { FileData } from '~/lib';
 
 export function indexedDbFileStore(): FileStore {
   const db = createStore('styleguide', 'files');

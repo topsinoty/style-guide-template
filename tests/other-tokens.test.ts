@@ -1,6 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { tokenValue } from '../src/vue/editor/other-tokens';
+import { tokenValue } from '~/vue';
 
 test('measures need a unit their type allows', () => {
   assert.deepEqual(tokenValue('duration', '200ms'), { value: 200, unit: 'ms' });

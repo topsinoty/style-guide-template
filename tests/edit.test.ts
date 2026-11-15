@@ -1,15 +1,35 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { nodeAt, vendorData } from '../src/lib/tree';
+import {
+  nodeAt,
+  vendorData,
+  addFontFiles,
+  addGroup,
+  addItems,
+  fontFromFileName,
+  foundation,
+  moveGroup,
+  moveItem,
+  removeFontFile,
+  removeGroup,
+  removeItem,
+  removeThemed,
+  removeToken,
+  renameGroup,
+  setRole,
+  setThemed,
+  setToken,
+  themeSource,
+  updateItem,
+  removeStep,
+  uniquePath,
+  resolve,
+} from '~/lib';
 import { token, load } from './helpers';
-import type { BrandMeta } from '../src/lib/types';
-import * as E from '../src/lib/edit';
-import { removeStep } from '../src/lib/scale';
-import { uniquePath } from '../src/lib/path';
-import { resolve } from '../src/lib/resolver';
+import type { BrandMeta } from '~/lib';
 
 test('setRole in light writes the foundation, in dark writes the dark context', () => {
-  let doc = E.setRole(
+  let doc = setRole(
     load(),
     'light',
     'primary.foreground',
@@ -19,7 +39,7 @@ test('setRole in light writes the foundation, in dark writes the dark context', 
     token(resolve(doc), 'color.primary.foreground').value,
     '{color.neutral.900}',
   );
-  doc = E.setRole(doc, 'dark', 'primary.foreground', '{color.neutral.50}');
+  doc = setRole(doc, 'dark', 'primary.foreground', '{color.neutral.50}');
   assert.equal(
     token(resolve(doc, { theme: 'dark' }), 'color.primary.foreground').value,
     '{color.neutral.50}',
@@ -35,46 +55,40 @@ test('setThemed writes only the theme, removeThemed falls back to the default th
     $type: 'shadow',
     $value: { offsetY: { value: 9, unit: 'px' } },
   };
-  let doc = E.setThemed(load(), 'dark', 'shadow.xl', shadow);
-  assert.deepEqual(
-    nodeAt(E.themeSource(doc, 'dark') ?? {}, 'shadow.xl'),
-    shadow,
-  );
-  assert.equal(nodeAt(E.foundation(doc), 'shadow.xl'), undefined);
-  doc = E.setThemed(doc, 'light', 'shadow.xl', shadow);
-  doc = E.removeThemed(doc, 'dark', 'shadow.xl');
-  assert.equal(
-    nodeAt(E.themeSource(doc, 'dark') ?? {}, 'shadow.xl'),
-    undefined,
-  );
-  assert.deepEqual(nodeAt(E.foundation(doc), 'shadow.xl'), shadow);
+  let doc = setThemed(load(), 'dark', 'shadow.xl', shadow);
+  assert.deepEqual(nodeAt(themeSource(doc, 'dark') ?? {}, 'shadow.xl'), shadow);
+  assert.equal(nodeAt(foundation(doc), 'shadow.xl'), undefined);
+  doc = setThemed(doc, 'light', 'shadow.xl', shadow);
+  doc = removeThemed(doc, 'dark', 'shadow.xl');
+  assert.equal(nodeAt(themeSource(doc, 'dark') ?? {}, 'shadow.xl'), undefined);
+  assert.deepEqual(nodeAt(foundation(doc), 'shadow.xl'), shadow);
 });
 
 test('setToken writes a path, creating groups', () => {
-  const doc = E.setToken(load(), 'radius.lg', {
+  const doc = setToken(load(), 'radius.lg', {
     $value: { value: 12, unit: 'px' },
   });
-  assert.deepEqual(nodeAt(E.foundation(doc), 'radius.lg')?.$value, {
+  assert.deepEqual(nodeAt(foundation(doc), 'radius.lg')?.$value, {
     value: 12,
     unit: 'px',
   });
 });
 
 test('removeToken deletes only that token', () => {
-  const doc = E.removeToken(
-    E.setToken(load(), 'duration.slow', {
+  const doc = removeToken(
+    setToken(load(), 'duration.slow', {
       $type: 'duration',
       $value: { value: 400, unit: 'ms' },
     }),
     'duration.slow',
   );
-  assert.equal(nodeAt(E.foundation(doc), 'duration.slow'), undefined);
-  assert.ok(nodeAt(E.foundation(doc), 'duration.fast'));
+  assert.equal(nodeAt(foundation(doc), 'duration.slow'), undefined);
+  assert.ok(nodeAt(foundation(doc), 'duration.fast'));
 });
 
 test('removing the logo item clears the logo choice', () => {
   const items = [{ label: 'a', src: 'logos/a.svg' }];
-  const meta = E.removeItem(
+  const meta = removeItem(
     {
       assetGroups: [{ id: 'logos', items }],
       fontFiles: [],
@@ -95,9 +109,9 @@ test('removing a group clears its selected logo but preserves logos in other gro
     fontFiles: [],
     logo: 'logos/a.svg',
   };
-  assert.equal(E.removeGroup(meta, 'logos').logo, undefined);
+  assert.equal(removeGroup(meta, 'logos').logo, undefined);
   assert.equal(
-    E.removeGroup({ ...meta, logo: 'icons/b.svg' }, 'logos').logo,
+    removeGroup({ ...meta, logo: 'icons/b.svg' }, 'logos').logo,
     'icons/b.svg',
   );
 });
@@ -107,19 +121,19 @@ test('asset groups: add with a unique id, rename, move, remove', () => {
     assetGroups: [{ id: 'logos', label: 'Logos', items: [] }],
     fontFiles: [],
   };
-  meta = E.addGroup(meta, 'Logos');
+  meta = addGroup(meta, 'Logos');
   assert.deepEqual(
     meta.assetGroups.map((g) => g.id),
     ['logos', 'logos-2'],
   );
-  meta = E.renameGroup(meta, 'logos-2', 'Patterns');
+  meta = renameGroup(meta, 'logos-2', 'Patterns');
   assert.equal(meta.assetGroups[1].label, 'Patterns');
-  meta = E.moveGroup(meta, 'logos-2', -1);
+  meta = moveGroup(meta, 'logos-2', -1);
   assert.deepEqual(
     meta.assetGroups.map((g) => g.id),
     ['logos-2', 'logos'],
   );
-  meta = E.removeGroup(meta, 'logos');
+  meta = removeGroup(meta, 'logos');
   assert.deepEqual(
     meta.assetGroups.map((g) => g.id),
     ['logos-2'],
@@ -131,18 +145,18 @@ test('items: add, update, move, remove', () => {
     assetGroups: [{ id: 'g', label: 'G', items: [] }],
     fontFiles: [],
   };
-  meta = E.addItems(meta, 'g', [
+  meta = addItems(meta, 'g', [
     { label: 'a', src: 'g/a.svg' },
     { label: 'b', src: 'g/b.svg' },
   ]);
-  meta = E.updateItem(meta, 'g', 'g/a.svg', { description: 'first' });
-  meta = E.moveItem(meta, 'g', 'g/b.svg', -1);
+  meta = updateItem(meta, 'g', 'g/a.svg', { description: 'first' });
+  meta = moveItem(meta, 'g', 'g/b.svg', -1);
   assert.deepEqual(
     meta.assetGroups[0].items.map((i) => i.src),
     ['g/b.svg', 'g/a.svg'],
   );
   assert.equal(meta.assetGroups[0].items[1].description, 'first');
-  meta = E.removeItem(meta, 'g', 'g/a.svg');
+  meta = removeItem(meta, 'g', 'g/a.svg');
   assert.deepEqual(
     meta.assetGroups[0].items.map((i) => i.src),
     ['g/b.svg'],
@@ -151,7 +165,7 @@ test('items: add, update, move, remove', () => {
 
 test('font files are deduplicated by src', () => {
   let meta: BrandMeta = { assetGroups: [], fontFiles: [] };
-  meta = E.addFontFiles(
+  meta = addFontFiles(
     meta,
     ['fonts/a.woff2', 'fonts/a.woff2', 'fonts/b.woff2'].map((src) => ({
       src,
@@ -161,7 +175,7 @@ test('font files are deduplicated by src', () => {
     })),
   );
   assert.equal(meta.fontFiles.length, 2);
-  assert.equal(E.removeFontFile(meta, 'fonts/a.woff2').fontFiles.length, 1);
+  assert.equal(removeFontFile(meta, 'fonts/a.woff2').fontFiles.length, 1);
 });
 
 test('uniquePath avoids existing session paths', () => {
@@ -172,12 +186,12 @@ test('uniquePath avoids existing session paths', () => {
 });
 
 test('fontFromFileName guesses family, weight and style', () => {
-  assert.deepEqual(E.fontFromFileName('Inter-BoldItalic.woff2'), {
+  assert.deepEqual(fontFromFileName('Inter-BoldItalic.woff2'), {
     family: 'Inter',
     weight: 700,
     style: 'italic',
   });
-  assert.deepEqual(E.fontFromFileName('my_font.ttf'), {
+  assert.deepEqual(fontFromFileName('my_font.ttf'), {
     family: 'my font',
     weight: 400,
     style: 'normal',

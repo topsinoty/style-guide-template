@@ -1,19 +1,30 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { toHex } from '../../lib/color';
-import * as E from '../../lib/edit';
-import { child, children, isNode } from '../../lib/tree';
-import { entriesOf, keysOf } from '../../lib/records';
-import { narrow, isColor, isSize } from '../../lib/values';
+import {
+  toHex,
+  defaultTheme,
+  removeThemed,
+  removeToken,
+  setThemed,
+  themeSource,
+  child,
+  children,
+  isNode,
+  entriesOf,
+  keysOf,
+  narrow,
+  isColor,
+  isSize,
+  cssName,
+} from '~/lib';
 import ColorInput from '../ColorInput.vue';
 import type { EditorContext } from './context';
 import NameForm from './NameForm.vue';
 import NumberField from './NumberField.vue';
 import ItemRow from './ItemRow.vue';
 import IconButton from './IconButton.vue';
-import { cssName } from '../../lib/css';
 import { cap } from '../guide/parts';
-import type { Dimension, DtcgColor, TokenNode } from '../../lib/types';
+import type { Dimension, DtcgColor, TokenNode } from '~/lib';
 
 const props = defineProps<{ ctx: EditorContext }>();
 
@@ -44,12 +55,10 @@ const STANDARD = {
   },
 };
 
-const fallback = computed(
-  () => E.defaultTheme(props.ctx.doc) ?? props.ctx.theme,
-);
+const fallback = computed(() => defaultTheme(props.ctx.doc) ?? props.ctx.theme);
 const isDefault = computed(() => props.ctx.theme === fallback.value);
 const own = computed(() =>
-  child(E.themeSource(props.ctx.doc, props.ctx.theme), 'shadow'),
+  child(themeSource(props.ctx.doc, props.ctx.theme), 'shadow'),
 );
 
 const readLayer = (value: unknown) =>
@@ -114,7 +123,7 @@ function write(
     ? { $type: 'shadow', ...token, $value }
     : { ...token, $value };
   props.ctx.edit((doc) =>
-    E.setThemed(doc, props.ctx.theme, `shadow.${name}`, next),
+    setThemed(doc, props.ctx.theme, `shadow.${name}`, next),
   );
 }
 
@@ -150,8 +159,8 @@ function removeLayer(name: string, i: number) {
 function remove(name: string) {
   props.ctx.edit((doc) =>
     isDefault.value
-      ? E.removeToken(doc, `shadow.${name}`)
-      : E.removeThemed(doc, props.ctx.theme, `shadow.${name}`),
+      ? removeToken(doc, `shadow.${name}`)
+      : removeThemed(doc, props.ctx.theme, `shadow.${name}`),
   );
 }
 
@@ -165,7 +174,7 @@ function useStandard() {
   const group: TokenNode = { $type: 'shadow' };
   for (const [name, layers] of entriesOf(standard.value))
     group[name] = { $value: layers.length === 1 ? layers[0] : layers };
-  props.ctx.edit((doc) => E.setThemed(doc, props.ctx.theme, 'shadow', group));
+  props.ctx.edit((doc) => setThemed(doc, props.ctx.theme, 'shadow', group));
 }
 
 function addShadow(name: string) {

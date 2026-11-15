@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { AssetContext, AssetItem } from '../../lib/types';
-import { extension, fileName } from '../../lib/path';
+import type { AssetContext, AssetItem } from '~/lib';
+import { extension, fileName } from '~/lib';
 import { downloadUrl, urlFor } from '../urls';
 import { cssBackground, formatSize, isImage } from './parts';
 import Icon from '../Icon.vue';

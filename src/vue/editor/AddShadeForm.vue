@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
-import { parseCssColor, COLOR_ERROR } from '../../lib/color';
-import { addShade, paletteId, type PaletteColor } from '../../lib/palette';
+import {
+  parseCssColor,
+  COLOR_ERROR,
+  addShade,
+  paletteId,
+  type PaletteColor,
+} from '~/lib';
 import ColorInput from '../ColorInput.vue';
 import type { EditorContext } from './context';
 

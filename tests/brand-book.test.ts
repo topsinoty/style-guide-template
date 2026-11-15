@@ -1,28 +1,35 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { zodValidator } from '../src/adapters/zod-validator';
-import { brandMeta, withBrandMeta } from '../src/lib/assets';
-import { checkContrast } from '../src/lib/contrast';
-import { generateCss } from '../src/lib/css';
+import { zodValidator } from '~/adapters';
 import {
+  brandMeta,
+  withBrandMeta,
+  checkContrast,
+  generateCss,
   addStandardStyles,
   elementStyles,
   setElement,
-} from '../src/lib/elements';
-import * as E from '../src/lib/edit';
-import { checkBrand } from '../src/lib/io';
-import { parseBlocks } from '../src/lib/markdown';
-import {
+  addTheme,
+  defaultTheme,
+  foundation,
+  removeTheme,
+  renameTheme,
+  setDescription,
+  setRole,
+  themesOf,
+  checkBrand,
+  parseBlocks,
   addColor,
   generateShades,
   paletteColors,
   roleFromShade,
-} from '../src/lib/palette';
-import { oklch } from '../src/lib/color';
-import { resolve } from '../src/lib/resolver';
-import { nodeAt } from '../src/lib/tree';
-import { isTypography, narrow } from '../src/lib/values';
-import type { BrandMeta } from '../src/lib/types';
+  oklch,
+  resolve,
+  nodeAt,
+  isTypography,
+  narrow,
+} from '~/lib';
+import type { BrandMeta } from '~/lib';
 import {
   addSection,
   editSection,
@@ -30,7 +37,7 @@ import {
   removeSection,
   sectionsOf,
   visibleSections,
-} from '../src/vue/guide/sections';
+} from '~/vue';
 import { load, preset, token, V } from './helpers';
 
 test('markdown: headings, paragraphs, lists and inline marks; unsafe links stay text', () => {
@@ -105,25 +112,25 @@ test('sections: a group added after the brand set its order goes after its defau
 });
 
 test('themes: add, rename (default follows), remove; the default theme stays', () => {
-  let doc = E.addTheme(load(), 'poster');
-  assert.deepEqual(E.themesOf(doc), ['light', 'dark', 'poster']);
-  doc = E.renameTheme(doc, 'light', 'web');
-  assert.equal(E.defaultTheme(doc), 'web');
-  assert.deepEqual(E.themesOf(doc), ['web', 'dark', 'poster']);
-  assert.equal(E.removeTheme(doc, 'web'), doc);
-  doc = E.removeTheme(doc, 'dark');
-  assert.deepEqual(E.themesOf(doc), ['web', 'poster']);
+  let doc = addTheme(load(), 'poster');
+  assert.deepEqual(themesOf(doc), ['light', 'dark', 'poster']);
+  doc = renameTheme(doc, 'light', 'web');
+  assert.equal(defaultTheme(doc), 'web');
+  assert.deepEqual(themesOf(doc), ['web', 'dark', 'poster']);
+  assert.equal(removeTheme(doc, 'web'), doc);
+  doc = removeTheme(doc, 'dark');
+  assert.deepEqual(themesOf(doc), ['web', 'poster']);
   assert.deepEqual(checkBrand(doc, zodValidator), []);
 });
 
 test('setRole on a theme that does not exist writes the default, never a new theme', () => {
-  const doc = E.setRole(
-    E.renameTheme(load(), 'light', 'poster'),
+  const doc = setRole(
+    renameTheme(load(), 'light', 'poster'),
     'light',
     'primary.foreground',
     '#000000',
   );
-  assert.deepEqual(E.themesOf(doc), ['poster', 'dark']);
+  assert.deepEqual(themesOf(doc), ['poster', 'dark']);
   assert.equal(
     token(resolve(doc), 'color.primary.foreground').value,
     '#000000',
@@ -131,18 +138,18 @@ test('setRole on a theme that does not exist writes the default, never a new the
 });
 
 test('descriptions are written to the foundation and survive regenerating shades', () => {
-  let doc = E.setDescription(load(), 'color.brand.700', 'Links on cards.');
+  let doc = setDescription(load(), 'color.brand.700', 'Links on cards.');
   doc = generateShades(doc, 'brand', V, 'overwrite');
   assert.equal(
     token(resolve(doc), 'color.brand.700').description,
     'Links on cards.',
   );
-  doc = E.setDescription(doc, 'color.brand.700', '');
+  doc = setDescription(doc, 'color.brand.700', '');
   assert.equal(
-    nodeAt(E.foundation(doc), 'color.brand.700')?.$description,
+    nodeAt(foundation(doc), 'color.brand.700')?.$description,
     undefined,
   );
-  assert.equal(E.setDescription(doc, 'color.blue', 'a group'), doc);
+  assert.equal(setDescription(doc, 'color.blue', 'a group'), doc);
 });
 
 test('declared contrast pairs are checked in every theme', () => {

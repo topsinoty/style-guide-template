@@ -10,7 +10,7 @@ import {
   ComboboxRoot,
   ComboboxViewport,
 } from 'reka-ui';
-import { parseCssColor } from '../../lib/color';
+import { parseCssColor } from '~/lib';
 import { optionFor, type ColorOption } from './role-color';
 
 const props = defineProps<{
