@@ -24,6 +24,7 @@ import {
   SwitchRoot,
   SwitchThumb,
 } from 'reka-ui';
+import type { Mode } from '../app/mode.js';
 import type { Session } from '../app/session.js';
 import { download } from './download.js';
 import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets.js';
@@ -42,7 +43,7 @@ import { sectionsOf } from './guide/sections.js';
 import { provideSession } from './useSession.js';
 import { deriveView } from './view.js';
 
-const props = defineProps<{ session: Session }>();
+const props = defineProps<{ session: Session; mode: Mode }>();
 const session = provideSession(props.session);
 
 const themeChoice = useStorage('styleguide:theme', 'auto');
@@ -135,6 +136,7 @@ function historyShortcut(e: KeyboardEvent): 'undo' | 'redo' | null {
 }
 
 onKeyStroke(['z', 'Z', 'y', 'Y'], (e) => {
+  if (!session.value.editable) return;
   const action = historyShortcut(e);
   const typing = e.target instanceof Element && e.target.closest(TEXT_ENTRY);
   if (!action || typing) return;
@@ -166,9 +168,9 @@ loadDialog.onChange(async (files) => {
 });
 
 const { isOverDropZone: dragging } = useDropZone(document, {
-  checkValidity: (items) => [...items].some((item) => item.kind === 'file'),
+  checkValidity: (items) => session.value.editable && [...items].some((item) => item.kind === 'file'),
   async onDrop(files) {
-    if (files) await session.value.receive(files);
+    if (files && session.value.editable) await session.value.receive(files);
   },
 });
 
@@ -230,11 +232,26 @@ function onNavWheel(e: WheelEvent) {
             :value="theme"
             @update:value="previewTheme"
           />
-          <DialogTrigger as-child>
-            <Action id="edit-toggle" icon="edit" label="Edit" title="Edit the brand" />
-          </DialogTrigger>
+          <template v-if="session.editable">
+            <DialogTrigger as-child>
+              <Action id="edit-toggle" icon="edit" label="Edit" title="Edit the brand" />
+            </DialogTrigger>
+            <a id="view-link" class="cd-action" href="?view" title="See the brand book as readers see it">
+              <Icon name="view" /><span class="cd-action-label">View</span>
+            </a>
+          </template>
+          <a
+            v-else-if="mode.kind === 'preview'"
+            id="view-link"
+            class="cd-action"
+            href="./"
+            title="Back to the editor"
+          >
+            <Icon name="back" /><span class="cd-action-label">Back to editing</span>
+          </a>
           <div class="cd-actions-more">
             <Action
+              v-if="session.editable"
               id="load-btn"
               icon="load"
               label="Load"
@@ -268,8 +285,9 @@ function onNavWheel(e: WheelEvent) {
         :covered="editing && !wide"
         :inset="headerHeight"
       />
-      <div class="cd-drop" aria-hidden="true">Drop files to load them</div>
+      <div v-if="session.editable" class="cd-drop" aria-hidden="true">Drop files to load them</div>
       <DialogContent
+        v-if="session.editable"
         id="cd-drawer"
         as="aside"
         class="cd-drawer"

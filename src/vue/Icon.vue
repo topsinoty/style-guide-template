@@ -19,6 +19,9 @@ import {
   ArrowUp,
   ArrowDown,
   Plus,
+  Eye,
+  CircleHelp,
+  ArrowLeft,
 } from '@lucide/vue';
 
 const icons = {
@@ -41,6 +44,9 @@ const icons = {
   'move-up': ArrowUp,
   'move-down': ArrowDown,
   plus: Plus,
+  view: Eye,
+  help: CircleHelp,
+  back: ArrowLeft,
 };
 
 export type IconName = keyof typeof icons;

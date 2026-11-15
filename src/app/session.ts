@@ -57,6 +57,8 @@ export interface SessionAdapters {
   files: FileStore;
   fonts: FontProvider;
   validator: Validator;
+  brand?: string;
+  editable?: boolean;
 }
 
 export class Session {
@@ -74,21 +76,33 @@ export class Session {
     readonly preset: ResolverDoc,
     readonly fonts: FontProvider,
     readonly validator: Validator,
+    readonly editable: boolean,
   ) {
     this.library = new Set(manifest.files);
     this.ctx = { session: store.files, library: this.library, fonts };
     store.subscribe(() => this.#changed());
   }
 
-  static async open({ drafts, files, fonts, validator }: SessionAdapters): Promise<Session> {
+  static async open({
+    drafts,
+    files,
+    fonts,
+    validator,
+    brand,
+    editable = true,
+  }: SessionAdapters): Promise<Session> {
     const manifest = accepted(
       'library/manifest.json',
       validator.parseManifest(await fetchJson('library/manifest.json')),
     );
-    const preset = await fetchPreset(manifest.brands[0].path, validator);
+    const listed = manifest.brands.find((b) => b.path === brand);
+    const preset = await fetchPreset((listed ?? manifest.brands[0]).path, validator);
     const store = createStore({ doc: preset, storage: drafts, fileStore: files });
     await store.ready;
-    return new Session(store, manifest, preset, fonts, validator);
+    const session = new Session(store, manifest, preset, fonts, validator, editable);
+    if (brand && !listed)
+      session.warn(`There is no brand ${brand} in the library. Showing ${manifest.brands[0].name}.`);
+    return session;
   }
 
   reset() {

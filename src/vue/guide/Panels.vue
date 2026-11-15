@@ -80,7 +80,7 @@ missingDialog.onChange(async (files) => {
       </DialogContent>
     </DialogPortal>
   </DialogRoot>
-  <div v-if="missing.length" class="cd-box cd-panel">
+  <div v-if="session.editable && missing.length" class="cd-box cd-panel">
     <h2>Missing files</h2>
     <p>
       This brand refers to files that are not loaded. Drop them anywhere on the page or choose them; they are

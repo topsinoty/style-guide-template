@@ -14,6 +14,19 @@ export function memoryKeyValueStore(): KeyValueStore {
   };
 }
 
+export function readOnlyKeyValueStore(source: KeyValueStore): KeyValueStore {
+  return { getItem: (key) => source.getItem(key), setItem() {}, removeItem() {} };
+}
+
+export function readOnlyFileStore(source: FileStore): FileStore {
+  return {
+    put: async () => {},
+    delete: async () => {},
+    clear: async () => {},
+    getAll: () => source.getAll(),
+  };
+}
+
 export function memoryFileStore(): FileStore {
   const files = new Map<string, FileData>();
   return {
