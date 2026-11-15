@@ -14,9 +14,10 @@ import UploadButton from './UploadButton.vue';
 import ItemRow from './ItemRow.vue';
 import Scales from './Scales.vue';
 import Listbox from '../Listbox.vue';
+import Icon from '../Icon.vue';
 import { cssName } from '../../lib/css.js';
 import { sortFontFiles } from '../../lib/fonts.js';
-import { ELEMENTS, elementOf, setElement } from '../../lib/elements.js';
+import { ELEMENTS, addStandardStyles, elementOf, elementStyles, setElement } from '../../lib/elements.js';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const draftWeights = reactive<Record<string, number | undefined>>({});
@@ -154,6 +155,27 @@ function addStyle(name: string) {
       lineHeight: 1.5,
     },
   });
+}
+
+const unstyled = computed(() => {
+  const styled = elementStyles(props.ctx.tree, props.ctx.vendor);
+  return ELEMENTS.filter((e) => !styled.has(e.value));
+});
+
+function addStandard(elements: string[]) {
+  const before = new Set(styles.value.map((s) => s.name));
+  const next = addStandardStyles(
+    child(props.ctx.tree, 'typography') ?? { $type: 'typography' },
+    elements,
+    fonts.value.map((f) => f.name),
+    children(child(props.ctx.tree, 'font-size')).map(([size]) => size),
+    props.ctx.vendor,
+  );
+  props.ctx.setToken('typography', next);
+  const added = children(next)
+    .map(([name]) => name)
+    .filter((name) => !before.has(name));
+  if (added.length === 1) opened.value = added[0];
 }
 
 function updateWeight(name: string, event: Event) {
@@ -327,8 +349,37 @@ function fontInUse(name: string): boolean {
     <div v-if="styleProblem()" class="ed-blocked">
       <p class="cd-hint">{{ styleProblem() }}</p>
     </div>
+    <div v-else-if="unstyled.length" class="ed-blocked">
+      <p class="cd-hint">
+        {{
+          styles.length
+            ? 'Not styled yet. Add the usual style for an element, then adjust it.'
+            : 'No text styles yet. Start from the usual set, then adjust it.'
+        }}
+      </p>
+      <div class="ed-chips">
+        <button
+          v-for="element in unstyled"
+          :key="element.value"
+          type="button"
+          class="btn btn-secondary"
+          :aria-label="`Add a ${element.label} style`"
+          @click="addStandard([element.value])"
+        >
+          <Icon name="plus" />{{ element.label }}
+        </button>
+      </div>
+      <button
+        v-if="unstyled.length > 1"
+        type="button"
+        class="btn"
+        @click="addStandard(unstyled.map((e) => e.value))"
+      >
+        {{ styles.length ? `Add all ${unstyled.length}` : 'Use standard text styles' }}
+      </button>
+    </div>
     <NameForm
-      v-else
+      v-if="!styleProblem()"
       label="New text style"
       action="Add style"
       placeholder="caption"

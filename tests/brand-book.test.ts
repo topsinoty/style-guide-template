@@ -4,7 +4,7 @@ import { zodValidator } from '../src/adapters/zod-validator.js';
 import { brandMeta, withBrandMeta } from '../src/lib/assets.js';
 import { checkContrast } from '../src/lib/contrast.js';
 import { generateCss } from '../src/lib/css.js';
-import { elementStyles, setElement } from '../src/lib/elements.js';
+import { addStandardStyles, elementStyles, setElement } from '../src/lib/elements.js';
 import * as E from '../src/lib/edit.js';
 import { checkBrand } from '../src/lib/io.js';
 import { parseBlocks } from '../src/lib/markdown.js';
@@ -12,6 +12,7 @@ import { addColor, generateShades, paletteColors, roleFromShade } from '../src/l
 import { oklch } from '../src/lib/color.js';
 import { resolve } from '../src/lib/resolver.js';
 import { nodeAt } from '../src/lib/tree.js';
+import { isTypography, narrow } from '../src/lib/values.js';
 import type { BrandMeta } from '../src/lib/types.js';
 import {
   addSection,
@@ -196,4 +197,26 @@ test('view mode hides sections with nothing to show; editing and written text ke
   assert.ok(!ids(meta, false).includes('icons'));
   assert.ok(ids(meta, true).includes('shadow'));
   assert.ok(ids({ ...meta, sections: [{ id: 'shadow', body: 'Use sparingly.' }] }, false).includes('shadow'));
+});
+
+test('standard text styles fill the chosen elements with the fonts and sizes the brand has', () => {
+  const group = addStandardStyles(
+    { $type: 'typography' },
+    ['h1', 'p', 'code'],
+    ['heading', 'body'],
+    ['sm', 'md', '3xl'],
+    V,
+  );
+  const styles = elementStyles({ typography: group }, V);
+  assert.equal(styles.get('h1'), 'heading-1');
+  assert.equal(styles.get('p'), 'body');
+  assert.equal(styles.get('code'), 'code');
+  assert.deepEqual(nodeAt(group, 'heading-1')?.$value, {
+    fontFamily: '{font.heading}',
+    fontSize: '{font-size.3xl}',
+    fontWeight: 700,
+    letterSpacing: { value: 0, unit: 'px' },
+    lineHeight: 1.2,
+  });
+  assert.equal(narrow(nodeAt(group, 'code')?.$value, isTypography)?.fontFamily, '{font.body}');
 });
