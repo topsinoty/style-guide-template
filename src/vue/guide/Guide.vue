@@ -16,7 +16,7 @@ import Panels from './Panels.vue';
 import Prose from './Prose.vue';
 import Scale from './Scale.vue';
 import Typography from './Typography.vue';
-import { isOtherToken, sectionsOf } from './sections.js';
+import { isOtherToken, visibleSections } from './sections.js';
 import MotionPreview from './MotionPreview.vue';
 import Inspector from './Inspector.vue';
 
@@ -30,7 +30,7 @@ const props = defineProps<{
 }>();
 const current = defineModel<string[]>('current', { required: true });
 
-const sections = computed(() => sectionsOf(props.meta, props.tokens));
+const sections = computed(() => visibleSections(props.meta, props.tokens, props.session.editable));
 const guideRoot = useTemplateRef<HTMLElement>('guideRoot');
 const itemsOf = (id: string) => props.meta.assetGroups.find((g) => g.id === id)?.items ?? [];
 

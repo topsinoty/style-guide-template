@@ -39,7 +39,7 @@ import Action from './Action.vue';
 import Icon from './Icon.vue';
 import Guide from './guide/Guide.vue';
 import Editor from './editor/Editor.vue';
-import { sectionsOf } from './guide/sections.js';
+import { visibleSections } from './guide/sections.js';
 import { provideSession } from './useSession.js';
 import { deriveView } from './view.js';
 
@@ -71,7 +71,7 @@ const editorMounted = ref(false);
 const exporting = ref(false);
 
 const view = computed(() => deriveView(session.value, theme.value));
-const sections = computed(() => sectionsOf(view.value.meta, view.value.tokens));
+const sections = computed(() => visibleSections(view.value.meta, view.value.tokens, session.value.editable));
 const logo = computed(() => mainLogo(view.value.meta));
 const logoUrl = computed(() => logo.value && urlFor(logo.value, session.value.ctx));
 

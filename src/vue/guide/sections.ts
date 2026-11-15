@@ -70,6 +70,17 @@ export function sectionsOf(meta: BrandMeta, tokens: Tokens): Section[] {
   return placed;
 }
 
+const TOKEN_SECTIONS = new Set(['spacing', 'radius', 'shadow']);
+
+function isEmpty(section: Section, meta: BrandMeta, tokens: Tokens) {
+  if (TOKEN_SECTIONS.has(section.id)) return ![...tokens.keys()].some((k) => k.startsWith(`${section.id}.`));
+  const group = section.group ?? (section.id === 'icons' ? 'icons' : undefined);
+  return group !== undefined && !meta.assetGroups.find((g) => g.id === group)?.items.length;
+}
+
+export const visibleSections = (meta: BrandMeta, tokens: Tokens, editable: boolean) =>
+  sectionsOf(meta, tokens).filter((s) => editable || s.body || !isEmpty(s, meta, tokens));
+
 const clean = ({ id, title, body }: TextSection): TextSection => ({
   id,
   ...(title ? { title } : {}),

@@ -18,8 +18,6 @@ const walk = (dir: string, base = ''): string[] =>
     const rel = base ? `${base}/${n}` : n;
     return statSync(join(dir, n)).isDirectory() ? walk(join(dir, n), rel) : [rel];
   });
-const brand = z.parse(resolverDoc, readJson(join(root, manifest.brands[0].path)));
-
 test('manifest lists exactly the library files', () => {
   const onDisk = walk(root)
     .filter((p) => !p.startsWith('brands/') && p !== 'manifest.json')
@@ -31,35 +29,46 @@ test('manifest lists exactly the library files', () => {
   for (const b of manifest.brands) assert.ok(existsSync(join(root, b.path)), b.path);
 });
 
-test('default brand is valid DTCG and resolves', () => {
-  assert.deepEqual(validateResolver(brand).errors, []);
-  assert.doesNotThrow(() => resolve(brand));
+const brands = manifest.brands.map((b) => ({
+  name: b.name,
+  doc: z.parse(resolverDoc, readJson(join(root, b.path))),
+}));
+
+test('the first preset is Default', () => {
+  assert.equal(brands[0].name, 'Default');
 });
 
-test('default brand has every role', () => {
-  const tokens = resolve(brand);
-  for (const role of ROLES)
-    assert.ok(
-      [...tokens.keys()].some((k) => k.startsWith(`color.${role}.`)),
-      role,
+for (const { name, doc } of brands) {
+  test(`${name} is valid DTCG and resolves in every theme`, () => {
+    assert.deepEqual(validateResolver(doc).errors, []);
+    for (const theme of Object.keys(doc.modifiers?.theme?.contexts ?? {}))
+      assert.doesNotThrow(() => resolve(doc, { theme }));
+  });
+
+  test(`${name} has every role`, () => {
+    const tokens = resolve(doc);
+    for (const role of ROLES)
+      assert.ok(
+        [...tokens.keys()].some((k) => k.startsWith(`color.${role}.`)),
+        role,
+      );
+  });
+
+  test(`${name} passes every required contrast pair in light and dark`, () => {
+    assert.deepEqual(
+      checkContrast(doc).filter((r) => !r.pass),
+      [],
     );
-});
+    assert.deepEqual([...new Set(checkContrast(doc).map((r) => r.context))].sort(), ['dark', 'light']);
+  });
 
-test('default brand passes every required contrast pair in light and dark', () => {
-  const failing = checkContrast(brand).filter((r) => !r.pass);
-  assert.deepEqual(failing, []);
-  assert.deepEqual([...new Set(checkContrast(brand).map((r) => r.context))], ['light', 'dark']);
-});
-
-test('default brand assets all resolve from the library', () => {
-  const meta = brandMeta(brand, V);
-  assert.deepEqual(
-    meta.assetGroups.map((g) => g.id),
-    ['logos', 'favicons', 'icons'],
-  );
-  assert.deepEqual(
-    missingAssets(meta, { session: new Map(), library: new Set(manifest.files), fonts: fontsource() }),
-    [],
-  );
-  assert.ok(meta.fontFiles.length > 0 && meta.fontFiles.every((f) => f.provider === 'fontsource'));
-});
+  test(`${name} assets all resolve from the library`, () => {
+    const meta = brandMeta(doc, V);
+    assert.equal(meta.assetGroups[0].id, 'logos');
+    assert.deepEqual(
+      missingAssets(meta, { session: new Map(), library: new Set(manifest.files), fonts: fontsource() }),
+      [],
+    );
+    assert.ok(meta.fontFiles.length > 0 && meta.fontFiles.every((f) => f.provider === 'fontsource'));
+  });
+}
