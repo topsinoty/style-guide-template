@@ -29,8 +29,9 @@ const emit = defineEmits<{ choose: [value: string] }>();
 let returnFocusTo: HTMLElement | null = null;
 
 watch(open, (isOpen) => {
-  if (isOpen && document.activeElement instanceof HTMLElement)
+  if (isOpen && document.activeElement instanceof HTMLElement) {
     returnFocusTo = document.activeElement;
+  }
 });
 
 function restoreFocus(event: Event) {

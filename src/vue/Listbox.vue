@@ -22,8 +22,11 @@ const props = defineProps<{
 }>();
 const value = defineModel<string>('value', { required: true });
 const open = ref(false);
+
 function choose(next: unknown) {
-  if (typeof next === 'string') value.value = next;
+  if (typeof next === 'string') {
+    value.value = next;
+  }
 }
 
 const selected = computed(() =>

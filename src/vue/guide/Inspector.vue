@@ -20,35 +20,46 @@ const px = (value: string) => `${Math.round(Number.parseFloat(value))}px`;
 
 const info = computed(() => {
   const el = target.value;
-  if (!el) return null;
+
+  if (!el) {
+    return null;
+  }
+
   const tag = el.tagName.toLowerCase();
   const style = styles.value.get(tag);
   const css = getComputedStyle(el);
   const family = css.fontFamily.split(',')[0].replaceAll('"', '');
-  return {
-    tag,
-    style: style
-      ? `${ELEMENTS.find((e) => e.value === tag)?.label ?? tag} · ${style}`
-      : null,
-    font: `${family} ${css.fontWeight} · ${px(css.fontSize)} / ${css.lineHeight === 'normal' ? 'normal' : px(css.lineHeight)}`,
-  };
+
+  const element = ELEMENTS.find((e) => e.value === tag)?.label ?? tag;
+  const lineHeight =
+    css.lineHeight === 'normal' ? 'normal' : px(css.lineHeight);
+  const font = `${family} ${css.fontWeight} · ${px(css.fontSize)} / ${lineHeight}`;
+
+  return { tag, style: style ? `${element} · ${style}` : null, font };
 });
 
 function visibleRect(el: HTMLElement) {
   let { top, left, right, bottom } = el.getBoundingClientRect();
+
   top = Math.max(
     top,
     document.querySelector('header')?.getBoundingClientRect().bottom ?? 0,
   );
   for (let parent = el.parentElement; parent; parent = parent.parentElement) {
     const { overflowX, overflowY } = getComputedStyle(parent);
-    if (overflowX === 'visible' && overflowY === 'visible') continue;
+
+    if (overflowX === 'visible' && overflowY === 'visible') {
+      continue;
+    }
+
     const r = parent.getBoundingClientRect();
+
     top = Math.max(top, r.top);
     left = Math.max(left, r.left);
     right = Math.min(right, r.right);
     bottom = Math.min(bottom, r.bottom);
   }
+
   return { top, left, width: right - left, height: bottom - top };
 }
 
@@ -59,15 +70,19 @@ const hasText = (el: HTMLElement) =>
 
 function show(el: Element | null | undefined) {
   const found = el?.closest('.cd-code') ? null : el?.closest(TEXT);
+
   if (
     !(found instanceof HTMLElement) ||
     !props.root?.contains(found) ||
     !hasText(found)
   ) {
     target.value = undefined;
+
     return;
   }
+
   const rect = visibleRect(found);
+
   target.value = rect.width > 0 && rect.height > 0 ? found : undefined;
   box.value = rect;
 }
@@ -76,8 +91,9 @@ useEventListener(
   () => props.root,
   'pointerover',
   (e: PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.target instanceof Element)
+    if (e.pointerType === 'mouse' && e.target instanceof Element) {
       show(e.target);
+    }
   },
 );
 useEventListener(
@@ -88,8 +104,12 @@ useEventListener(
 useEventListener(document, 'selectionchange', () => {
   const selection = document.getSelection();
   const node = selection?.anchorNode;
-  if (!node || selection.isCollapsed) target.value = undefined;
-  else show(node instanceof Element ? node : node.parentElement);
+
+  if (!node || selection.isCollapsed) {
+    target.value = undefined;
+  } else {
+    show(node instanceof Element ? node : node.parentElement);
+  }
 });
 useEventListener(window, 'scroll', () => target.value && show(target.value), {
   passive: true,

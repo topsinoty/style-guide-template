@@ -8,10 +8,11 @@ const FORMATS: Record<string, string> = {
   otf: 'opentype',
 };
 const format = (src: string) => FORMATS[extension(src)] ?? 'woff2';
+
 export const cssString = (s: unknown) =>
   `"${String(s)
-    .replace(/[\\"]/g, String.raw`\$&`)
-    .replace(/[\n\r]/g, ' ')}"`;
+    .replaceAll(/[\\"]/g, String.raw`\$&`)
+    .replaceAll(/[\n\r]/g, ' ')}"`;
 const STYLES = new Set(['normal', 'italic', 'oblique']);
 
 export const sortFontFiles = (files: FontFile[]) =>

@@ -17,25 +17,36 @@ const themes = computed(() => themesOf(props.ctx.doc));
 const fallback = computed(() => defaultTheme(props.ctx.doc));
 
 function rename(from: string, event: Event) {
-  if (!(event.target instanceof HTMLInputElement)) return;
-  const to = paletteId(event.target.value);
-  if (!to || to === from) {
-    event.target.value = from;
+  if (!(event.target instanceof HTMLInputElement)) {
     return;
   }
+
+  const to = paletteId(event.target.value);
+
+  if (!to || to === from) {
+    event.target.value = from;
+
+    return;
+  }
+
   if (themes.value.includes(to)) {
     event.target.value = from;
     props.ctx.session.warn(`There is already a theme named ${to}.`);
+
     return;
   }
+
   props.ctx.edit((doc) => renameTheme(doc, from, to));
-  if (props.ctx.theme === from) props.ctx.setTheme(to);
+  if (props.ctx.theme === from) {
+    props.ctx.setTheme(to);
+  }
 }
 
 function add(name: string) {
   props.ctx.edit((doc) => addTheme(doc, name));
   props.ctx.setTheme(name);
 }
+
 const uid = useId();
 </script>
 

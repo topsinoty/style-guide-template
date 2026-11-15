@@ -13,6 +13,7 @@ const noError: unknown = null;
 const read = (storage: KeyValueStore, key: string): ResolverDoc | null => {
   try {
     const stored: unknown = JSON.parse(storage.getItem(key) ?? 'null');
+
     return isResolver(stored) ? stored : null;
   } catch {
     return null;
@@ -42,16 +43,23 @@ export function createStore({
       key !== undefined &&
       typing?.key === key &&
       now - typing.at < TYPING_PAUSE;
+
     typing = key === undefined ? null : { key, at: now };
-    if (sameBurst) return;
+    if (sameBurst) {
+      return;
+    }
+
     past = [...past, current].slice(-HISTORY);
     future = [];
   };
+
   const show = (next: ResolverDoc) => {
     current = next;
     clearTimeout(timer);
     timer = setTimeout(() => store.flush(), 300);
-    for (const fn of subs) fn(current);
+    for (const fn of subs) {
+      fn(current);
+    }
   };
 
   const store = {
@@ -60,30 +68,44 @@ export function createStore({
     get: () => current,
     subscribe(fn: (doc: ResolverDoc) => void) {
       subs.add(fn);
+
       return () => subs.delete(fn);
     },
     set(next: ResolverDoc, typingKey?: string) {
-      if (next !== current) record(typingKey);
+      if (next !== current) {
+        record(typingKey);
+      }
+
       show(next);
     },
     canUndo: () => past.length > 0,
     canRedo: () => future.length > 0,
     undo() {
       const prev = past.at(-1);
-      if (!prev) return false;
+
+      if (!prev) {
+        return false;
+      }
+
       typing = null;
       future = [current, ...future];
       past = past.slice(0, -1);
       show(prev);
+
       return true;
     },
     redo() {
       const next = future.at(0);
-      if (!next) return false;
+
+      if (!next) {
+        return false;
+      }
+
       typing = null;
       past = [...past, current];
       future = future.slice(1);
       show(next);
+
       return true;
     },
     update: (fn: (doc: ResolverDoc) => ResolverDoc) => store.set(fn(current)),
@@ -97,30 +119,46 @@ export function createStore({
       }
     },
     load(next: ResolverDoc, newFiles?: SessionFiles) {
-      if (!newFiles && JSON.stringify(next) === JSON.stringify(current)) return;
+      if (!newFiles && JSON.stringify(next) === JSON.stringify(current)) {
+        return;
+      }
+
       base = next;
       try {
         storage.setItem(BASE, JSON.stringify(base));
       } catch (e) {
         store.saveError = e;
       }
-      if (newFiles)
+
+      if (newFiles) {
         store.addFiles(newFiles).catch((e: unknown) => {
           store.saveError = e;
         });
+      }
+
       record();
       show(next);
       store.flush();
     },
     async prune(keep: Set<string>) {
       const unused = [...files.keys()].filter((path) => !keep.has(path));
-      for (const path of unused) files.delete(path);
+
+      for (const path of unused) {
+        files.delete(path);
+      }
+
       await Promise.allSettled(unused.map((path) => fileStore.delete(path)));
     },
     drafts: () => [current, base, ...past, ...future],
     async addFiles(map: SessionFiles) {
-      for (const [path, data] of map) files.set(path, data);
-      for (const fn of subs) fn(current);
+      for (const [path, data] of map) {
+        files.set(path, data);
+      }
+
+      for (const fn of subs) {
+        fn(current);
+      }
+
       const entries = [...map];
       const results = await Promise.allSettled(
         entries.map(([path, data]) => fileStore.put(path, data)),
@@ -128,16 +166,22 @@ export function createStore({
       const notPersisted = entries
         .filter((_, i) => results[i].status === 'rejected')
         .map(([path]) => path);
+
       return { notPersisted };
     },
     ready: fileStore
       .getAll()
       .then((saved) => {
-        for (const [p, data] of saved) if (!files.has(p)) files.set(p, data);
+        for (const [p, data] of saved) {
+          if (!files.has(p)) {
+            files.set(p, data);
+          }
+        }
       })
       .catch((e: unknown) => {
         console.warn('Could not read the saved files', e);
       }),
   };
+
   return store;
 }

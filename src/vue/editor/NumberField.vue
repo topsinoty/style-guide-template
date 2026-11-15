@@ -16,8 +16,11 @@ const emit = defineEmits<{ commit: [value: number] }>();
 const number = computed<number | ''>({
   get: () => props.value ?? '',
   set: (value) => {
-    if (value === '' && props.optional) emit('commit', Number.NaN);
-    else if (value !== '' && Number.isFinite(value)) emit('commit', value);
+    if (value === '' && props.optional) {
+      emit('commit', Number.NaN);
+    } else if (value !== '' && Number.isFinite(value)) {
+      emit('commit', value);
+    }
   },
 });
 const uid = useId();

@@ -18,7 +18,11 @@ const KNOWN = new Set(ELEMENTS.map((e) => e.value));
 
 const inferred = (name: string) => {
   const heading = /^h(?:eading)?-?([1-6])$/.exec(name)?.[1];
-  if (heading) return `h${heading}`;
+
+  if (heading) {
+    return `h${heading}`;
+  }
+
   return name === 'body' || name === 'paragraph' ? 'p' : undefined;
 };
 
@@ -28,7 +32,11 @@ export function elementOf(
   vendor: string,
 ): string | undefined {
   const set = vendorData(token, vendor).element;
-  if (typeof set === 'string') return KNOWN.has(set) ? set : undefined;
+
+  if (typeof set === 'string') {
+    return KNOWN.has(set) ? set : undefined;
+  }
+
   return inferred(name);
 }
 
@@ -37,10 +45,15 @@ export function elementStyles(
   vendor: string,
 ): Map<string, string> {
   const out = new Map<string, string>();
+
   for (const [name, token] of children(child(tree, 'typography'))) {
     const element = elementOf(name, token, vendor);
-    if (element && !out.has(element)) out.set(element, name);
+
+    if (element && !out.has(element)) {
+      out.set(element, name);
+    }
   }
+
   return out;
 }
 
@@ -51,11 +64,15 @@ export function setElement(
   vendor: string,
 ): TokenNode {
   const out = structuredClone(group);
+
   for (const [other, token] of children(out)) {
-    if (other === name) out[other] = withVendorData(token, vendor, { element });
-    else if (element && elementOf(other, token, vendor) === element)
+    if (other === name) {
+      out[other] = withVendorData(token, vendor, { element });
+    } else if (element && elementOf(other, token, vendor) === element) {
       out[other] = withVendorData(token, vendor, { element: '' });
+    }
   }
+
   return out;
 }
 
@@ -146,16 +163,26 @@ export function addStandardStyles(
   const pick = (wanted: string[], from: string[]) =>
     wanted.find((w) => from.includes(w)) ?? from[0];
   let out = structuredClone(group);
+
   for (const element of elements) {
     const spec = valueAt(STANDARD, element);
-    if (!spec) continue;
+
+    if (!spec) {
+      continue;
+    }
+
     const font = pick(FONT_FALLBACK[spec.font], fonts);
     const size = pick([spec.size, 'md'], sizes);
-    if (!font || !size) continue;
+
+    if (!font || !size) {
+      continue;
+    }
+
     const name = uniquePath(
       spec.name,
       new Set(children(out).map(([key]) => key)),
     );
+
     out[name] = {
       $type: 'typography',
       $value: {
@@ -168,5 +195,6 @@ export function addStandardStyles(
     };
     out = setElement(out, name, element, vendor);
   }
+
   return out;
 }

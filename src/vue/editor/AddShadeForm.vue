@@ -18,16 +18,24 @@ const value = ref('');
 const error = ref<string>();
 
 function nameProblem(id: string) {
-  if (!id) return 'Give the shade a name.';
-  if (props.color.shades.some((shade) => shade.name === id))
+  if (!id) {
+    return 'Give the shade a name.';
+  }
+
+  if (props.color.shades.some((shade) => shade.name === id)) {
     return `${id} is already taken.`;
+  }
 }
 
 function add() {
   const id = paletteId(name.value);
   const color = parseCssColor(value.value.trim());
+
   error.value = nameProblem(id) ?? (color ? undefined : COLOR_ERROR);
-  if (error.value || !color) return;
+  if (error.value || !color) {
+    return;
+  }
+
   props.ctx.edit((doc) =>
     addShade(
       doc,
@@ -40,6 +48,7 @@ function add() {
   value.value = '';
   emit('added');
 }
+
 const uid = useId();
 </script>
 

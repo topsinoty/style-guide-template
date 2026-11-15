@@ -4,6 +4,7 @@ import { useFileDialog } from '@vueuse/core';
 defineProps<{ label: string; accept?: string }>();
 const emit = defineEmits<{ files: [files: File[]] }>();
 const { open, onChange } = useFileDialog({ reset: true });
+
 onChange((files) => files && emit('files', [...files]));
 </script>
 

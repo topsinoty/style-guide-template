@@ -23,19 +23,25 @@ export const ROLES = [
 ];
 
 const short = (path: string) => path.replace(/^color\./, '');
+
 export const pairLabel = ({ fg, bg }: Pick<ContrastPair, 'fg' | 'bg'>) =>
   `${short(fg)} on ${short(bg)}`;
 
 export function requiredPairs(tokens: Tokens, declared: ContrastPair[] = []) {
   const pairs: { fg: string; bg: string; min: number; label: string }[] = [];
+
   for (const role of ROLES) {
     const fg = `color.${role}.foreground`;
     const bg = `color.${role}.background`;
-    if (tokens.has(fg) && tokens.has(bg))
+
+    if (tokens.has(fg) && tokens.has(bg)) {
       pairs.push({ fg, bg, min: 4.5, label: `${role} text` });
+    }
   }
+
   for (const role of ['input', 'focus']) {
     const fg = `color.${role}.border`;
+
     if (tokens.has(fg) && tokens.has('color.page.background')) {
       pairs.push({
         fg,
@@ -45,9 +51,13 @@ export function requiredPairs(tokens: Tokens, declared: ContrastPair[] = []) {
       });
     }
   }
-  for (const pair of declared)
-    if (tokens.has(pair.fg) && tokens.has(pair.bg))
+
+  for (const pair of declared) {
+    if (tokens.has(pair.fg) && tokens.has(pair.bg)) {
       pairs.push({ ...pair, label: pairLabel(pair) });
+    }
+  }
+
   return pairs;
 }
 
@@ -57,26 +67,33 @@ export function checkContrast(
 ): ContrastResult[] {
   const inputs = defaultInputs(doc);
   const themes = contexts(doc).filter((c) => c.modifier === 'theme');
-  return (themes.length ? themes : [{ context: 'default' }]).flatMap(
-    ({ context }): ContrastResult[] => {
-      const tokens = resolve(
-        doc,
-        themes.length ? { ...inputs, theme: context } : inputs,
-      );
-      return requiredPairs(tokens, declared).flatMap((p) => {
-        const fg = narrow(tokens.get(p.fg)?.resolved, isColor);
-        const bg = narrow(tokens.get(p.bg)?.resolved, isColor);
-        if (!fg || !bg) return [];
-        const raw = contrastRatio(fg, bg);
-        return [
-          {
-            context,
-            ...p,
-            ratio: Math.round(raw * 100) / 100,
-            pass: raw >= p.min,
-          },
-        ];
+  const names = themes.length ? themes.map((t) => t.context) : ['default'];
+
+  const resultsFor = (context: string): ContrastResult[] => {
+    const choice = themes.length ? { ...inputs, theme: context } : inputs;
+    const tokens = resolve(doc, choice);
+    const results: ContrastResult[] = [];
+
+    for (const pair of requiredPairs(tokens, declared)) {
+      const fg = narrow(tokens.get(pair.fg)?.resolved, isColor);
+      const bg = narrow(tokens.get(pair.bg)?.resolved, isColor);
+
+      if (!fg || !bg) {
+        continue;
+      }
+
+      const ratio = contrastRatio(fg, bg);
+
+      results.push({
+        context,
+        ...pair,
+        ratio: Math.round(ratio * 100) / 100,
+        pass: ratio >= pair.min,
       });
-    },
-  );
+    }
+
+    return results;
+  };
+
+  return names.flatMap(resultsFor);
 }

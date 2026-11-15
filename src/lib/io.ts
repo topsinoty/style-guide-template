@@ -25,21 +25,35 @@ export const errorMessage = (e: unknown) =>
 
 export function classify(name: string): FileKind {
   const n = name.toLowerCase();
-  if (n.endsWith('.resolver.json')) return 'resolver';
+
+  if (n.endsWith('.resolver.json')) {
+    return 'resolver';
+  }
+
   if (
     n.endsWith('.tokens.json') ||
     n.endsWith('.tokens') ||
     n.endsWith('.json')
-  )
+  ) {
     return 'tokens';
-  if (n.endsWith('.zip')) return 'zip';
-  if (['woff2', 'woff', 'ttf', 'otf'].includes(extension(n))) return 'font';
+  }
+
+  if (n.endsWith('.zip')) {
+    return 'zip';
+  }
+
+  if (['woff2', 'woff', 'ttf', 'otf'].includes(extension(n))) {
+    return 'font';
+  }
+
   if (
     ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'ico'].includes(
       extension(n),
     )
-  )
+  ) {
     return 'image';
+  }
+
   return 'file';
 }
 
@@ -49,8 +63,8 @@ export const problemText = (problem: Problem) =>
 export const slug = (name: string) =>
   name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'brand';
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-|-$/g, '') || 'brand';
 
 const baseName = (file: string) =>
   fileName(file).replace(/\.(resolver|tokens)\.json$|\.tokens$|\.json$/i, '');
@@ -61,6 +75,7 @@ export function parseBrandJson(
   validator: Validator,
 ): { doc: ResolverDoc | null; errors: Problem[] } {
   let json: unknown;
+
   try {
     json = JSON.parse(text);
   } catch (e) {
@@ -71,20 +86,29 @@ export function parseBrandJson(
       ],
     };
   }
-  if (!isNode(json))
+
+  if (!isNode(json)) {
     return {
       doc: null,
       errors: [{ path: '', message: `${name} must hold a JSON object` }],
     };
+  }
+
   const doc = toResolver(json, baseName(name));
+
   return { doc, errors: checkBrand(doc, validator) };
 }
 
 export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
   const checked = validator.parseBrand(doc);
-  if (!checked.ok) return checked.problems;
+
+  if (!checked.ok) {
+    return checked.problems;
+  }
+
   const errors: Problem[] = [];
-  if (!valueAt(doc.sets, 'foundation'))
+
+  if (!valueAt(doc.sets, 'foundation')) {
     return [
       {
         path: 'sets',
@@ -92,19 +116,31 @@ export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
           'This site needs the brand tokens in a set named "foundation".',
       },
     ];
-  const ext = doc.sets.foundation.$extensions ?? {};
-  for (const [key, meta] of entriesOf(ext)) {
-    if (META_KEYS.some((k) => holds(meta, k)))
-      errors.push(...validator.checkBrandMeta(meta, `$extensions.${key}`));
   }
-  if (errors.length) return errors;
+
+  const ext = doc.sets.foundation.$extensions ?? {};
+
+  for (const [key, meta] of entriesOf(ext)) {
+    if (META_KEYS.some((k) => holds(meta, k))) {
+      errors.push(...validator.checkBrandMeta(meta, `$extensions.${key}`));
+    }
+  }
+
+  if (errors.length) {
+    return errors;
+  }
+
   try {
     const inputs = defaultInputs(doc);
-    for (const c of contexts(doc))
+
+    for (const c of contexts(doc)) {
       resolve(doc, { ...inputs, [c.modifier]: c.context });
+    }
+
     const vendor = keysOf(ext).find((k) =>
       META_KEYS.some((m) => holds(ext[k], m)),
     );
+
     generateCss(doc, { vendor, fontSrc: (f) => f.src });
     checkContrast(doc, vendor ? brandMeta(doc, vendor).contrast : []);
   } catch (e) {
@@ -113,6 +149,7 @@ export function checkBrand(doc: ResolverDoc, validator: Validator): Problem[] {
       message: errorMessage(e),
     });
   }
+
   return errors;
 }
 
@@ -125,6 +162,7 @@ export function loadZip(
   errors: Problem[];
 } {
   let entries: Record<string, Uint8Array>;
+
   try {
     entries = unzipSync(bytes);
   } catch (e) {
@@ -136,11 +174,13 @@ export function loadZip(
       ],
     };
   }
+
   const names = keysOf(entries).filter((n) => !n.includes('/'));
   const brand =
     names.find((n) => classify(n) === 'resolver') ??
     names.find((n) => /\.tokens(\.json)?$/i.test(n));
-  if (!brand)
+
+  if (!brand) {
     return {
       doc: null,
       files: new Map(),
@@ -151,6 +191,8 @@ export function loadZip(
         },
       ],
     };
+  }
+
   const { doc, errors } = parseBrandJson(
     new TextDecoder().decode(entries[brand]),
     brand,
@@ -165,6 +207,7 @@ export function loadZip(
         !n.endsWith('/'),
     ),
   );
+
   return { doc, files, errors };
 }
 
@@ -176,12 +219,21 @@ export function exportLayout(meta: BrandMeta): Map<string, string> {
   const used = new Set<string>();
   const place = (src: string, folder: string) => {
     const target = uniquePath(`${folder}/${fileName(src)}`, used);
+
     used.add(target);
     layout.set(src, target);
   };
-  for (const g of meta.assetGroups)
-    for (const item of g.items) place(item.src, g.id);
-  for (const f of meta.fontFiles) place(f.src, 'fonts');
+
+  for (const g of meta.assetGroups) {
+    for (const item of g.items) {
+      place(item.src, g.id);
+    }
+  }
+
+  for (const f of meta.fontFiles) {
+    place(f.src, 'fonts');
+  }
+
   return layout;
 }
 
@@ -221,15 +273,20 @@ export function readme(
         `| ${r.context} | ${r.label} | ${r.ratio} | ${r.min} | ${r.pass ? 'pass' : 'warning'} |`,
     ),
   ];
-  if (missing.length)
+
+  if (missing.length) {
     lines.push('', '## Missing files', '', ...missing.map((m) => `- \`${m}\``));
-  if (failedDownloads.length)
+  }
+
+  if (failedDownloads.length) {
     lines.push(
       '',
       '## Files that could not be downloaded',
       '',
       ...failedDownloads.map((m) => `- \`${m}\``),
     );
+  }
+
   return `${lines.join('\n')}\n`;
 }
 
@@ -265,14 +322,20 @@ export async function buildExport(
     const where = resolveAsset(entry, { session: files, library, fonts });
     const target = placed(entry.src);
     const data = where.source === 'session' ? files.get(entry.src) : undefined;
+
     try {
-      if (data) out[target] = await toBytes(data);
-      else if (where.url) out[target] = await fetchBytes(where.url);
-      else missing.push(entry.src);
+      if (data) {
+        out[target] = await toBytes(data);
+      } else if (where.url) {
+        out[target] = await fetchBytes(where.url);
+      } else {
+        missing.push(entry.src);
+      }
     } catch {
       failedDownloads.push(target);
     }
   };
+
   await Promise.all(
     [...meta.assetGroups.flatMap((g) => g.items), ...meta.fontFiles].map(
       collect,
@@ -284,6 +347,7 @@ export async function buildExport(
       .filter((f) => f.provider === fonts.id)
       .map((f) => [`fonts/${f.fontsourceId}-LICENSE.txt`, fonts.licenseUrl(f)]),
   );
+
   await Promise.all(
     [...licenses].map(async ([target, url]) => {
       try {
@@ -306,6 +370,7 @@ export async function buildExport(
   const name = slug(doc.name ?? 'brand');
   const enc = new TextEncoder();
   const contrast = checkContrast(doc, meta.contrast);
+
   out[`${name}.resolver.json`] = enc.encode(saveJson(outDoc));
   out['css/theme.css'] = enc.encode(
     generateCss(outDoc, { vendor, fontSrc: (f) => `../${f.src}` }),
@@ -324,5 +389,6 @@ export async function buildExport(
           `Contrast ${r.context}: ${r.label} is ${r.ratio}:1 (minimum ${r.min}:1)`,
       ),
   ];
+
   return { zip: zipSync(out), warnings };
 }

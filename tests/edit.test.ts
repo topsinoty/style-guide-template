@@ -35,6 +35,7 @@ test('setRole in light writes the foundation, in dark writes the dark context', 
     'primary.foreground',
     '{color.neutral.900}',
   );
+
   assert.equal(
     token(resolve(doc), 'color.primary.foreground').value,
     '{color.neutral.900}',
@@ -56,6 +57,7 @@ test('setThemed writes only the theme, removeThemed falls back to the default th
     $value: { offsetY: { value: 9, unit: 'px' } },
   };
   let doc = setThemed(load(), 'dark', 'shadow.xl', shadow);
+
   assert.deepEqual(nodeAt(themeSource(doc, 'dark') ?? {}, 'shadow.xl'), shadow);
   assert.equal(nodeAt(foundation(doc), 'shadow.xl'), undefined);
   doc = setThemed(doc, 'light', 'shadow.xl', shadow);
@@ -68,6 +70,7 @@ test('setToken writes a path, creating groups', () => {
   const doc = setToken(load(), 'radius.lg', {
     $value: { value: 12, unit: 'px' },
   });
+
   assert.deepEqual(nodeAt(foundation(doc), 'radius.lg')?.$value, {
     value: 12,
     unit: 'px',
@@ -82,6 +85,7 @@ test('removeToken deletes only that token', () => {
     }),
     'duration.slow',
   );
+
   assert.equal(nodeAt(foundation(doc), 'duration.slow'), undefined);
   assert.ok(nodeAt(foundation(doc), 'duration.fast'));
 });
@@ -97,6 +101,7 @@ test('removing the logo item clears the logo choice', () => {
     'logos',
     'logos/a.svg',
   );
+
   assert.equal(meta.logo, undefined);
 });
 
@@ -109,6 +114,7 @@ test('removing a group clears its selected logo but preserves logos in other gro
     fontFiles: [],
     logo: 'logos/a.svg',
   };
+
   assert.equal(removeGroup(meta, 'logos').logo, undefined);
   assert.equal(
     removeGroup({ ...meta, logo: 'icons/b.svg' }, 'logos').logo,
@@ -121,6 +127,7 @@ test('asset groups: add with a unique id, rename, move, remove', () => {
     assetGroups: [{ id: 'logos', label: 'Logos', items: [] }],
     fontFiles: [],
   };
+
   meta = addGroup(meta, 'Logos');
   assert.deepEqual(
     meta.assetGroups.map((g) => g.id),
@@ -145,6 +152,7 @@ test('items: add, update, move, remove', () => {
     assetGroups: [{ id: 'g', label: 'G', items: [] }],
     fontFiles: [],
   };
+
   meta = addItems(meta, 'g', [
     { label: 'a', src: 'g/a.svg' },
     { label: 'b', src: 'g/b.svg' },
@@ -165,6 +173,7 @@ test('items: add, update, move, remove', () => {
 
 test('font files are deduplicated by src', () => {
   let meta: BrandMeta = { assetGroups: [], fontFiles: [] };
+
   meta = addFontFiles(
     meta,
     ['fonts/a.woff2', 'fonts/a.woff2', 'fonts/b.woff2'].map((src) => ({
@@ -207,6 +216,7 @@ test('removeStep drops the token and its place in the scale, so regenerating doe
     md: { $value: { value: 8, unit: 'px' } },
   };
   const out = removeStep(group, 'md', 'v');
+
   assert.equal(out.md, undefined);
   assert.deepEqual(vendorData(out, 'v').scale, {
     base: { value: 4, unit: 'px' },

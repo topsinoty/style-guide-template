@@ -33,10 +33,15 @@ const basename = (p: string) => fileName(p).toLowerCase();
 
 function metaKey(doc: ResolverDoc, vendor: string): string | null {
   const ext = valueAt(doc.sets, 'foundation')?.$extensions ?? {};
-  if (ext[vendor]) return vendor;
+
+  if (ext[vendor]) {
+    return vendor;
+  }
+
   const others = keysOf(ext).filter((k) =>
     META_KEYS.some((m) => holds(ext[k], m)),
   );
+
   return others.length === 1 ? others[0] : null;
 }
 
@@ -44,7 +49,10 @@ const optionalString = (value: unknown) =>
   typeof value === 'string' ? value : undefined;
 
 function readItem(value: unknown): AssetItem | null {
-  if (!isNode(value) || !isSafeSrc(value.src)) return null;
+  if (!isNode(value) || !isSafeSrc(value.src)) {
+    return null;
+  }
+
   return {
     ...value,
     src: value.src,
@@ -58,22 +66,27 @@ function readItem(value: unknown): AssetItem | null {
 
 function readFontFile(value: unknown): FontFile | null {
   const item = readItem(value);
+
   if (
     !item ||
     !isNode(value) ||
     typeof value.family !== 'string' ||
     !value.family
-  )
+  ) {
     return null;
+  }
+
   const { weight, style } = value;
+  const validWeight =
+    typeof weight === 'number' && weight >= 1 && weight <= 1000;
+  const fontWeight = validWeight ? weight : 400;
+  const fontStyle = isFontStyle(style) ? style : 'normal';
+
   return {
     ...item,
     family: value.family,
-    weight:
-      typeof weight === 'number' && weight >= 1 && weight <= 1000
-        ? weight
-        : 400,
-    style: isFontStyle(style) ? style : 'normal',
+    weight: fontWeight,
+    style: fontStyle,
     subset: optionalString(value.subset),
     unicodeRange: optionalString(value.unicodeRange),
     fontsourceId: optionalString(value.fontsourceId),
@@ -86,8 +99,10 @@ function readGroup(value: unknown): AssetGroup | null {
     !isNode(value) ||
     typeof value.id !== 'string' ||
     !Array.isArray(value.items)
-  )
+  ) {
     return null;
+  }
+
   return {
     ...value,
     id: value.id,
@@ -97,7 +112,10 @@ function readGroup(value: unknown): AssetGroup | null {
 }
 
 function readSection(value: unknown): TextSection | null {
-  if (!isNode(value) || typeof value.id !== 'string' || !value.id) return null;
+  if (!isNode(value) || typeof value.id !== 'string' || !value.id) {
+    return null;
+  }
+
   return {
     id: value.id,
     title: optionalString(value.title),
@@ -110,8 +128,10 @@ function readPair(value: unknown): ContrastPair | null {
     !isNode(value) ||
     typeof value.fg !== 'string' ||
     typeof value.bg !== 'string'
-  )
+  ) {
     return null;
+  }
+
   return {
     fg: value.fg,
     bg: value.bg,
@@ -120,37 +140,57 @@ function readPair(value: unknown): ContrastPair | null {
 }
 
 export function readBrandMeta(value: unknown): BrandMeta {
-  const { logo, sections, contrast, rootSize, ...meta } = isNode(value)
+  const { logo, sections, contrast, rootSize, ...rest } = isNode(value)
     ? value
     : {};
-  const list = (key: string) => (Array.isArray(meta[key]) ? meta[key] : []);
-  return {
-    ...meta,
-    ...(typeof logo === 'string' ? { logo } : {}),
-    ...(isRootSize(rootSize) ? { rootSize } : {}),
-    ...(Array.isArray(sections)
-      ? { sections: sections.flatMap((s) => readSection(s) ?? []) }
-      : {}),
-    ...(Array.isArray(contrast)
-      ? { contrast: contrast.flatMap((p) => readPair(p) ?? []) }
-      : {}),
-    assetGroups: list('assetGroups').flatMap((group) => readGroup(group) ?? []),
-    fontFiles: list('fontFiles').flatMap((file) => readFontFile(file) ?? []),
+  const list = (key: string): unknown[] => {
+    const items = rest[key];
+
+    return Array.isArray(items) ? items : [];
   };
+
+  const assetGroups = list('assetGroups').flatMap(
+    (group) => readGroup(group) ?? [],
+  );
+
+  const fontFiles = list('fontFiles').flatMap(
+    (file) => readFontFile(file) ?? [],
+  );
+
+  const meta: BrandMeta = { ...rest, assetGroups, fontFiles };
+
+  if (typeof logo === 'string') {
+    meta.logo = logo;
+  }
+
+  if (isRootSize(rootSize)) {
+    meta.rootSize = rootSize;
+  }
+
+  if (Array.isArray(sections)) {
+    meta.sections = sections.flatMap((s) => readSection(s) ?? []);
+  }
+
+  if (Array.isArray(contrast)) {
+    meta.contrast = contrast.flatMap((p) => readPair(p) ?? []);
+  }
+
+  return meta;
 }
 
 export const BUILT_IN_GROUPS = new Set(['logos', 'favicons', 'icons']);
 
 export function mainLogo(meta: BrandMeta): AssetItem | undefined {
   const items = meta.assetGroups.flatMap((group) => group.items);
-  return (
-    items.find((item) => item.src === meta.logo) ??
-    meta.assetGroups.find((g) => g.id === 'logos')?.items[0]
-  );
+  const chosen = items.find((item) => item.src === meta.logo);
+  const firstLogo = meta.assetGroups.find((g) => g.id === 'logos')?.items[0];
+
+  return chosen ?? firstLogo;
 }
 
 export function brandMeta(doc: ResolverDoc, vendor: string): BrandMeta {
   const key = metaKey(doc, vendor);
+
   return readBrandMeta(
     key ? doc.sets.foundation.$extensions?.[key] : undefined,
   );
@@ -167,7 +207,9 @@ export function withBrandMeta(
   const others = foreign
     ? without(out.sets.foundation.$extensions ?? {}, foreign)
     : out.sets.foundation.$extensions;
+
   out.sets.foundation.$extensions = { ...others, [vendor]: meta };
+
   return out;
 }
 
@@ -191,12 +233,24 @@ export function resolveAsset(
   item: AssetItem,
   { session, library, fonts }: AssetContext,
 ): { source: AssetSource; url?: string } {
-  if (!isSafeSrc(item.src)) return { source: 'missing' };
-  if (session.has(item.src)) return { source: 'session' };
-  if (library.has(item.src))
+  if (!isSafeSrc(item.src)) {
+    return { source: 'missing' };
+  }
+
+  if (session.has(item.src)) {
+    return { source: 'session' };
+  }
+
+  if (library.has(item.src)) {
     return { source: 'library', url: `library/${item.src}` };
+  }
+
   const font = item.provider === fonts.id ? readFontFile(item) : null;
-  if (font) return { source: 'provider', url: fonts.fileUrl(font) };
+
+  if (font) {
+    return { source: 'provider', url: fonts.fileUrl(font) };
+  }
+
   return { source: 'missing' };
 }
 
@@ -209,31 +263,55 @@ export function matchDropped(missing: string[], files: File[]) {
   const matched: SessionFiles = new Map();
   const ambiguous: { name: string; candidates: string[] }[] = [];
   const unmatched: File[] = [];
+
   for (const file of files) {
     const candidates = missing.filter(
       (p) => basename(p) === file.name.toLowerCase(),
     );
-    if (candidates.length === 1) matched.set(candidates[0], file);
-    else if (candidates.length > 1)
+
+    if (candidates.length === 1) {
+      matched.set(candidates[0], file);
+    } else if (candidates.length > 1) {
       ambiguous.push({ name: file.name, candidates });
-    else unmatched.push(file);
+    } else {
+      unmatched.push(file);
+    }
   }
+
   return { matched, ambiguous, unmatched };
 }
 
 export function adoptVendor(doc: ResolverDoc, vendor: string): ResolverDoc {
   const key = metaKey(doc, vendor);
-  if (!key || key === vendor) return doc;
+
+  if (!key || key === vendor) {
+    return doc;
+  }
+
   const out = structuredClone(doc);
   const visit = (node: unknown) => {
-    if (Array.isArray(node)) node.forEach(visit);
-    if (!isNode(node)) return;
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+    }
+
+    if (!isNode(node)) {
+      return;
+    }
+
     if (node.$extensions && key in node.$extensions) {
       const { [key]: moved, ...rest } = node.$extensions;
+
       node.$extensions = { ...rest, [vendor]: moved };
     }
-    for (const [k, v] of entriesOf(node)) if (k !== '$extensions') visit(v);
+
+    for (const [k, v] of entriesOf(node)) {
+      if (k !== '$extensions') {
+        visit(v);
+      }
+    }
   };
+
   visit(out);
+
   return out;
 }

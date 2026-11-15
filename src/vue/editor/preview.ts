@@ -13,9 +13,14 @@ export function elementPreview(
   element: string,
 ): CSSProperties | undefined {
   const style = elementStyles(tree, vendor).get(element);
-  if (!style) return undefined;
+
+  if (!style) {
+    return undefined;
+  }
+
   const base = cssName(`typography.${style}`);
   const v = (prop: string) => `var(${base}-${prop})`;
+
   return {
     fontFamily: v('font-family'),
     fontWeight: v('font-weight'),

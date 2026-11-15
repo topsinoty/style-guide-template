@@ -20,6 +20,7 @@ const error = computed(() => (invalid.value ? COLOR_ERROR : props.error));
 const hex = computed({
   get: () => {
     const color = parseCssColor(text.value);
+
     return color ? toHex(color) : '#000000';
   },
   set: (value) => (text.value = value),
@@ -27,9 +28,13 @@ const hex = computed({
 
 function commit() {
   const color = parseCssColor(text.value.trim());
+
   invalid.value = !color;
-  if (color) emit('commit', color);
+  if (color) {
+    emit('commit', color);
+  }
 }
+
 const uid = useId();
 </script>
 

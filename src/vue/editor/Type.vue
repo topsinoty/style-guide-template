@@ -60,6 +60,7 @@ const fonts = computed(() =>
 const families = computed(() => {
   const uploaded = props.ctx.meta.fontFiles.map((file) => file.family);
   const named = fonts.value.map((font) => font.family).filter(Boolean);
+
   return [...new Set([...uploaded, ...named, ...generic])].map((family) => ({
     value: family,
     label: family,
@@ -83,19 +84,29 @@ const sizeOptions = computed(() =>
 const styles = computed(() =>
   children(child(props.ctx.tree, 'typography')).flatMap(([name, token]) => {
     const style = narrow(token.$value, isTypography);
-    if (!style) return [];
+
+    if (!style) {
+      return [];
+    }
+
+    const title = cap(name.replaceAll('-', ' '));
+    const element = elementOf(name, token, props.ctx.vendor) ?? '';
+    const fontWeight =
+      typeof style.fontWeight === 'number' ? style.fontWeight : undefined;
+    const lineHeight =
+      typeof style.lineHeight === 'number' ? style.lineHeight : undefined;
+    const letterSpacing = narrow(style.letterSpacing, isSize)?.value;
+
     return [
       {
         name,
-        title: cap(name.replaceAll('-', ' ')),
-        element: elementOf(name, token, props.ctx.vendor) ?? '',
+        title,
+        element,
         fontFamily: aliasOrEmpty(style.fontFamily),
         fontSize: aliasOrEmpty(style.fontSize),
-        fontWeight:
-          typeof style.fontWeight === 'number' ? style.fontWeight : undefined,
-        lineHeight:
-          typeof style.lineHeight === 'number' ? style.lineHeight : undefined,
-        letterSpacing: narrow(style.letterSpacing, isSize)?.value,
+        fontWeight,
+        lineHeight,
+        letterSpacing,
       },
     ];
   }),
@@ -115,6 +126,7 @@ const styleSummary = (style: (typeof styles.value)[number]) =>
 const sampleStyle = (name: string) => {
   const base = cssName(`typography.${name}`);
   const v = (field: string) => `var(${base}-${field})`;
+
   return { fontFamily: v('font-family'), fontWeight: v('font-weight') };
 };
 
@@ -122,11 +134,13 @@ const elementOptions = [{ value: '', label: 'Nothing' }, ...ELEMENTS];
 
 function applyTo(name: string, element: string) {
   const group = child(props.ctx.tree, 'typography');
-  if (group)
+
+  if (group) {
     props.ctx.setToken(
       'typography',
       setElement(group, name, element, props.ctx.vendor),
     );
+  }
 }
 
 function put(name: string, patch: Record<string, unknown>) {
@@ -136,6 +150,7 @@ function put(name: string, patch: Record<string, unknown>) {
 function addFont(name: string) {
   const family = newFontFamily.value;
   const fallback = generic.has(family) ? family : 'sans-serif';
+
   props.ctx.setToken(`font.${name}`, {
     $type: 'fontFamily',
     $value: family === fallback ? [family] : [family, fallback],
@@ -157,20 +172,29 @@ async function uploadFonts(files: File[]) {
 
 async function pickFonts(files: Parameters<typeof addFontFiles>[1]) {
   props.ctx.setMeta((meta) => addFontFiles(meta, files));
-  if (files.length) newFontFamily.value = files[0].family;
+  if (files.length) {
+    newFontFamily.value = files[0].family;
+  }
+
   catalogOpen.value = false;
   await focusNewFont();
 }
 
 function styleProblem() {
-  if (!fontOptions.value.length)
+  if (!fontOptions.value.length) {
     return 'Text styles need a font. Add one under Font families above.';
-  if (!sizeOptions.value.length)
+  }
+
+  if (!sizeOptions.value.length) {
     return 'Text styles need a font size. Set the Font size base above, then add steps.';
+  }
 }
 
 function addStyle(name: string) {
-  if (styleProblem()) return;
+  if (styleProblem()) {
+    return;
+  }
+
   const font = (role: string) =>
     fontOptions.value.find((o) => o.value === `{font.${role}}`);
   const heading = elementOf(name, undefined, props.ctx.vendor)?.startsWith('h');
@@ -179,6 +203,7 @@ function addStyle(name: string) {
   const size =
     sizeOptions.value.find((o) => o.value === '{font-size.md}') ??
     sizeOptions.value[0];
+
   opened.value = name;
   props.ctx.setToken(`typography.${name}`, {
     $type: 'typography',
@@ -194,6 +219,7 @@ function addStyle(name: string) {
 
 const unstyled = computed(() => {
   const styled = elementStyles(props.ctx.tree, props.ctx.vendor);
+
   return ELEMENTS.filter((e) => !styled.has(e.value));
 });
 
@@ -208,20 +234,28 @@ function addStandard(elements: string[]) {
       vendor: props.ctx.vendor,
     },
   );
+
   props.ctx.setToken('typography', next);
   const added = children(next)
     .map(([name]) => name)
     .filter((name) => !before.has(name));
-  if (added.length === 1) opened.value = added[0];
+
+  if (added.length === 1) {
+    opened.value = added[0];
+  }
 }
 
 function updateWeight(name: string, event: Event) {
-  if (event.currentTarget instanceof HTMLInputElement)
+  if (event.currentTarget instanceof HTMLInputElement) {
     draftWeights[name] = Number(event.currentTarget.value);
+  }
 }
 
 function commitWeight(name: string, event: Event) {
-  if (!(event.currentTarget instanceof HTMLInputElement)) return;
+  if (!(event.currentTarget instanceof HTMLInputElement)) {
+    return;
+  }
+
   props.ctx.patchValue(`typography.${name}`, {
     fontWeight: Number(event.currentTarget.value),
   });
@@ -232,6 +266,7 @@ function setFont(name: string, family: string) {
   const token = child(child(props.ctx.tree, 'font'), name);
   const last = familiesOf(token?.$value).at(-1);
   const fallback = last && generic.has(last) ? last : 'sans-serif';
+
   props.ctx.setToken(`font.${name}`, {
     ...token,
     $type: 'fontFamily',
@@ -242,6 +277,7 @@ function setFont(name: string, family: string) {
 function fontInUse(name: string): boolean {
   return styles.value.some((style) => style.fontFamily === `{font.${name}}`);
 }
+
 const uid = useId();
 </script>
 

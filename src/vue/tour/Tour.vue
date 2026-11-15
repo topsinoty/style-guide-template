@@ -44,30 +44,45 @@ let frame = 0;
 let returnTo: HTMLElement | null = null;
 
 const find = (s: TourStep) => {
-  if (s.area)
+  if (s.area) {
     return document.querySelector(
       `section[aria-labelledby="${areaId(s.area)}"]`,
     );
+  }
+
   return s.target ? document.querySelector(s.target) : null;
 };
 
 async function waitFor(s: TourStep, tries = 30): Promise<Element | undefined> {
   await new Promise(requestAnimationFrame);
   const el = find(s);
-  if (el?.getClientRects().length) return el;
+
+  if (el?.getClientRects().length) {
+    return el;
+  }
+
   return tries > 0 ? waitFor(s, tries - 1) : undefined;
 }
 
 function settle(s: TourStep): Promise<Element | null | undefined> {
-  if (s.drawer !== undefined) emit('drawer', s.drawer);
-  if (s.tab) tab.value = s.tab;
+  if (s.drawer !== undefined) {
+    emit('drawer', s.drawer);
+  }
+
+  if (s.tab) {
+    tab.value = s.tab;
+  }
+
   return s.target || s.area ? waitFor(s) : Promise.resolve(null);
 }
 
 let moving = false;
 
 async function go(to: number, dir: 1 | -1) {
-  if (moving) return;
+  if (moving) {
+    return;
+  }
+
   moving = true;
   try {
     await move(to, dir);
@@ -77,19 +92,32 @@ async function go(to: number, dir: 1 | -1) {
 }
 
 async function move(to: number, dir: 1 | -1): Promise<void> {
-  if (to < 0) return;
-  if (to >= props.steps.length) {
-    finish();
+  if (to < 0) {
     return;
   }
+
+  if (to >= props.steps.length) {
+    finish();
+
+    return;
+  }
+
   const s = props.steps[to];
   const el = await settle(s);
-  if (el === undefined) return move(to + dir, dir);
+
+  if (el === undefined) {
+    return move(to + dir, dir);
+  }
+
   index.value = to;
   target = el;
   inDrawer.value = el instanceof Element && el.closest('.cd-drawer') !== null;
-  if (s.area) scrollToArea(s.area);
-  else el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  if (s.area) {
+    scrollToArea(s.area);
+  } else {
+    el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+
   await nextTick();
   primary.value?.focus();
 }
@@ -97,6 +125,7 @@ async function move(to: number, dir: 1 | -1): Promise<void> {
 function visible(el: Element) {
   let { top, left, bottom, right } = el.getBoundingClientRect();
   const scroller = el.closest('.cd-drawer-body');
+
   if (scroller) {
     const frameRect = scroller.getBoundingClientRect();
     const bar = scroller.querySelector('.ed-sticky');
@@ -104,13 +133,16 @@ function visible(el: Element) {
       bar && !bar.contains(el)
         ? bar.getBoundingClientRect().bottom
         : frameRect.top;
+
     top = Math.max(top, sticky);
     bottom = Math.min(bottom, frameRect.bottom);
   }
+
   top = Math.max(top, 0);
   left = Math.max(left, 0);
   bottom = Math.min(bottom, window.innerHeight);
   right = Math.min(right, window.innerWidth);
+
   return {
     top: top - PAD,
     left: left - PAD,
@@ -127,7 +159,11 @@ function track() {
     next?.left === last?.left &&
     next?.width === last?.width &&
     next?.height === last?.height;
-  if (!same) box.value = next;
+
+  if (!same) {
+    box.value = next;
+  }
+
   frame = requestAnimationFrame(track);
 }
 
@@ -138,16 +174,21 @@ const placement = computed(() => {
   const w = cardWidth.value;
   const h = cardHeight.value;
   const r = box.value;
+
   if (narrow.value) {
     const low = r !== null && r.top + r.height / 2 > vh.value / 2;
+
     return {
       left: `${MARGIN}px`,
       right: `${MARGIN}px`,
       [low ? 'top' : 'bottom']: `${MARGIN}px`,
     };
   }
-  if (!r)
+
+  if (!r) {
     return { left: `${(vw.value - w) / 2}px`, top: `${(vh.value - h) / 2}px` };
+  }
+
   const x = clamp(r.left, MARGIN, vw.value - w - MARGIN);
   const y = clamp(r.top, MARGIN, vh.value - h - MARGIN);
   const below = {
@@ -177,6 +218,7 @@ const placement = computed(() => {
     left: MARGIN,
     top: vh.value - h - MARGIN,
   };
+
   return { left: `${best.left}px`, top: `${best.top}px` };
 });
 
@@ -188,8 +230,10 @@ watch(
   open,
   async (isOpen) => {
     if (isOpen) {
-      if (document.activeElement instanceof HTMLElement)
+      if (document.activeElement instanceof HTMLElement) {
         returnTo = document.activeElement;
+      }
+
       box.value = null;
       target = null;
       frame = requestAnimationFrame(track);
@@ -211,11 +255,18 @@ function stepBy(dir: 1 | -1) {
 }
 
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!open.value || !KEYS.has(e.key)) return;
+  if (!open.value || !KEYS.has(e.key)) {
+    return;
+  }
+
   e.preventDefault();
-  if (e.key === 'Escape') finish();
-  else if (e.key === 'ArrowRight') stepBy(1);
-  else if (index.value > 0) stepBy(-1);
+  if (e.key === 'Escape') {
+    finish();
+  } else if (e.key === 'ArrowRight') {
+    stepBy(1);
+  } else if (index.value > 0) {
+    stepBy(-1);
+  }
 });
 </script>
 

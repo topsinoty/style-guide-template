@@ -15,8 +15,10 @@ const failures = computed(
   () => props.contrast.filter((pair) => !pair.pass).length,
 );
 const summary = computed(() => {
-  if (!failures.value)
+  if (!failures.value) {
     return `All ${props.contrast.length} contrast pairs pass`;
+  }
+
   return failures.value === 1
     ? '1 contrast pair fails'
     : `${failures.value} contrast pairs fail`;

@@ -8,16 +8,22 @@ export type ColorOption = {
 };
 
 export function colorOptions(colors: PaletteColor[]): ColorOption[] {
-  return colors.flatMap((color) =>
-    color.shades.map((shade) => {
+  const options: ColorOption[] = [];
+
+  for (const color of colors) {
+    for (const shade of color.shades) {
       const path = `color.${color.id}.${shade.name}`;
-      return {
+      const label = shade.isBase ? color.id : `${color.id} · ${shade.name}`;
+
+      options.push({
         value: `{${path}}`,
-        label: shade.isBase ? color.id : `${color.id} · ${shade.name}`,
+        label,
         swatch: `var(${cssName(path)})`,
-      };
-    }),
-  );
+      });
+    }
+  }
+
+  return options;
 }
 
 export const optionFor = (text: string, options: ColorOption[]) =>
@@ -28,9 +34,12 @@ export const optionFor = (text: string, options: ColorOption[]) =>
   );
 
 export function roleText(value: unknown, options: ColorOption[]): string {
-  if (typeof value === 'string')
+  if (typeof value === 'string') {
     return optionFor(value, options)?.label ?? value;
+  }
+
   const color = narrow(value, isColor);
+
   return color ? toHex(color) : '';
 }
 
@@ -39,6 +48,10 @@ export function roleEntry(
   options: ColorOption[],
 ): string | DtcgColor | null {
   const entered = text.trim();
-  if (!entered) return null;
+
+  if (!entered) {
+    return null;
+  }
+
   return optionFor(entered, options)?.value ?? parseCssColor(entered);
 }

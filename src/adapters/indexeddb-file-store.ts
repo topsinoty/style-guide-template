@@ -4,6 +4,7 @@ import type { FileData } from '~/lib';
 
 export function indexedDbFileStore(): FileStore {
   const db = createStore('styleguide', 'files');
+
   return {
     put: (path, data) => set(path, data, db),
     delete: (path) => del(path, db),

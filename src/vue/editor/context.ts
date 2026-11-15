@@ -41,9 +41,14 @@ export function editorContext(
   const edit = (fn: (doc: ResolverDoc) => ResolverDoc, typingKey?: string) => {
     const next = fn(store.get());
     const problem = checkBrand(next, session.validator).at(0);
-    if (problem) session.warn(`Not applied: ${problemText(problem)}`);
-    else store.set(next, typingKey);
+
+    if (problem) {
+      session.warn(`Not applied: ${problemText(problem)}`);
+    } else {
+      store.set(next, typingKey);
+    }
   };
+
   const fresh = (path: string): TokenNode =>
     nodeAt(foundation(store.get()), path) ?? {};
   const setToken = (path: string, token: TokenNode) =>
@@ -66,6 +71,7 @@ export function editorContext(
     patchValue(path, patch) {
       const token = fresh(path);
       const value = isNode(token.$value) ? token.$value : {};
+
       setToken(path, { ...token, $value: { ...value, ...patch } });
     },
     setMeta: (fn, typingKey) =>

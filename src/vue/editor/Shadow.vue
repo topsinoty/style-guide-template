@@ -79,13 +79,22 @@ const shadows = computed(() => {
       [...children(base), ...children(own.value)].map(([name]) => name),
     ),
   ];
+
   return names.flatMap((name) => {
     const mine = child(own.value, name);
     const token = mine ?? child(base, name);
-    if (!token) return [];
+
+    if (!token) {
+      return [];
+    }
+
     const raw = Array.isArray(token.$value) ? token.$value : [token.$value];
     const layers = raw.map(readLayer);
-    if (layers.some((l) => !l)) return [];
+
+    if (layers.some((l) => !l)) {
+      return [];
+    }
+
     return [
       {
         name,
@@ -109,6 +118,7 @@ const summary = (
   const text = [first.offsetX, first.offsetY, first.blur]
     .map((d) => (d ? `${d.value}${d.unit}` : '?'))
     .join(' ');
+
   return layers.length > 1 ? `${text} + ${layers.length - 1} more` : text;
 };
 
@@ -122,6 +132,7 @@ function write(
   const next = inherited
     ? { $type: 'shadow', ...token, $value }
     : { ...token, $value };
+
   props.ctx.edit((doc) =>
     setThemed(doc, props.ctx.theme, `shadow.${name}`, next),
   );
@@ -132,28 +143,37 @@ const rawLayers = (token: TokenNode) =>
 
 function put(name: string, i: number, patch: Record<string, unknown>) {
   const row = shadows.value.find((s) => s.name === name);
-  if (!row) return;
+
+  if (!row) {
+    return;
+  }
+
   const values = rawLayers(row.token);
   const current = values[i];
+
   values[i] = { ...(isNode(current) ? current : {}), ...patch };
   write(name, row.token, values, row.inherited);
 }
 
 function addLayer(name: string) {
   const row = shadows.value.find((s) => s.name === name);
-  if (row)
+
+  if (row) {
     write(
       name,
       row.token,
       [...rawLayers(row.token), layer(0.1, 0, 0, { spread: 1 })],
       row.inherited,
     );
+  }
 }
 
 function removeLayer(name: string, i: number) {
   const row = shadows.value.find((s) => s.name === name);
-  if (row)
+
+  if (row) {
     write(name, row.token, rawLayers(row.token).toSpliced(i, 1), row.inherited);
+  }
 }
 
 function remove(name: string) {
@@ -170,10 +190,14 @@ const allInherited = computed(
 const standard = computed(() =>
   props.ctx.darkPage ? STANDARD.dark : STANDARD.light,
 );
+
 function useStandard() {
   const group: TokenNode = { $type: 'shadow' };
-  for (const [name, layers] of entriesOf(standard.value))
+
+  for (const [name, layers] of entriesOf(standard.value)) {
     group[name] = { $value: layers.length === 1 ? layers[0] : layers };
+  }
+
   props.ctx.edit((doc) => setThemed(doc, props.ctx.theme, 'shadow', group));
 }
 

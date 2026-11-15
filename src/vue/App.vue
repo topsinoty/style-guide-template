@@ -66,11 +66,11 @@ const prefersDark = usePreferredDark();
 const themes = computed(() => themesOf(session.value.doc));
 const theme = computed(() => {
   const system = prefersDark.value ? 'dark' : 'light';
-  return (
-    [themeChoice.value, system].find((t) => themes.value.includes(t)) ??
-    defaultTheme(session.value.doc) ??
-    system
+  const preferred = [themeChoice.value, system].find((t) =>
+    themes.value.includes(t),
   );
+
+  return preferred ?? defaultTheme(session.value.doc) ?? system;
 });
 const lightDark = computed(
   () =>
@@ -88,11 +88,16 @@ const editing = ref(false);
 const helping = ref(false);
 const touring = ref(false);
 const toured = useStorage('styleguide:toured', false);
+
 onMounted(() => {
-  if (session.value.editable && !toured.value) touring.value = true;
+  if (session.value.editable && !toured.value) {
+    touring.value = true;
+  }
 });
 watch(touring, (on) => {
-  if (!on) toured.value = true;
+  if (!on) {
+    toured.value = true;
+  }
 });
 
 async function startTour() {
@@ -100,6 +105,7 @@ async function startTour() {
   await nextTick();
   touring.value = true;
 }
+
 const editorMounted = ref(false);
 const exporting = ref(false);
 
@@ -114,6 +120,7 @@ const logoUrl = computed(
 
 watchEffect(() => {
   const root = document.documentElement;
+
   root.dataset.theme = theme.value;
   root.style.setProperty(
     '--chrome-rem',
@@ -123,6 +130,7 @@ watchEffect(() => {
     view.value.tokens.get('color.page.background')?.resolved,
     isColor,
   );
+
   root.style.colorScheme = isDark(page) ? 'dark' : 'light';
 });
 
@@ -139,8 +147,9 @@ whenever(editing, () => (editorMounted.value = true), { once: true });
 
 useEventListener(document.fonts, 'loadingerror', (e: FontFaceSetLoadEvent) => {
   const failed = e.fontfaces.map(
-    (f) => `${f.family.replace(/"/g, '')} ${f.weight} ${f.style}`,
+    (f) => `${f.family.replaceAll('"', '')} ${f.weight} ${f.style}`,
   );
+
   session.value.warn(
     ...failed.map((font) => `Font could not be loaded: ${font}`),
   );
@@ -155,13 +164,16 @@ async function previewTheme(next: string) {
     themeChoice.value = next;
     await nextTick();
   };
+
   if (
     next === theme.value ||
     !('startViewTransition' in document) ||
     reduceMotion.value === 'reduce'
-  )
+  ) {
     await apply();
-  else document.startViewTransition(apply);
+  } else {
+    document.startViewTransition(apply);
+  }
 }
 
 async function focusBrandName(event: Event) {
@@ -172,6 +184,7 @@ async function focusBrandName(event: Event) {
     document.querySelector<HTMLElement>(
       '#cd-drawer [role="tab"][aria-selected="true"]',
     );
+
   target?.focus();
 }
 
@@ -185,32 +198,54 @@ const dark = computed({
 const TEXT_ENTRY = 'input, textarea, [contenteditable], [role=listbox]';
 
 function historyShortcut(e: KeyboardEvent): 'undo' | 'redo' | null {
-  if (!(e.ctrlKey || e.metaKey) || e.altKey) return null;
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) {
+    return null;
+  }
+
   const key = e.key.toLowerCase();
-  if (key === 'z') return e.shiftKey ? 'redo' : 'undo';
-  if (key === 'y' && !e.shiftKey) return 'redo';
+
+  if (key === 'z') {
+    return e.shiftKey ? 'redo' : 'undo';
+  }
+
+  if (key === 'y' && !e.shiftKey) {
+    return 'redo';
+  }
+
   return null;
 }
 
 onKeyStroke(['z', 'Z', 'y', 'Y'], (e) => {
-  if (!session.value.editable) return;
+  if (!session.value.editable) {
+    return;
+  }
+
   const action = historyShortcut(e);
   const typing = e.target instanceof Element && e.target.closest(TEXT_ENTRY);
-  if (!action || typing) return;
+
+  if (!action || typing) {
+    return;
+  }
+
   e.preventDefault();
   session.value.store[action]();
 });
 
 function save() {
   const file = session.value.brandJson();
+
   download(file.name, file.data, 'application/json');
 }
 
 async function exportKit() {
-  if (exporting.value) return;
+  if (exporting.value) {
+    return;
+  }
+
   exporting.value = true;
   try {
     const { name, data } = await session.value.brandKit();
+
     download(name, data, 'application/zip');
   } catch (e) {
     session.value.warn(`Export failed: ${errorMessage(e)}`);
@@ -220,16 +255,20 @@ async function exportKit() {
 }
 
 const loadDialog = useFileDialog({ reset: true });
+
 loadDialog.onChange((files) => {
-  if (files) session.value.receive([...files]).catch(report);
+  if (files) {
+    session.value.receive([...files]).catch(report);
+  }
 });
 
 const { isOverDropZone: dragging } = useDropZone(document, {
   checkValidity: (items) =>
     session.value.editable && [...items].some((item) => item.kind === 'file'),
   onDrop(files) {
-    if (files && session.value.editable)
+    if (files && session.value.editable) {
       session.value.receive(files).catch(report);
+    }
   },
 });
 
@@ -237,11 +276,17 @@ useEventListener(document, 'paste', (e: ClipboardEvent) => {
   if (
     !session.value.editable ||
     (e.target instanceof Element && e.target.closest(TEXT_ENTRY))
-  )
+  ) {
     return;
+  }
+
   const files = [...(e.clipboardData?.files ?? [])];
   const text = e.clipboardData?.getData('text/plain').trim() ?? '';
-  if (!files.length && !text.startsWith('{')) return;
+
+  if (!files.length && !text.startsWith('{')) {
+    return;
+  }
+
   e.preventDefault();
   session.value
     .receive(files.length ? files : [new File([text], 'pasted.json')])
@@ -254,6 +299,7 @@ const links = useTemplateRef<HTMLAnchorElement[]>('links');
 watch(current, (ids, before) => {
   const entered = ids.find((id) => !before.includes(id));
   const link = links.value?.find((a) => a.hash === `#${entered}`);
+
   link?.scrollIntoView({
     block: 'nearest',
     inline: 'center',
@@ -263,10 +309,18 @@ watch(current, (ids, before) => {
 
 function onNavWheel(e: WheelEvent) {
   const strip = e.currentTarget;
-  if (!(strip instanceof HTMLElement)) return;
+
+  if (!(strip instanceof HTMLElement)) {
+    return;
+  }
+
   const overflows = strip.scrollWidth > strip.clientWidth;
   const vertical = Math.abs(e.deltaY) >= Math.abs(e.deltaX);
-  if (!overflows || !vertical) return;
+
+  if (!overflows || !vertical) {
+    return;
+  }
+
   e.preventDefault();
   strip.scrollLeft += e.deltaY;
 }

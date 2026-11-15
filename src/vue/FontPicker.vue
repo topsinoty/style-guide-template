@@ -62,6 +62,7 @@ const WEIGHTS: Record<number, string> = {
 
 const matches = computed(() => {
   const q = query.value.trim().toLowerCase();
+
   return (list.value ?? []).filter(
     (f) =>
       (category.value === 'all' || f.category === category.value) &&
@@ -69,27 +70,42 @@ const matches = computed(() => {
   );
 });
 const hits = computed(() => matches.value.slice(0, limit.value));
+
 watch([query, category], () => (limit.value = PAGE));
 
 const status = computed(() => {
-  if (listError.value)
+  if (listError.value) {
     return `${props.provider.name} is unreachable (${errorMessage(listError.value)}). Uploaded and library fonts still work.`;
-  if (!list.value) return `Loading the ${props.provider.name} catalog…`;
+  }
+
+  if (!list.value) {
+    return `Loading the ${props.provider.name} catalog…`;
+  }
+
   const n = matches.value.length;
-  if (!n) return 'No fonts match. Try another name or category.';
+
+  if (!n) {
+    return 'No fonts match. Try another name or category.';
+  }
+
   return `${n.toLocaleString()} ${n === 1 ? 'font' : 'fonts'}`;
 });
 
 const previews = reactive(new Set<string>());
 const previewFamily = (font: FontListing) => `cd-preview-${font.id}`;
+
 watch(hits, (fonts) => {
   for (const font of fonts) {
-    if (previews.has(font.id)) continue;
+    if (previews.has(font.id)) {
+      continue;
+    }
+
     previews.add(font.id);
     const face = new FontFace(
       previewFamily(font),
       `url(${props.provider.previewUrl(font)})`,
     );
+
     face.load().then(
       (loaded) => document.fonts.add(loaded),
       () => previews.delete(font.id),
@@ -117,10 +133,17 @@ async function choose(entry: FontListing) {
   detail.value = { family: entry.family, loading: true };
   try {
     const detailed = await props.provider.font(entry.id);
+
     picked.weights = detailed.weights.filter((w) => w === 400 || w === 700);
-    if (!picked.weights.length) picked.weights = detailed.weights.slice(0, 1);
+    if (!picked.weights.length) {
+      picked.weights = detailed.weights.slice(0, 1);
+    }
+
     picked.styles = detailed.styles.filter((s) => s === 'normal');
-    if (!picked.styles.length) picked.styles = detailed.styles.slice(0, 1);
+    if (!picked.styles.length) {
+      picked.styles = detailed.styles.slice(0, 1);
+    }
+
     picked.subsets = detailed.subsets.filter((s) => s === detailed.defSubset);
     detail.value = { font: detailed };
   } catch (e) {
@@ -129,6 +152,7 @@ async function choose(entry: FontListing) {
       error: `Could not load ${entry.family}: ${errorMessage(e)}`,
     };
   }
+
   await nextTick();
   heading.value?.focus();
 }
@@ -142,8 +166,11 @@ async function back() {
 }
 
 function submit() {
-  if (files.value.length) emit('pick', files.value);
+  if (files.value.length) {
+    emit('pick', files.value);
+  }
 }
+
 const uid = useId();
 </script>
 

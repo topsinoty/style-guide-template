@@ -32,6 +32,7 @@ function fixture(doc: ResolverDoc) {
       current = preset;
     },
   } satisfies ViewSession;
+
   return {
     session,
     get recovered() {
@@ -43,6 +44,7 @@ function fixture(doc: ResolverDoc) {
 test('derives tokens and brand CSS from the same valid document and theme', () => {
   const state = fixture(preset);
   const view = deriveView(state.session, 'dark');
+
   assert.equal(state.recovered, false);
   assert.ok(view.tokens.size > 0);
   assert.ok(view.css.includes('--color-'));
@@ -58,6 +60,7 @@ test('falls back to the preset when the current draft cannot resolve', () => {
     resolutionOrder: [{ $ref: '#/sets/missing' }],
   });
   const view = deriveView(state.session, 'light');
+
   assert.equal(state.recovered, true);
   assert.ok(view.tokens.size > 0);
 });

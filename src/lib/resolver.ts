@@ -17,14 +17,18 @@ export const aliasTarget = (v: unknown): string | null =>
 export function contexts(
   doc: ResolverDoc,
 ): { modifier: string; context: string; isDefault: boolean }[] {
-  return entriesOf(doc.modifiers ?? {}).flatMap(([modifier, m]) => {
-    const def = m.default ?? keysOf(m.contexts)[0];
-    return keysOf(m.contexts).map((context) => ({
-      modifier,
-      context,
-      isDefault: context === def,
-    }));
-  });
+  const found: { modifier: string; context: string; isDefault: boolean }[] = [];
+
+  for (const [modifier, m] of entriesOf(doc.modifiers ?? {})) {
+    const names = keysOf(m.contexts);
+    const fallback = m.default ?? names[0];
+
+    for (const context of names) {
+      found.push({ modifier, context, isDefault: context === fallback });
+    }
+  }
+
+  return found;
 }
 
 export const defaultInputs = (doc: ResolverDoc): Record<string, string> =>
@@ -39,6 +43,7 @@ export function mergedTree(
   inputs = defaultInputs(doc),
 ): TokenNode {
   let tree: TokenNode = {};
+
   for (const { $ref } of doc.resolutionOrder) {
     const [, kind, name] = /^#\/(sets|modifiers)\/(.+)$/.exec($ref) ?? [];
     const mod = kind === 'modifiers' ? doc.modifiers?.[name] : undefined;
@@ -49,13 +54,19 @@ export function mergedTree(
           (valueAt(mod.contexts, inputs[name]) ??
             valueAt(mod.contexts, defaultInputs(doc)[name]) ??
             []);
-    if (!sources)
+
+    if (!sources) {
       throw new ResolveError(
         'resolutionOrder',
         `${$ref} does not point to a set or modifier`,
       );
-    for (const s of sources) tree = deepMerge(tree, s);
+    }
+
+    for (const s of sources) {
+      tree = deepMerge(tree, s);
+    }
   }
+
   return tree;
 }
 
@@ -66,9 +77,14 @@ export function flatten(
   out = new Map<string, FlatToken>(),
 ): Map<string, FlatToken> {
   const type = tree.$type ?? inherited;
+
   for (const [key, node] of entriesOf(tree)) {
-    if ((key.startsWith('$') && key !== '$root') || !isNode(node)) continue;
+    if ((key.startsWith('$') && key !== '$root') || !isNode(node)) {
+      continue;
+    }
+
     const p = path ? `${path}.${key}` : key;
+
     if ('$value' in node) {
       out.set(p, {
         type: node.$type ?? type,
@@ -76,8 +92,11 @@ export function flatten(
         extensions: node.$extensions,
         description: node.$description,
       });
-    } else flatten(node, p, type, out);
+    } else {
+      flatten(node, p, type, out);
+    }
   }
+
   return out;
 }
 
@@ -86,7 +105,7 @@ const pointerSegments = (ref: string) =>
     .replace(/^#\/?/, '')
     .split('/')
     .filter(Boolean)
-    .map((s) => s.replace(/~1/g, '/').replace(/~0/g, '~'));
+    .map((s) => s.replaceAll('~1', '/').replaceAll('~0', '~'));
 
 export function resolve(doc: ResolverDoc, inputs = defaultInputs(doc)): Tokens {
   const tree = mergedTree(doc, inputs);
@@ -94,50 +113,84 @@ export function resolve(doc: ResolverDoc, inputs = defaultInputs(doc)): Tokens {
   const done = new Map<string>();
 
   const resolveToken = (path: string, stack: string[]): unknown => {
-    if (done.has(path)) return done.get(path);
-    if (stack.includes(path))
+    if (done.has(path)) {
+      return done.get(path);
+    }
+
+    if (stack.includes(path)) {
       throw new ResolveError(
         stack[0],
         `alias cycle: ${[...stack, path].join(' -> ')}`,
       );
+    }
+
     const token = flat.get(path);
-    if (!token)
+
+    if (!token) {
       throw new ResolveError(
         stack.at(-1) ?? path,
         `alias target ${path} does not exist`,
       );
+    }
+
     const value = resolveValue(token.value, [...stack, path]);
+
     done.set(path, value);
+
     return value;
   };
 
   const resolveRef = (ref: string, stack: string[]): unknown => {
     const segs = pointerSegments(ref);
     const at = segs.indexOf('$value');
-    if (at === -1)
+
+    if (at === -1) {
       throw new ResolveError(
         stack.at(-1) ?? ref,
         `$ref ${ref} must point into a token $value`,
       );
+    }
+
     let v: unknown = resolveToken(segs.slice(0, at).join('.'), stack);
-    for (const s of segs.slice(at + 1)) v = isNode(v) ? v[s] : undefined;
-    if (v === undefined)
+
+    for (const s of segs.slice(at + 1)) {
+      v = isNode(v) ? v[s] : undefined;
+    }
+
+    if (v === undefined) {
       throw new ResolveError(stack.at(-1) ?? ref, `$ref ${ref} does not exist`);
+    }
+
     return v;
   };
 
   const resolveValue = (v: unknown, stack: string[]): unknown => {
     const target = aliasTarget(v);
-    if (target) return resolveToken(target, stack);
-    if (isNode(v) && typeof v.$ref === 'string')
+
+    if (target) {
+      return resolveToken(target, stack);
+    }
+
+    if (isNode(v) && typeof v.$ref === 'string') {
       return resolveRef(v.$ref, stack);
-    if (Array.isArray(v)) return v.map((x) => resolveValue(x, stack));
-    if (isNode(v)) return mapValues(v, (x) => resolveValue(x, stack));
+    }
+
+    if (Array.isArray(v)) {
+      return v.map((x) => resolveValue(x, stack));
+    }
+
+    if (isNode(v)) {
+      return mapValues(v, (x) => resolveValue(x, stack));
+    }
+
     return v;
   };
 
   const out: Tokens = new Map();
-  for (const [path, token] of flat)
+
+  for (const [path, token] of flat) {
     out.set(path, { ...token, resolved: resolveToken(path, []) });
+  }
+
   return out;
 }

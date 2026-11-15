@@ -13,14 +13,17 @@ test('minimal fixture is valid', () => {
 
 test('wrong version', () => {
   const r = validateResolver({ ...load(), version: '1' });
+
   assert.equal(r.ok, false);
   assert.match(r.errors[0].message, /2025\.10/);
 });
 
 test('missing $type is an error', () => {
   const doc = load();
+
   removeAt(tree(doc), 'spacing.$type');
   const r = validateResolver(doc);
+
   assert.ok(
     r.errors.some(
       (e) => e.path?.endsWith('spacing.md') && e.message.includes('$type'),
@@ -31,12 +34,14 @@ test('missing $type is an error', () => {
 
 test('$type inherited from group is valid', () => {
   const doc = load();
+
   setAt(tree(doc), 'radius.lg', { $value: { value: 12, unit: 'px' } });
   assert.equal(validateResolver(doc).ok, true);
 });
 
 test('bad dimension unit', () => {
   const doc = load();
+
   setAt(tree(doc), 'spacing.md.$value.unit', 'em');
   assert.ok(
     validateResolver(doc).errors.some((e) => e.message.includes('px|rem')),
@@ -45,6 +50,7 @@ test('bad dimension unit', () => {
 
 test('bad color space', () => {
   const doc = load();
+
   setAt(tree(doc), 'color.brand.700.$value.colorSpace', 'cmyk');
   assert.ok(
     validateResolver(doc).errors.some(
@@ -56,6 +62,7 @@ test('bad color space', () => {
 
 test('unknown $ key is an error', () => {
   const doc = load();
+
   setAt(tree(doc), 'color.$foo', 1);
   assert.ok(
     validateResolver(doc).errors.some((e) => e.message.includes('$foo')),
@@ -64,6 +71,7 @@ test('unknown $ key is an error', () => {
 
 test('resolutionOrder must point at existing sets and modifiers', () => {
   const doc = load();
+
   doc.resolutionOrder.push({ $ref: '#/sets/nope' });
   assert.ok(
     validateResolver(doc).errors.some((e) => e.message.includes('#/sets/nope')),
@@ -72,6 +80,7 @@ test('resolutionOrder must point at existing sets and modifiers', () => {
 
 test('foreign tokens and $root are valid', () => {
   const doc = load();
+
   setAt(tree(doc), 'color.accent', {
     $root: { $value: '{color.brand.600}' },
     light: { $value: '{color.brand.700}' },
@@ -85,6 +94,7 @@ test('foreign tokens and $root are valid', () => {
 
 test('plain tokens become a resolver', () => {
   const r = toResolver({ color: { $type: 'color' } }, 'X');
+
   assert.equal(isResolver(r), true);
   assert.equal(r.version, '2025.10');
   assert.equal(r.name, 'X');
@@ -98,11 +108,13 @@ test('plain tokens become a resolver', () => {
 
 test('a resolver passes through toResolver unchanged', () => {
   const doc = load();
+
   assert.equal(toResolver(doc, 'X'), doc);
 });
 
 test('color components must have three entries', () => {
   const doc = load();
+
   setAt(tree(doc), 'color.brand.700.$value.components', [0.5]);
   assert.ok(
     validateResolver(doc).errors.some((e) => e.message.includes('components')),
@@ -111,6 +123,7 @@ test('color components must have three entries', () => {
 
 test('border and transition sub-values are validated', () => {
   const doc = load();
+
   tree(doc).border = {
     $type: 'border',
     bad: {
@@ -132,12 +145,14 @@ test('border and transition sub-values are validated', () => {
     },
   };
   const errors = validateResolver(doc).errors;
+
   assert.ok(errors.some((e) => e.path?.endsWith('border.bad')));
   assert.ok(errors.some((e) => e.path?.endsWith('transition.bad')));
 });
 
 test('names with { } . are rejected (DTCG)', () => {
   const doc = load();
+
   setAt(tree(doc), 'color.a{b', { $value: '{color.brand.600}' });
   assert.ok(
     validateResolver(doc).errors.some((e) => e.message.includes('name')),

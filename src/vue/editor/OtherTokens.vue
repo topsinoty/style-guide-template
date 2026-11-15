@@ -64,15 +64,20 @@ const setValue = (path: string, type: string, value: unknown) =>
 
 function setColor(path: string, text: string) {
   const value = roleEntry(text, shades.value);
+
   if (!value) {
     props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
+
     return;
   }
-  if (path.startsWith('color.'))
+
+  if (path.startsWith('color.')) {
     props.ctx.edit((doc) =>
       setRole(doc, props.ctx.theme, path.slice('color.'.length), value),
     );
-  else setValue(path, 'color', value);
+  } else {
+    setValue(path, 'color', value);
+  }
 }
 
 const inputValue = (event: Event) =>
@@ -80,7 +85,10 @@ const inputValue = (event: Event) =>
 
 function setNumber(path: string, event: Event) {
   const value = Number.parseFloat(inputValue(event));
-  if (Number.isFinite(value)) props.ctx.patchValue(path, { value });
+
+  if (Number.isFinite(value)) {
+    props.ctx.patchValue(path, { value });
+  }
 }
 
 function setText(
@@ -88,15 +96,23 @@ function setText(
   event: Event,
 ) {
   const text = inputValue(event);
+
   if (typeof row.value === 'number') {
     const value = Number.parseFloat(text);
-    if (Number.isFinite(value)) setValue(row.path, row.type, value);
+
+    if (Number.isFinite(value)) {
+      setValue(row.path, row.type, value);
+    }
+
     return;
   }
+
   if (typeof row.value === 'string') {
     setValue(row.path, row.type, text);
+
     return;
   }
+
   try {
     setValue(row.path, row.type, JSON.parse(text));
   } catch {
@@ -108,6 +124,7 @@ function setText(
 
 const hexOf = (resolved: unknown) => {
   const color = narrow(resolved, isColor);
+
   return color ? toHex(color) : '#000000';
 };
 
@@ -117,28 +134,41 @@ const newValue = ref('');
 const error = ref<string>();
 
 function nameProblem(path: string) {
-  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(path))
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)*$/.test(path)) {
     return 'Use lowercase words joined by dots, like duration.slow.';
+  }
+
   const editor = ownEditor(path);
-  if (editor)
+
+  if (editor) {
     return `${path.split('.')[0]} tokens belong to ${editor}, not Other tokens.`;
-  if (props.ctx.tokens.has(path)) return `${path} already exists.`;
+  }
+
+  if (props.ctx.tokens.has(path)) {
+    return `${path} already exists.`;
+  }
 }
 
 function add() {
   const path = newName.value.trim().toLowerCase();
   const value = tokenValue(newType.value, newValue.value);
+
   error.value =
     nameProblem(path) ??
     (value === null
       ? `That is not a ${newType.value}. Try ${valueExample(newType.value)}.`
       : undefined);
-  if (error.value) return false;
+  if (error.value) {
+    return false;
+  }
+
   setValue(path, newType.value, value);
   newName.value = '';
   newValue.value = '';
+
   return true;
 }
+
 const uid = useId();
 </script>
 

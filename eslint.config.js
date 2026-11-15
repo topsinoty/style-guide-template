@@ -159,6 +159,7 @@ export default defineConfig(
       'unicorn/prefer-includes': 'error',
       'unicorn/prefer-string-starts-ends-with': 'error',
       'unicorn/prefer-string-slice': 'error',
+      'unicorn/prefer-string-replace-all': 'error',
       'unicorn/no-useless-switch-case': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
@@ -223,4 +224,18 @@ export default defineConfig(
   },
 
   prettier,
+
+  {
+    files: sourceFiles,
+    rules: {
+      curly: ['error', 'all'],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: ['const', 'let'], next: '*' },
+        { blankLine: 'any', prev: ['const', 'let'], next: ['const', 'let'] },
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+      ],
+    },
+  },
 );

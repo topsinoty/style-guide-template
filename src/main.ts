@@ -29,7 +29,9 @@ const session = await Session.open({
   editable: mode.kind === 'private',
 });
 const mount = document.createElement('div');
+
 document.body.prepend(mount);
 const app = createApp(App, { mode });
+
 provideSession(app, session);
 app.mount(mount);

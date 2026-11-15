@@ -10,6 +10,7 @@ export function download(
 ) {
   const url = URL.createObjectURL(new Blob([blobPart(data)], { type }));
   const a = document.createElement('a');
+
   a.href = url;
   a.download = name;
   document.body.append(a);

@@ -46,11 +46,13 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const targetFor = (file: File, candidates: string[]) =>
   targets.get(file) ?? candidates[0];
 const missingDialog = useFileDialog({ reset: true });
+
 missingDialog.onChange((files) => {
-  if (files)
+  if (files) {
     session.value.receive([...files]).catch((e: unknown) => {
       session.value.warn(errorMessage(e));
     });
+  }
 });
 </script>
 

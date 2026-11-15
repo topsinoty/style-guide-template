@@ -51,7 +51,11 @@ function hexOf(background: string | undefined) {
     ref ? props.ctx.tokens.get(ref[1])?.value : undefined,
     isColor,
   );
-  if (color) return toHex(color);
+
+  if (color) {
+    return toHex(color);
+  }
+
   return background?.startsWith('#') ? background : '#ffffff';
 }
 
@@ -60,14 +64,20 @@ function setBackground(group: AssetGroup, item: AssetItem, text: string) {
     props.ctx.setMeta((m) =>
       updateItem(m, group.id, item.src, { background: undefined }),
     );
+
     return;
   }
+
   const value = roleEntry(text, shades.value);
+
   if (!value) {
     props.ctx.session.warn(`${text.trim()}: ${COLOR_ERROR}`);
+
     return;
   }
+
   const background = typeof value === 'string' ? value : toHex(value);
+
   props.ctx.setMeta((m) => updateItem(m, group.id, item.src, { background }));
 }
 
@@ -75,25 +85,39 @@ const count = (n: number) => (n === 1 ? '1 file' : `${n} files`);
 
 function addFromLibrary(group: AssetGroup) {
   const src = pick(group);
-  if (src && !group.items.some((item) => item.src === src))
+
+  if (src && !group.items.some((item) => item.src === src)) {
     props.ctx.setMeta((meta) =>
       addItems(meta, group.id, [{ label: fileName(src), src }]),
     );
+  }
 }
 
 function addNewGroup() {
   const label = newGroup.value.trim();
-  if (!label) return false;
+
+  if (!label) {
+    return false;
+  }
+
   props.ctx.setMeta((meta) => addGroup(meta, label));
   newGroup.value = '';
+
   return true;
 }
 
 function rename(group: AssetGroup, event: Event) {
-  if (!(event.target instanceof HTMLInputElement)) return;
+  if (!(event.target instanceof HTMLInputElement)) {
+    return;
+  }
+
   const label = event.target.value.trim();
-  if (label) props.ctx.setMeta((m) => renameGroup(m, group.id, label));
-  else event.target.value = groupName(group);
+
+  if (label) {
+    props.ctx.setMeta((m) => renameGroup(m, group.id, label));
+  } else {
+    event.target.value = groupName(group);
+  }
 }
 
 async function upload(group: AssetGroup, files: File[], close: () => void) {

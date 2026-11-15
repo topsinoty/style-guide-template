@@ -33,9 +33,11 @@ const edit = (id: string, patch: Partial<TextSection>, typingKey?: string) =>
   );
 
 function rename(section: Section, title: string) {
-  if (section.group)
+  if (section.group) {
     props.ctx.setMeta((m) => renameGroup(m, section.group ?? '', title));
-  else edit(section.id, { title });
+  } else {
+    edit(section.id, { title });
+  }
 }
 
 const summary = (section: Section) =>
@@ -46,13 +48,20 @@ const summary = (section: Section) =>
 
 function add() {
   const title = newTitle.value.trim();
-  if (!title) return false;
+
+  if (!title) {
+    return false;
+  }
+
   const before = new Set(sections.value.map((s) => s.id));
+
   props.ctx.setMeta((m) => addSection(m, props.ctx.tokens, title));
   opened.value = sections.value.find((s) => !before.has(s.id))?.id;
   newTitle.value = '';
+
   return true;
 }
+
 const uid = useId();
 </script>
 

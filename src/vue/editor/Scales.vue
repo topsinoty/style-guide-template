@@ -57,12 +57,16 @@ const scales = computed(() =>
       steps.find((s) => s.length)?.length?.unit ??
       valueAt(pendingUnit, key) ??
       'px';
+
     return [{ key, label, spec, steps, unit }];
   }),
 );
 
 function setBase(key: string, value: number, unit: string) {
-  if (!Number.isFinite(value) || value < 0) return;
+  if (!Number.isFinite(value) || value < 0) {
+    return;
+  }
+
   const group = child(props.ctx.tree, key) ?? { $type: 'dimension' };
   const spec = scaleOf(group, props.ctx.vendor) ?? {
     base: { value, unit },
@@ -71,11 +75,15 @@ function setBase(key: string, value: number, unit: string) {
   const next = withVendorData(group, props.ctx.vendor, {
     scale: { ...spec, base: { ...spec.base, value } },
   });
+
   props.ctx.setToken(key, applyScale(next, props.ctx.vendor));
 }
 
 function setRootSize(value: number) {
-  if (!isRootSize(value)) return;
+  if (!isRootSize(value)) {
+    return;
+  }
+
   props.ctx.setMeta(({ rootSize: _, ...meta }) =>
     value === DEFAULT_ROOT_SIZE ? meta : { ...meta, rootSize: value },
   );
@@ -116,9 +124,12 @@ const STANDARD: Record<
 function useStandard(key: string, spec: ScaleSpec | null) {
   if (!spec) {
     props.ctx.session.warn('Set the base first.');
+
     return;
   }
+
   const set = STANDARD[key];
+
   regenerate(key, { steps: spec.ratio ? set.ratio : set.linear });
 }
 
@@ -130,41 +141,55 @@ const UNIT_OPTIONS = [
 function setUnit(key: string, unit: string) {
   pendingUnit[key] = unit;
   const group = child(props.ctx.tree, key);
-  if (group && (unit === 'px' || unit === 'rem'))
+
+  if (group && (unit === 'px' || unit === 'rem')) {
     props.ctx.setToken(
       key,
       setScaleUnit(group, unit, props.ctx.vendor, props.ctx.meta.rootSize),
     );
+  }
 }
 
 function setRatio(key: string, value: number) {
   const spec = scaleOf(child(props.ctx.tree, key), props.ctx.vendor);
+
   if (!spec) {
     props.ctx.session.warn('Set the base first.');
+
     return;
   }
+
   const ratio = value > 0 && value !== 1 ? value : undefined;
   const multiplier = (step: number) => (spec.ratio ? spec.ratio ** step : step);
   const next = mapValues(spec.steps, (step) => {
     const m = multiplier(step);
+
     return ratio
       ? Math.round((Math.log(m) / Math.log(ratio)) * 1e4) / 1e4
       : Math.round(m * 1e4) / 1e4;
   });
+
   if (valuesOf(next).some((n) => !Number.isFinite(n))) {
     props.ctx.session.warn('A ratio needs every step above zero.');
+
     return;
   }
+
   regenerate(key, { ratio, steps: next });
 }
 
 function regenerate(key: string, patch: Partial<ScaleSpec>) {
   const group = child(props.ctx.tree, key);
   const spec = scaleOf(group, props.ctx.vendor);
-  if (!group || !spec) return;
+
+  if (!group || !spec) {
+    return;
+  }
+
   const next = withVendorData(group, props.ctx.vendor, {
     scale: { ...spec, ...patch },
   });
+
   props.ctx.setToken(key, applyScale(next, props.ctx.vendor));
 }
 
@@ -172,13 +197,21 @@ const newValues = reactive<Record<string, number | ''>>({});
 
 const valueProblem = (key: string) => {
   const spec = scaleOf(child(props.ctx.tree, key), props.ctx.vendor);
-  if (!spec) return 'Set the base first.';
+
+  if (!spec) {
+    return 'Set the base first.';
+  }
+
   const value = newValues[key];
   const valid =
     typeof value === 'number' &&
     Number.isFinite(value) &&
     (spec.ratio ? true : value >= 0);
-  if (valid) return;
+
+  if (valid) {
+    return;
+  }
+
   return spec.ratio
     ? 'Enter a finite exponent.'
     : 'Enter a non-negative multiplier.';
@@ -187,20 +220,31 @@ const valueProblem = (key: string) => {
 function addStep(key: string, step: string) {
   const group = child(props.ctx.tree, key);
   const value = newValues[key];
-  if (!group || typeof value !== 'number' || valueProblem(key)) return;
+
+  if (!group || typeof value !== 'number' || valueProblem(key)) {
+    return;
+  }
+
   props.ctx.setToken(key, addScaleStep(group, step, value, props.ctx.vendor));
   newValues[key] = '';
 }
 
 function remove(key: string, step: string) {
   const group = child(props.ctx.tree, key);
-  if (group) props.ctx.setToken(key, removeStep(group, step, props.ctx.vendor));
+
+  if (group) {
+    props.ctx.setToken(key, removeStep(group, step, props.ctx.vendor));
+  }
 }
 
 function setValue(key: string, step: string, value: number) {
   const group = child(props.ctx.tree, key);
   const length = narrow(child(group, step)?.$value, isSize);
-  if (!group || !length) return;
+
+  if (!group || !length) {
+    return;
+  }
+
   props.ctx.setToken(
     key,
     setStep(group, step, { ...length, value }, props.ctx.vendor),
@@ -208,11 +252,20 @@ function setValue(key: string, step: string, value: number) {
 }
 
 function setFromInput(key: string, step: string, event: Event) {
-  if (!(event.target instanceof HTMLInputElement) || event.target.value === '')
+  if (
+    !(event.target instanceof HTMLInputElement) ||
+    event.target.value === ''
+  ) {
     return;
+  }
+
   const value = Number(event.target.value);
-  if (Number.isFinite(value)) setValue(key, step, value);
+
+  if (Number.isFinite(value)) {
+    setValue(key, step, value);
+  }
 }
+
 const uid = useId();
 </script>
 

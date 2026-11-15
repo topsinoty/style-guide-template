@@ -18,19 +18,30 @@ const error = ref<string>();
 const errorId = `cd-name-error-${crypto.randomUUID()}`;
 
 function problem(id: string) {
-  if (!id) return 'Give it a name.';
-  if (props.taken.includes(id)) return `${id} is already taken.`;
+  if (!id) {
+    return 'Give it a name.';
+  }
+
+  if (props.taken.includes(id)) {
+    return `${id} is already taken.`;
+  }
+
   return props.check?.();
 }
 
 function add(close: () => void) {
   const id = paletteId(name.value);
+
   error.value = problem(id);
-  if (error.value) return;
+  if (error.value) {
+    return;
+  }
+
   emit('add', id);
   name.value = '';
   close();
 }
+
 const uid = useId();
 </script>
 

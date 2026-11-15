@@ -38,7 +38,11 @@ const props = defineProps<{ tokens: Tokens; vendor: string }>();
 function shade(path: string, token: ResolvedToken): Shade | null {
   const palette = palettePath(path);
   const color = narrow(token.resolved, isColor);
-  if (!palette || !color) return null;
+
+  if (!palette || !color) {
+    return null;
+  }
+
   const extension = token.extensions?.[props.vendor];
   const own = isNode(extension) ? extension : {};
   const printedCmyk = Array.isArray(own.cmyk) ? own.cmyk : null;
@@ -49,15 +53,19 @@ function shade(path: string, token: ResolvedToken): Shade | null {
       shown: text,
     }),
   );
+
   copies.push({
     text: cmykText,
     shown: printedCmyk ? cmykText : `${cmykText} (approx.)`,
   });
-  if (typeof own.pantone === 'string')
+  if (typeof own.pantone === 'string') {
     copies.push({ text: own.pantone, shown: own.pantone });
+  }
+
   const name = palette.step
     ? `${palette.group}-${palette.step}`
     : palette.group;
+
   return {
     path,
     ...palette,
@@ -69,13 +77,20 @@ function shade(path: string, token: ResolvedToken): Shade | null {
 }
 
 function sourceOf(value: unknown, color: DtcgColor): string {
-  if (typeof value === 'string') return value;
-  if (isNode(value) && typeof value.$ref === 'string') return value.$ref;
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (isNode(value) && typeof value.$ref === 'string') {
+    return value.$ref;
+  }
+
   return toOklchString(color);
 }
 
 function row(path: string, token: ResolvedToken): Row | null {
   const color = narrow(token.resolved, isColor);
+
   return (
     color && {
       path,
@@ -89,22 +104,33 @@ function row(path: string, token: ResolvedToken): Row | null {
 const color = computed(() => {
   const palette = new Map<string, Shade[]>();
   const rows: Record<'role' | 'other', Row[]> = { role: [], other: [] };
+
   for (const [path, token] of props.tokens) {
-    if (token.type !== 'color' || !path.startsWith('color.')) continue;
+    if (token.type !== 'color' || !path.startsWith('color.')) {
+      continue;
+    }
+
     const kind = colorKind(path);
     const swatch = kind === 'palette' ? shade(path, token) : null;
     const line = swatch ? null : row(path, token);
-    if (swatch)
+
+    if (swatch) {
       palette.set(swatch.group, [...(palette.get(swatch.group) ?? []), swatch]);
-    else if (line) rows[kind === 'role' ? 'role' : 'other'].push(line);
+    } else if (line) {
+      rows[kind === 'role' ? 'role' : 'other'].push(line);
+    }
   }
+
   const hues = [...palette].map(
     ([id, shades]) =>
       [id, shades.toSorted((a, b) => byShadeOrder(a.step, b.step))] as const,
   );
   const tables = [{ title: 'Roles', rows: rows.role }];
-  if (rows.other.length)
+
+  if (rows.other.length) {
     tables.push({ title: 'Other tokens', rows: rows.other });
+  }
+
   return { hues, tables };
 });
 

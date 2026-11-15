@@ -18,6 +18,7 @@ export function deriveView(session: ViewSession, theme: string): View {
   const build = (): View => {
     const doc = session.doc;
     const fontSrc = (f: FontFile) => urlFor(f, session.ctx) ?? f.src;
+
     return {
       tokens: resolve(doc, { theme }),
       meta: session.meta,
@@ -28,11 +29,16 @@ export function deriveView(session: ViewSession, theme: string): View {
       }),
     };
   };
+
   try {
     return build();
   } catch (error) {
-    if (session.doc === session.preset) throw error;
+    if (session.doc === session.preset) {
+      throw error;
+    }
+
     session.fallBack(error);
+
     return build();
   }
 }

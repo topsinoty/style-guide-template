@@ -1,7 +1,7 @@
 import * as z from 'zod/mini';
 import type { FontPicks, FontProvider, KeyValueStore } from '~/ports';
 import { isFontStyle } from '~/lib';
-import type { FontDetail, FontFile, FontListing } from '~/lib';
+import type { FontDetail, FontFile, FontListing, FontStyle } from '~/lib';
 
 type Fetch = (url: string) => Promise<Pick<Response, 'ok' | 'status' | 'json'>>;
 
@@ -27,6 +27,7 @@ const fontListing: z.ZodMiniType<FontListing> = z.object(listingShape);
 const variant = z.object({
   url: z.optional(z.object({ woff2: z.optional(z.string()) })),
 });
+
 export const fontDetail: z.ZodMiniType<FontDetail> = z.object({
   ...listingShape,
   subsets: z.array(z.string()),
@@ -40,6 +41,7 @@ export const fontDetail: z.ZodMiniType<FontDetail> = z.object({
 export const parseList = (json: unknown): FontListing[] =>
   (Array.isArray(json) ? json : []).flatMap((f) => {
     const r = z.safeParse(fontListing, f);
+
     return r.success ? [r.data] : [];
   });
 
@@ -47,26 +49,36 @@ export function fontFiles(
   detail: FontDetail,
   { weights, styles, subsets }: FontPicks,
 ): FontFile[] {
-  return weights.flatMap((weight) =>
-    styles.filter(isFontStyle).flatMap((style) =>
-      subsets
-        .filter(
-          (subset) =>
-            detail.variants?.[String(weight)]?.[style]?.[subset]?.url?.woff2,
-        )
-        .map((subset) => ({
-          family: detail.family,
-          weight,
-          style,
-          subset,
-          unicodeRange: detail.unicodeRange?.[subset],
-          src: `fonts/${detail.id}-${subset}-${weight}-${style}.woff2`,
-          provider: 'fontsource',
-          fontsourceId: detail.id,
-          version: detail.npmVersion,
-        })),
-    ),
-  );
+  const hasFile = (weight: number, style: FontStyle, subset: string) =>
+    Boolean(detail.variants?.[String(weight)]?.[style]?.[subset]?.url?.woff2);
+  const fileFor = (
+    weight: number,
+    style: FontStyle,
+    subset: string,
+  ): FontFile => ({
+    family: detail.family,
+    weight,
+    style,
+    subset,
+    unicodeRange: detail.unicodeRange?.[subset],
+    src: `fonts/${detail.id}-${subset}-${weight}-${style}.woff2`,
+    provider: 'fontsource',
+    fontsourceId: detail.id,
+    version: detail.npmVersion,
+  });
+  const files: FontFile[] = [];
+
+  for (const weight of weights) {
+    for (const style of styles.filter(isFontStyle)) {
+      for (const subset of subsets) {
+        if (hasFile(weight, style, subset)) {
+          files.push(fileFor(weight, style, subset));
+        }
+      }
+    }
+  }
+
+  return files;
 }
 
 const fileUrl = (file: Partial<FontFile>) =>
@@ -92,6 +104,7 @@ function cachedList(cache: KeyValueStore | undefined): FontListing[] | null {
       cachedListing,
       JSON.parse(cache?.getItem(CACHE_KEY) ?? 'null'),
     );
+
     return cached.success && Date.now() - cached.data.at < DAY
       ? parseList(cached.data.list)
       : null;
@@ -106,8 +119,11 @@ export function fontsource({
 }: { fetch?: Fetch; cache?: KeyValueStore } = {}) {
   async function getJson(url: string): Promise<unknown> {
     const res = await fetchFn(url);
-    if (!res.ok)
+
+    if (!res.ok) {
       throw new Error(`Fontsource request failed (${res.status}): ${url}`);
+    }
+
     return res.json();
   }
 
@@ -116,13 +132,19 @@ export function fontsource({
     name: 'Fontsource',
     async list() {
       const cached = cachedList(cache);
-      if (cached) return cached;
+
+      if (cached) {
+        return cached;
+      }
+
       const list = parseList(await getJson(API));
+
       try {
         cache?.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), list }));
       } catch {
         cache?.removeItem(CACHE_KEY);
       }
+
       return list;
     },
     font: async (id) =>
@@ -132,5 +154,6 @@ export function fontsource({
     licenseUrl,
     previewUrl,
   };
+
   return provider;
 }

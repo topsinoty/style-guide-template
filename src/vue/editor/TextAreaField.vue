@@ -18,15 +18,19 @@ const focused = ref(false);
 watch(
   () => props.value,
   (value) => {
-    if (!focused.value) draft.value = value ?? '';
+    if (!focused.value) {
+      draft.value = value ?? '';
+    }
   },
   { immediate: true },
 );
 
 const send = () => {
-  if (draft.value.trim() !== (props.value ?? ''))
+  if (draft.value.trim() !== (props.value ?? '')) {
     emit('commit', draft.value.trim(), key);
+  }
 };
+
 const sendSoon = useDebounceFn(send, 250);
 
 function done() {

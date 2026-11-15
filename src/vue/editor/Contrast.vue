@@ -38,13 +38,18 @@ const setPairs = (next: ContrastPair[]) =>
 
 function add() {
   const pair = { fg: fg.value, bg: bg.value, min: Number(min.value) };
-  if (!pair.fg || !pair.bg || pair.fg === pair.bg) return false;
+
+  if (!pair.fg || !pair.bg || pair.fg === pair.bg) {
+    return false;
+  }
+
   setPairs([
     ...pairs.value.filter((p) => p.fg !== pair.fg || p.bg !== pair.bg),
     pair,
   ]);
   fg.value = '';
   bg.value = '';
+
   return true;
 }
 </script>

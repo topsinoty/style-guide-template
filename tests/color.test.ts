@@ -29,6 +29,7 @@ const srgb = (r: number, g: number, b: number): DtcgColor => ({
 
 test('srgb red <-> oklch', () => {
   const [l, c, h] = toOklch(srgb(1, 0, 0));
+
   assert.ok(Math.abs(l - 0.62796) < 1e-4, `l=${l}`);
   assert.ok(Math.abs(c - 0.25768) < 1e-4, `c=${c}`);
   assert.ok(Math.abs(h - 29.2339) < 1e-2, `h=${h}`);
@@ -43,11 +44,13 @@ test('white and black', () => {
 
 test('contrast #777 on white is 4.48', () => {
   const grey = srgb(0x77 / 255, 0x77 / 255, 0x77 / 255);
+
   assert.equal(contrastRatio(grey, oklch(1, 0, 0)).toFixed(2), '4.48');
 });
 
 test('out-of-gamut keeps oklch, hex is clipped', () => {
   const c = oklch(0.7, 0.4, 150);
+
   assert.equal(inGamut(c), false);
   assert.match(present(c.hex), /^#[0-9a-f]{6}$/);
   assert.deepEqual(c.components, [0.7, 0.4, 150]);
@@ -77,6 +80,7 @@ test('strings', () => {
 
 test('shade scale', () => {
   const s = shadeScale(260, 0.18);
+
   assert.deepEqual(keysOf(s), [
     '50',
     '100',
@@ -92,11 +96,14 @@ test('shade scale', () => {
   ]);
   assert.equal(s['50'].components[0], 0.97);
   assert.equal(s['950'].components[0], 0.15);
-  for (const v of valuesOf(s)) assert.ok(inGamut(v));
+  for (const v of valuesOf(s)) {
+    assert.ok(inGamut(v));
+  }
 });
 
 test('parseCssColor reads hex, rgb and oklch', async () => {
   const { parseCssColor } = await import('~/lib');
+
   assert.equal(present(parseCssColor('#ff0000')).hex, '#ff0000');
   assert.equal(present(parseCssColor('#f00')).hex, '#ff0000');
   assert.equal(present(parseCssColor('rgb(255, 0, 0)')).hex, '#ff0000');
@@ -116,10 +123,12 @@ test('parseCssColor reads hex, rgb and oklch', async () => {
 
 test('parseCssColor reads any CSS color', async () => {
   const { parseCssColor, inGamut } = await import('~/lib');
+
   assert.equal(present(parseCssColor('hsl(0 100% 50%)')).hex, '#ff0000');
   assert.equal(present(parseCssColor('rebeccapurple')).hex, '#663399');
   assert.deepEqual(present(parseCssColor('white')).components, [1, 0, 0]);
   const p3 = present(parseCssColor('color(display-p3 1 0 0)'));
+
   assert.equal(inGamut(p3), false);
   assert.equal(p3.hex, '#ff0000');
 });
@@ -136,18 +145,22 @@ test('every DTCG color space converts', async () => {
     lch: [54.29, 106.84, 40.85],
     oklab: [0.628, 0.2249, 0.1258],
   };
-  for (const [colorSpace, components] of entriesOf(red))
+
+  for (const [colorSpace, components] of entriesOf(red)) {
     assert.equal(toHex(space(colorSpace, components)), '#ff0000', colorSpace);
+  }
 });
 
 test('anchoredScale keeps the typed color exactly as the nearest shade', async () => {
   const { anchoredScale, parseCssColor, toHex } = await import('~/lib');
   const typed = present(parseCssColor('#f0941d'));
   const { scale, anchor } = anchoredScale(typed);
+
   assert.equal(anchor, '300');
   assert.equal(toHex(scale[anchor]), '#f0941d');
   assert.deepEqual(scale[anchor].components, typed.components);
   const ls = valuesOf(scale).map((s) => Number(s.components[0]));
+
   assert.deepEqual(
     [...ls].sort((a, b) => b - a),
     ls,
@@ -173,12 +186,15 @@ test('every DTCG color space converts (white is white everywhere)', async () => 
     'xyz-d65': [0.95047, 1, 1.08883],
     'xyz-d50': [0.96422, 1, 0.82521],
   };
-  for (const [colorSpace, components] of entriesOf(white))
+
+  for (const [colorSpace, components] of entriesOf(white)) {
     assert.equal(toHex(space(colorSpace, components)), '#ffffff', colorSpace);
+  }
 });
 
 test('known reds in other spaces', async () => {
   const { toHex } = await import('~/lib');
+
   assert.equal(
     toHex({ colorSpace: 'lab', components: [54.2905, 80.8049, 69.891] }),
     '#ff0000',
@@ -195,6 +211,7 @@ test('known reds in other spaces', async () => {
 
 test('cssColor writes each space natively', async () => {
   const { cssColor } = await import('~/lib');
+
   assert.equal(
     cssColor({ colorSpace: 'display-p3', components: [1, 0, 0] }),
     'color(display-p3 1 0 0)',

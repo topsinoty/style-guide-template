@@ -13,9 +13,12 @@ const isNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
 function isScaleSpec(value: unknown): value is ScaleSpec {
-  if (!isNode(value) || !isNode(value.base) || !isNode(value.steps))
+  if (!isNode(value) || !isNode(value.base) || !isNode(value.steps)) {
     return false;
+  }
+
   const { base, steps, ratio } = value;
+
   return (
     isNumber(base.value) &&
     typeof base.unit === 'string' &&
@@ -45,12 +48,21 @@ export function generateScale({
 export function applyScale(group: TokenNode, vendor: string): TokenNode {
   const out = structuredClone(group);
   const scale = scaleOf(out, vendor);
-  if (!scale) return out;
+
+  if (!scale) {
+    return out;
+  }
+
   for (const [name, value] of entriesOf(generateScale(scale))) {
     const token = child(out, name);
-    if (isHandSet(token, vendor)) continue;
+
+    if (isHandSet(token, vendor)) {
+      continue;
+    }
+
     out[name] = { ...token, $value: value };
   }
+
   return out;
 }
 
@@ -62,9 +74,11 @@ export function setStep(
 ): TokenNode {
   const out = structuredClone(group);
   const token = child(out, step);
+
   out[step] = withVendorData({ ...token, $value: dimension }, vendor, {
     overridden: true,
   });
+
   return out;
 }
 
@@ -75,16 +89,20 @@ export function addScaleStep(
   vendor: string,
 ): TokenNode {
   const scale = scaleOf(group, vendor);
+
   if (
     !scale ||
     !Number.isFinite(multiplier) ||
     step in scale.steps ||
     child(group, step)
-  )
+  ) {
     return group;
+  }
+
   const next = withVendorData(group, vendor, {
     scale: { ...scale, steps: { ...scale.steps, [step]: multiplier } },
   });
+
   return applyScale(next, vendor);
 }
 
@@ -94,9 +112,14 @@ export function removeStep(
   vendor: string,
 ): TokenNode {
   const out = structuredClone(group);
+
   Reflect.deleteProperty(out, step);
   const scale = scaleOf(out, vendor);
-  if (!scale || !(step in scale.steps)) return out;
+
+  if (!scale || !(step in scale.steps)) {
+    return out;
+  }
+
   return withVendorData(out, vendor, {
     scale: { ...scale, steps: without(scale.steps, step) },
   });
@@ -118,20 +141,28 @@ export function setScaleUnit(
   rem = 16,
 ): TokenNode {
   const out = structuredClone(group);
+
   for (const [name, token] of entriesOf(out)) {
-    if (name.startsWith('$') || !isNode(token)) continue;
+    if (name.startsWith('$') || !isNode(token)) {
+      continue;
+    }
+
     const length = token.$value;
+
     if (
       isNode(length) &&
       isNumber(length.value) &&
       (length.unit === 'px' || length.unit === 'rem')
-    )
+    ) {
       out[name] = {
         ...token,
         $value: convert({ value: length.value, unit: length.unit }, unit, rem),
       };
+    }
   }
+
   const scale = scaleOf(out, vendor);
+
   return scale
     ? applyScale(
         withVendorData(out, vendor, {

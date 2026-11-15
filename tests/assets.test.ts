@@ -32,6 +32,7 @@ test('resolution order: session, library, font provider, missing', () => {
     library: new Set(['logos/a.svg', 'logos/b.svg']),
     fonts: fontsource(),
   };
+
   assert.equal(resolveAsset({ src: 'logos/a.svg' }, ctx).source, 'session');
   assert.deepEqual(resolveAsset({ src: 'logos/b.svg' }, ctx), {
     source: 'library',
@@ -47,6 +48,7 @@ test('resolution order: session, library, font provider, missing', () => {
 
 test('missingAssets and allSrcs', () => {
   const meta = brandMeta(load(), V);
+
   assert.deepEqual(
     allSrcs(meta).map((s) => [s.src, s.kind]),
     [
@@ -68,6 +70,7 @@ test('missingAssets and allSrcs', () => {
 test('dropped files match by basename, case-insensitive', () => {
   const file = new File([], 'A.SVG');
   const r = matchDropped(['logos/a.svg'], [file]);
+
   assert.equal(r.matched.get('logos/a.svg'), file);
   assert.deepEqual(r.unmatched, []);
 });
@@ -77,6 +80,7 @@ test('colliding names are ambiguous, nothing assigned', () => {
     ['logos/logo.svg', 'icons/logo.svg'],
     [new File([], 'logo.svg'), new File([], 'other.png')],
   );
+
   assert.equal(r.matched.size, 0);
   assert.deepEqual(r.ambiguous, [
     { name: 'logo.svg', candidates: ['logos/logo.svg', 'icons/logo.svg'] },
@@ -90,14 +94,17 @@ test('colliding names are ambiguous, nothing assigned', () => {
 test('a file saved under another origin key is read and moved, other extensions kept', () => {
   const doc = load();
   const { [V]: own, ...rest } = present(doc.sets.foundation.$extensions);
+
   doc.sets.foundation.$extensions = {
     ...rest,
     'com.other.site': own,
     'org.tool.x': { keep: true },
   };
   const meta = brandMeta(doc, V);
+
   assert.equal(meta.assetGroups.length, 2);
   const out = withBrandMeta(doc, V, meta);
+
   assert.deepEqual(
     keysOf(present(out.sets.foundation.$extensions)).sort((a, b) =>
       a.localeCompare(b),
@@ -113,6 +120,7 @@ test('a file saved under another origin key is read and moved, other extensions 
 
 test('empty meta when nothing is set', () => {
   const doc = load();
+
   delete doc.sets.foundation.$extensions;
   assert.deepEqual(brandMeta(doc, V), { assetGroups: [], fontFiles: [] });
 });
@@ -127,6 +135,7 @@ test('srcs that are not plain relative paths are treated as missing', () => {
     ]),
     fonts: fontsource(),
   };
+
   for (const src of [
     '../secret.svg',
     'https://evil.example/x.svg',
@@ -140,6 +149,7 @@ test('srcs that are not plain relative paths are treated as missing', () => {
 
 test('brand metadata is validated', async () => {
   const { validateBrandMeta } = await import('~/adapters');
+
   assert.deepEqual(
     validateBrandMeta({
       assetGroups: [
@@ -161,6 +171,7 @@ test('brand metadata is validated', async () => {
     ],
     fontFiles: [{ family: 'A' }],
   });
+
   assert.ok(bad.some((e) => e.message.includes('x"y')));
   assert.ok(bad.some((e) => e.message.includes('items')));
   assert.ok(bad.some((e) => e.message.includes('../up')));
@@ -173,12 +184,15 @@ test('adoptVendor moves every foreign extension (tokens and groups) to this site
   const t = doc.sets.foundation.sources[0];
   const move = (owner: { $extensions?: Record<string, unknown> }) => {
     const { [V]: data, ...rest } = present(owner.$extensions);
+
     owner.$extensions = { ...rest, 'com.other.site': data };
   };
+
   move(doc.sets.foundation);
   move(present(nodeAt(t, 'color.brand.600')));
   move(present(nodeAt(t, 'spacing')));
   const out = adoptVendor(doc, V);
+
   assert.deepEqual(
     vendorData(nodeAt(out.sets.foundation.sources[0], 'color.brand.600'), V)
       .pantone,
@@ -207,6 +221,7 @@ test('readBrandMeta applies defaults, keeps unknown fields and skips unusable en
       { src: 'fonts/no-family.woff2' },
     ],
   });
+
   assert.equal(meta.note, 'from another tool');
   assert.deepEqual(
     meta.assetGroups.map((g) => g.items.map((i) => i.src)),

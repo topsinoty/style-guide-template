@@ -26,6 +26,7 @@ const colorOf = (tokens: Tokens, path: string) =>
 
 test('dark overrides light', () => {
   const doc = load();
+
   assert.equal(
     toHex(colorOf(resolve(doc, { theme: 'dark' }), 'color.page.background')),
     colorAt(doc, 'color.neutral.950').hex,
@@ -38,12 +39,14 @@ test('dark overrides light', () => {
 
 test('raw value keeps the alias, type is inherited', () => {
   const t = token(resolve(load()), 'color.primary.background');
+
   assert.equal(t.value, '{color.brand.600}');
   assert.equal(t.type, 'color');
 });
 
 test('chained alias', () => {
   let doc = load();
+
   doc = setToken(doc, 'color.link', { $value: '{color.primary.background}' });
   assert.equal(
     colorOf(resolve(doc), 'color.link').hex,
@@ -53,6 +56,7 @@ test('chained alias', () => {
 
 test('$ref pointer resolves like a curly alias', () => {
   let doc = load();
+
   doc = setToken(doc, 'color.ref', {
     $value: { $ref: '#/color/brand/600/$value' },
   });
@@ -69,12 +73,14 @@ test('composite alias', () => {
       isTypography,
     ),
   );
+
   assert.deepEqual(t.fontSize, { value: 3.0518, unit: 'rem' });
   assert.deepEqual(t.fontFamily, ['Merriweather', 'serif']);
 });
 
 test('cycle throws', () => {
   let doc = load();
+
   doc = setToken(doc, 'color.a', { $value: '{color.b}' });
   doc = setToken(doc, 'color.b', { $value: '{color.a}' });
   assert.throws(() => resolve(doc), /cycle/i);
@@ -82,6 +88,7 @@ test('cycle throws', () => {
 
 test('missing target throws with path', () => {
   let doc = load();
+
   doc = setToken(doc, 'color.primary.background', { $value: '{color.nope}' });
   assert.throws(
     () => resolve(doc),
@@ -91,6 +98,7 @@ test('missing target throws with path', () => {
 
 test('$root keeps its segment in the key', () => {
   let doc = load();
+
   doc = setToken(doc, 'color.accent', {
     $root: { $value: '{color.brand.600}' },
   });
@@ -99,6 +107,7 @@ test('$root keeps its segment in the key', () => {
 
 test('contexts and default inputs', () => {
   const doc = load();
+
   assert.deepEqual(
     contexts(doc).map((c) => [c.context, c.isDefault]),
     [
@@ -117,6 +126,7 @@ test('aliasTarget', () => {
 
 test('an unknown context falls back to the default one', () => {
   const doc = load();
+
   delete present(doc.modifiers?.theme).contexts.dark;
   assert.doesNotThrow(() => resolve(doc, { theme: 'dark' }));
   assert.equal(

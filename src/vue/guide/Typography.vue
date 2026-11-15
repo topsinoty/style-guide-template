@@ -15,9 +15,14 @@ const styles = computed(() =>
   [...props.tokens].flatMap(([path, token]) => {
     const style =
       token.type === 'typography' ? narrow(token.resolved, isTypography) : null;
-    if (!style) return [];
+
+    if (!style) {
+      return [];
+    }
+
     const family = [style.fontFamily].flat()[0];
     const summary = `${dim(family)} ${dim(style.fontWeight)} ${dim(style.fontSize)} / ${dim(style.lineHeight)}`;
+
     return [
       {
         path,

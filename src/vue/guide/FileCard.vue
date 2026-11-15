@@ -12,9 +12,13 @@ const ext = computed(() => extension(props.item.src));
 const name = computed(() => fileName(props.item.src));
 const data = computed(() => props.ctx.session.get(props.item.src));
 const size = computed(() => {
-  if (!data.value) return '';
+  if (!data.value) {
+    return '';
+  }
+
   const bytes =
     data.value instanceof Blob ? data.value.size : data.value.byteLength;
+
   return formatSize(bytes);
 });
 const href = computed(() =>

@@ -49,13 +49,17 @@ const pantone = computed(() =>
   typeof own.value.pantone === 'string' ? own.value.pantone : '',
 );
 const status = computed(() => {
-  if (props.shade.isBase) return 'Base shade';
+  if (props.shade.isBase) {
+    return 'Base shade';
+  }
+
   return props.shade.byHand ? 'Set by hand' : 'Generated';
 });
 
 function rename(name: string) {
   const to = paletteId(name);
-  if (to && to !== props.shade.name)
+
+  if (to && to !== props.shade.name) {
     props.ctx.edit((doc) =>
       renameShade(
         doc,
@@ -64,6 +68,7 @@ function rename(name: string) {
         props.ctx.vendor,
       ),
     );
+  }
 }
 
 function setExtension(patch: Record<string, unknown>) {
@@ -74,8 +79,12 @@ function setExtension(patch: Record<string, unknown>) {
 }
 
 function setInk(index: number, value: number) {
-  if (value < 0 || value > 100) return;
+  if (value < 0 || value > 100) {
+    return;
+  }
+
   const next = [...printedCmyk.value];
+
   next[index] = value;
   setExtension({ cmyk: next });
 }

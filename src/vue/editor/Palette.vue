@@ -43,9 +43,11 @@ const addingTo = ref<Record<string, boolean>>({});
 const renaming = ref<Record<string, boolean>>({});
 const renameDraft = ref<Record<string, string>>({});
 const draftName = (id: string, event: Event) => {
-  if (event.target instanceof HTMLInputElement)
+  if (event.target instanceof HTMLInputElement) {
     renameDraft.value[id] = event.target.value;
+  }
 };
+
 const renameError = ref<Record<string, string>>({});
 const asking = ref(false);
 
@@ -63,8 +65,10 @@ function describeReferences(colorId: string, shades?: string[]) {
 function confirmRemoval(name: string, items: string[], run: () => void) {
   if (!items.length) {
     run();
+
     return;
   }
+
   ask({
     title: `Remove ${name}?`,
     message:
@@ -98,10 +102,13 @@ function generate(id: string) {
       ),
     );
   const handSet = handSetShades(props.ctx.doc, id, props.ctx.vendor);
+
   if (!handSet.length) {
     run('keep');
+
     return;
   }
+
   ask({
     title: `Regenerate ${id} shades?`,
     message:
@@ -122,25 +129,38 @@ const nameError = ref<string>();
 const colorError = ref<string>();
 
 function colorNameProblem(id: string) {
-  if (!id) return 'Give the color a name.';
-  if (ROLES.includes(id) || colors.value.some((color) => color.id === id))
+  if (!id) {
+    return 'Give the color a name.';
+  }
+
+  if (ROLES.includes(id) || colors.value.some((color) => color.id === id)) {
     return `${id} is already taken.`;
+  }
 }
 
 function prepareRename(id: string, open: boolean) {
-  if (!open) return;
+  if (!open) {
+    return;
+  }
+
   renameDraft.value[id] = id;
   renameError.value[id] = '';
 }
 
 function renamePaletteColor(from: string) {
   const to = paletteId(renameDraft.value[from] ?? from);
+
   if (to === from) {
     renaming.value[from] = false;
+
     return;
   }
+
   renameError.value[from] = colorNameProblem(to) ?? '';
-  if (renameError.value[from]) return;
+  if (renameError.value[from]) {
+    return;
+  }
+
   props.ctx.edit((doc) => renameColor(doc, from, to));
   renaming.value[from] = false;
 }
@@ -148,19 +168,26 @@ function renamePaletteColor(from: string) {
 function addNewColor() {
   const id = paletteId(newName.value);
   const value = parseCssColor(newColor.value.trim());
+
   nameError.value = colorNameProblem(id);
   colorError.value = value ? undefined : COLOR_ERROR;
-  if (nameError.value || !value) return false;
+  if (nameError.value || !value) {
+    return false;
+  }
+
   props.ctx.edit((doc) => {
     const added = addColor(doc, id, value, props.ctx.vendor);
+
     return withShades.value
       ? generateShades(added, id, props.ctx.vendor, 'keep')
       : added;
   });
   newName.value = '';
   newColor.value = '';
+
   return true;
 }
+
 const uid = useId();
 </script>
 

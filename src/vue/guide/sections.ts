@@ -41,7 +41,8 @@ function builtInSections(meta: BrandMeta, tokens: Tokens): Section[] {
       group: g.id,
     }));
   const other = [...tokens.keys()].some(isOtherToken);
-  return [
+
+  const sections: Section[] = [
     { id: 'branding', title: 'Branding', cls: 'cd-branding' },
     { id: 'colors', title: 'Colors', cls: 'cd-colors' },
     { id: 'typography', title: 'Typography', cls: 'cd-typography' },
@@ -50,9 +51,19 @@ function builtInSections(meta: BrandMeta, tokens: Tokens): Section[] {
     { id: 'spacing', title: 'Spacing', cls: 'cd-spacing' },
     { id: 'radius', title: 'Radius', cls: 'cd-radius' },
     { id: 'shadow', title: 'Shadow', cls: 'cd-shadow' },
-    ...(other ? [{ id: 'other-tokens', title: 'Other tokens' }] : []),
-    { id: 'css-variables', title: 'Code', cls: 'cd-css-variables' },
   ];
+
+  if (other) {
+    sections.push({ id: 'other-tokens', title: 'Other tokens' });
+  }
+
+  sections.push({
+    id: 'css-variables',
+    title: 'Code',
+    cls: 'cd-css-variables',
+  });
+
+  return sections;
 }
 
 export function sectionsOf(meta: BrandMeta, tokens: Tokens): Section[] {
@@ -60,7 +71,8 @@ export function sectionsOf(meta: BrandMeta, tokens: Tokens): Section[] {
   const own = meta.sections ?? [];
   const placed = own.flatMap((entry): Section[] => {
     const base = defaults.find((s) => s.id === entry.id);
-    if (base)
+
+    if (base) {
       return [
         {
           ...base,
@@ -68,7 +80,12 @@ export function sectionsOf(meta: BrandMeta, tokens: Tokens): Section[] {
           body: entry.body,
         },
       ];
-    if (!entry.id.startsWith(TEXT_PREFIX)) return [];
+    }
+
+    if (!entry.id.startsWith(TEXT_PREFIX)) {
+      return [];
+    }
+
     return [
       {
         id: entry.id,
@@ -79,26 +96,35 @@ export function sectionsOf(meta: BrandMeta, tokens: Tokens): Section[] {
       },
     ];
   });
+
   defaults.forEach((section, i) => {
-    if (placed.some((s) => s.id === section.id)) return;
+    if (placed.some((s) => s.id === section.id)) {
+      return;
+    }
+
     const before = defaults
       .slice(0, i)
       .findLast((d) => placed.some((s) => s.id === d.id));
+
     placed.splice(
       before ? placed.findIndex((s) => s.id === before.id) + 1 : 0,
       0,
       section,
     );
   });
+
   return placed;
 }
 
 const TOKEN_SECTIONS = new Set(['spacing', 'radius', 'shadow']);
 
 function isEmpty(section: Section, meta: BrandMeta, tokens: Tokens) {
-  if (TOKEN_SECTIONS.has(section.id))
+  if (TOKEN_SECTIONS.has(section.id)) {
     return ![...tokens.keys()].some((k) => k.startsWith(`${section.id}.`));
+  }
+
   const group = section.group ?? (section.id === 'icons' ? 'icons' : undefined);
+
   return (
     group !== undefined &&
     !meta.assetGroups.find((g) => g.id === group)?.items.length
@@ -129,6 +155,7 @@ function rewrite(
   const list = sectionsOf(meta, tokens).map(
     (s) => own.get(s.id) ?? { id: s.id },
   );
+
   return { ...meta, sections: fn(list).map(clean) };
 }
 
@@ -168,8 +195,10 @@ export function addSection(
 ): BrandMeta {
   const taken = new Set(sectionsOf(meta, tokens).map((s) => s.id));
   const id = uniquePath(`${TEXT_PREFIX}${slug(title)}`, taken);
+
   return rewrite(meta, tokens, (list) => {
     const code = list.findIndex((s) => s.id === 'css-variables');
+
     return code === -1
       ? [...list, { id, title }]
       : list.toSpliced(code, 0, { id, title });

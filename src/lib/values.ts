@@ -92,18 +92,25 @@ const orAlias =
     isAlias(value) || guard(value);
 
 export function isColor(value: unknown): value is DtcgColor {
-  if (!isNode(value)) return false;
+  if (!isNode(value)) {
+    return false;
+  }
+
   const { colorSpace, components, alpha, hex } = value;
-  return (
-    typeof colorSpace === 'string' &&
-    colorSpaces.has(colorSpace) &&
+
+  const validSpace =
+    typeof colorSpace === 'string' && colorSpaces.has(colorSpace);
+  const validComponents =
     Array.isArray(components) &&
     components.length === 3 &&
-    components.every(isComponent) &&
-    (alpha === undefined || (isNumber(alpha) && alpha >= 0 && alpha <= 1)) &&
-    (hex === undefined ||
-      (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex)))
-  );
+    components.every(isComponent);
+  const validAlpha =
+    alpha === undefined || (isNumber(alpha) && alpha >= 0 && alpha <= 1);
+  const validHex =
+    hex === undefined ||
+    (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex));
+
+  return validSpace && validComponents && validAlpha && validHex;
 }
 
 const lengthIn =
@@ -137,8 +144,12 @@ export const isStrokeStyle = (value: unknown): value is StrokeStyle =>
   (typeof value === 'string' && strokeStyles.has(value)) || isNode(value);
 
 export function isShadowLayer(value: unknown): value is ShadowLayer {
-  if (!isNode(value)) return false;
+  if (!isNode(value)) {
+    return false;
+  }
+
   const size = orAlias(isSize);
+
   return (
     orAlias(isColor)(value.color) &&
     size(value.offsetX) &&

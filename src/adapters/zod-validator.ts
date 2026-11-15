@@ -64,6 +64,7 @@ const dimension = (units: readonly [string, ...string[]]) =>
 const size = dimension(['px', 'rem']);
 const duration = dimension(['ms', 's']);
 const component = z.union([z.number(), z.literal('none')]);
+
 export const color: z.ZodMiniType<DtcgColor> = z.object({
   colorSpace: z.enum(COLOR_SPACES, {
     error: (iss) =>
@@ -146,13 +147,26 @@ function checkValue(
   value: unknown,
   path: string,
 ): Problem[] {
-  if (isAlias(value)) return [];
+  if (isAlias(value)) {
+    return [];
+  }
+
   const result = z.safeParse(VALUES[type], value);
-  if (result.success) return [];
-  return result.error.issues.map((i) => ({
-    path,
-    message: i.path.length ? `${i.path.join(' ')}: ${i.message}` : i.message,
-  }));
+
+  if (result.success) {
+    return [];
+  }
+
+  const toProblem = (issue: z.core.$ZodIssue): Problem => {
+    const where = issue.path.join(' ');
+
+    return {
+      path,
+      message: where ? `${where}: ${issue.message}` : issue.message,
+    };
+  };
+
+  return result.error.issues.map(toProblem);
 }
 
 function validateToken(
@@ -164,14 +178,18 @@ function validateToken(
     .filter((key) => key.startsWith('$') && !TOKEN_KEYS.has(key))
     .map((key) => ({ path, message: `unknown reserved key ${key}` }));
   const type = token.$type ?? groupType;
-  if (!type)
+
+  if (!type) {
     errors.push({
       path,
       message: 'token has no $type (own or inherited from a group)',
     });
-  else if (!isValueType(type))
+  } else if (!isValueType(type)) {
     errors.push({ path, message: `unknown $type "${type}"` });
-  else errors.push(...checkValue(type, token.$value, path));
+  } else {
+    errors.push(...checkValue(type, token.$value, path));
+  }
+
   return errors;
 }
 
@@ -181,16 +199,28 @@ function validateEntry(
   path: string,
   { groupType, only }: { groupType?: string; only?: TokenNode },
 ): Problem[] {
-  if (key.startsWith('$') && key !== '$root')
+  if (key.startsWith('$') && key !== '$root') {
     return GROUP_KEYS.has(key)
       ? []
       : [{ path, message: `unknown reserved key ${key}` }];
-  if (/[{}.]/.test(key))
+  }
+
+  if (/[{}.]/.test(key)) {
     return [{ path, message: `name "${key}" must not contain {, } or .` }];
-  if (!isNode(node)) return [{ path, message: 'must be a token or a group' }];
-  if (only && only[key] === undefined) return [];
-  if (!('$value' in node))
+  }
+
+  if (!isNode(node)) {
+    return [{ path, message: 'must be a token or a group' }];
+  }
+
+  if (only && only[key] === undefined) {
+    return [];
+  }
+
+  if (!('$value' in node)) {
     return validateTokens(node, path, groupType, child(only, key));
+  }
+
   return validateToken(node, path, groupType);
 }
 
@@ -202,12 +232,17 @@ export function validateTokens(
 ): Problem[] {
   const groupType = tree.$type ?? inherited;
   const errors: Problem[] = [];
-  if (tree.$type !== undefined && !isValueType(tree.$type))
+
+  if (tree.$type !== undefined && !isValueType(tree.$type)) {
     errors.push({ path, message: `unknown $type "${tree.$type}"` });
-  for (const [key, node] of entriesOf(tree))
+  }
+
+  for (const [key, node] of entriesOf(tree)) {
     errors.push(
       ...validateEntry(key, node, join(path, key), { groupType, only }),
     );
+  }
+
   return errors;
 }
 
@@ -257,12 +292,18 @@ function parseBrand(input: unknown): Parsed<ResolverDoc> {
     resolverDoc,
     isNode(input) ? hoistResolver(input) : input,
   );
-  if (!parsed.success) return { ok: false, problems: problems(parsed.error) };
+
+  if (!parsed.success) {
+    return { ok: false, problems: problems(parsed.error) };
+  }
+
   const doc = parsed.data;
   const modifiers = doc.modifiers ?? {};
   const errors: Problem[] = [];
+
   doc.resolutionOrder.forEach(({ $ref }, i) => {
     const [, kind, name] = /^#\/(sets|modifiers)\/(.+)$/.exec($ref) ?? [];
+
     if (
       !(kind === 'sets'
         ? name in doc.sets
@@ -275,6 +316,7 @@ function parseBrand(input: unknown): Parsed<ResolverDoc> {
     }
   });
   const base = mergeSources(valuesOf(doc.sets).flatMap((s) => s.sources));
+
   errors.push(...validateTokens(base));
   for (const [name, mod] of entriesOf(modifiers)) {
     if (mod.default !== undefined && !(mod.default in mod.contexts)) {
@@ -283,8 +325,10 @@ function parseBrand(input: unknown): Parsed<ResolverDoc> {
         message: `default "${mod.default}" is not a context`,
       });
     }
+
     for (const [context, list] of entriesOf(mod.contexts)) {
       const own = mergeSources(list);
+
       errors.push(
         ...validateTokens(
           deepMerge(base, own),
@@ -295,6 +339,7 @@ function parseBrand(input: unknown): Parsed<ResolverDoc> {
       );
     }
   }
+
   return errors.length
     ? { ok: false, problems: errors }
     : { ok: true, value: doc };
@@ -305,6 +350,7 @@ export function validateResolver(input: unknown): {
   errors: Problem[];
 } {
   const checked = parseBrand(input);
+
   return checked.ok
     ? { ok: true, errors: [] }
     : { ok: false, errors: checked.problems };
@@ -412,6 +458,7 @@ export const brandMeta: z.ZodMiniType<BrandMeta> = z.looseObject({
 
 export function validateBrandMeta(meta: unknown, path = 'brand'): Problem[] {
   const result = z.safeParse(brandMeta, meta);
+
   return result.success ? [] : problems(result.error, path);
 }
 
@@ -424,6 +471,7 @@ export const manifest: z.ZodMiniType<Manifest> = z.object({
 
 function parseManifest(input: unknown): Parsed<Manifest> {
   const parsed = z.safeParse(manifest, input);
+
   return parsed.success
     ? { ok: true, value: parsed.data }
     : { ok: false, problems: problems(parsed.error) };

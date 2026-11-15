@@ -47,15 +47,22 @@ const matches = computed(() =>
 
 const custom = computed(() => {
   const typed = query.value;
-  if (!typed || optionFor(typed, props.options) || !parseCssColor(typed))
+
+  if (!typed || optionFor(typed, props.options) || !parseCssColor(typed)) {
     return null;
+  }
+
   return typed;
 });
 
 function choose(value: unknown) {
-  if (typeof value === 'string') emit('commit', value);
+  if (typeof value === 'string') {
+    emit('commit', value);
+  }
+
   search.value = props.text;
 }
+
 const uid = useId();
 </script>
 

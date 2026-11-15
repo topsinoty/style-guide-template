@@ -25,6 +25,7 @@ const opened = ref<string>();
 
 const hexOf = (resolved: unknown) => {
   const color = narrow(resolved, isColor);
+
   return color ? toHex(color) : '#000000';
 };
 
@@ -58,8 +59,10 @@ const roles = computed(() =>
 const sample = (role: string, has: (part: string) => boolean) => {
   const part = (name: string) => {
     const variable = cssName(`color.${role}.${name}`);
+
     return has(name) ? `var(${variable})` : undefined;
   };
+
   return {
     background: part('background'),
     color: part('foreground'),
@@ -80,26 +83,41 @@ const summary = (role: string, tokens: { path: string; text: string }[]) => {
   const ground =
     tokens.find((t) => t.path.endsWith('.background')) ?? tokens.at(0);
   const on = ground ? pretty(ground.text) : '';
-  if (text)
+
+  if (text) {
     return `${text.pass ? 'Text' : 'Text too faint,'} ${text.ratio}:1 on ${on}`;
-  if (border)
+  }
+
+  if (border) {
     return `${border.pass ? 'Border' : 'Border too faint,'} ${border.ratio}:1 on the page`;
+  }
+
   return ground ? `Uses ${on}` : '';
 };
 
 function fill(role: string, option: string) {
   const [, colorId, shade] = /^\{color\.([^.]+)\.([^}]+)\}$/.exec(option) ?? [];
-  if (!colorId) return;
+
+  if (!colorId) {
+    return;
+  }
+
   const has = (part: string) => props.ctx.tokens.has(`color.${role}.${part}`);
   let borderSteps = 2;
-  if (has('background-hover') || !has('background')) borderSteps = 0;
-  else if (role === 'input') borderSteps = 5;
+
+  if (has('background-hover') || !has('background')) {
+    borderSteps = 0;
+  } else if (role === 'input') {
+    borderSteps = 5;
+  }
+
   const parts = roleFromShade(
     palette.value,
     { color: colorId, shade },
     props.ctx.darkPage,
     borderSteps,
   );
+
   props.ctx.edit((doc) =>
     entriesOf(parts)
       .filter(([part]) => has(part))
@@ -113,10 +131,13 @@ function fill(role: string, option: string) {
 
 function setRole(path: string, text: string) {
   const value = roleEntry(text, shades.value);
+
   if (!value) {
     props.ctx.session.warn(`${text.trim() || 'That'}: ${COLOR_ERROR}`);
+
     return;
   }
+
   props.ctx.edit((doc) =>
     setRoleIn(doc, props.ctx.theme, path.slice('color.'.length), value),
   );

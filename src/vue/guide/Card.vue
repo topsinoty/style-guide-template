@@ -25,13 +25,16 @@ const locked = useScrollLock(document.body);
 
 const scrolls = (overflow: string): boolean =>
   overflow === 'auto' || overflow === 'scroll';
+
 function isClipped(el: Element): boolean {
   const { overflowX, overflowY } = getComputedStyle(el);
+
   return (
     (scrolls(overflowX) && el.scrollWidth > el.clientWidth + 1) ||
     (scrolls(overflowY) && el.scrollHeight > el.clientHeight + 1)
   );
 }
+
 function measure(): void {
   clipped.value = [...(card.value?.querySelectorAll('*') ?? [])].some(
     isClipped,
@@ -45,6 +48,7 @@ watch(open, async (isOpen) => {
     measure();
     await nextTick();
   }
+
   (isOpen ? closer : opener).value?.focus();
 });
 useResizeObserver(card, measure);

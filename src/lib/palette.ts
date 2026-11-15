@@ -47,12 +47,18 @@ export const paletteId = (name: string) =>
   name
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/^-|-$/g, '');
+    .replaceAll(/[^a-z0-9-]+/g, '-')
+    .replaceAll(/^-|-$/g, '');
 
 export const byShadeOrder = (a: string, b: string) => {
-  if (isNumeric(a) && isNumeric(b)) return Number(a) - Number(b);
-  if (isNumeric(a) !== isNumeric(b)) return isNumeric(a) ? 1 : -1;
+  if (isNumeric(a) && isNumeric(b)) {
+    return Number(a) - Number(b);
+  }
+
+  if (isNumeric(a) !== isNumeric(b)) {
+    return isNumeric(a) ? 1 : -1;
+  }
+
   return 0;
 };
 
@@ -67,8 +73,15 @@ export function baseShadeOf(
 ): string | undefined {
   const marked = vendorData(group, vendor).base;
   const names = children(group).map(([name]) => name);
-  if (typeof marked === 'string' && names.includes(marked)) return marked;
-  if (names.includes('600')) return '600';
+
+  if (typeof marked === 'string' && names.includes(marked)) {
+    return marked;
+  }
+
+  if (names.includes('600')) {
+    return '600';
+  }
+
   return names.toSorted(byShadeOrder)[Math.floor(names.length / 2)];
 }
 
@@ -88,6 +101,7 @@ export function paletteColors(
         .toSorted(byShadeOrder)
         .map((name) => {
           const token = child(group, name);
+
           return {
             name,
             color: narrow(token?.$value, isColor),
@@ -95,6 +109,7 @@ export function paletteColors(
             byHand: isHandSet(token, vendor),
           };
         });
+
       return { id, shades };
     });
 }
@@ -117,6 +132,7 @@ function treesOf(doc: ResolverDoc): [string, TokenNode][] {
         ]),
       ),
   );
+
   return [...inSets, ...inModifiers];
 }
 
@@ -127,8 +143,12 @@ function walkValues(
 ) {
   for (const [key, node] of children(tree)) {
     const at = path ? `${path}.${key}` : key;
-    if ('$value' in node) visit(node, at);
-    else walkValues(node, at, visit);
+
+    if ('$value' in node) {
+      visit(node, at);
+    } else {
+      walkValues(node, at, visit);
+    }
   }
 }
 
@@ -138,7 +158,10 @@ const pointerOf = (colorId: string, shade: string) =>
   `#/color/${colorId}/${shade}/$value`;
 
 function pointsAt(value: unknown, colorId: string, shade: string): boolean {
-  if (value === aliasOf(colorId, shade)) return true;
+  if (value === aliasOf(colorId, shade)) {
+    return true;
+  }
+
   return isNode(value) && value.$ref === pointerOf(colorId, shade);
 }
 
@@ -148,19 +171,32 @@ function replaceReference(
   shade: string,
   next: unknown,
 ): unknown {
-  if (pointsAt(value, colorId, shade)) return next;
-  if (Array.isArray(value))
+  if (pointsAt(value, colorId, shade)) {
+    return next;
+  }
+
+  if (Array.isArray(value)) {
     return value.map((item) => replaceReference(item, colorId, shade, next));
-  if (!isNode(value)) return value;
+  }
+
+  if (!isNode(value)) {
+    return value;
+  }
+
   return mapValues(value, (item) =>
     replaceReference(item, colorId, shade, next),
   );
 }
 
 function mentions(value: unknown, colorId: string, shade: string): boolean {
-  if (pointsAt(value, colorId, shade)) return true;
-  if (Array.isArray(value))
+  if (pointsAt(value, colorId, shade)) {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
     return value.some((item) => mentions(item, colorId, shade));
+  }
+
   return (
     isNode(value) &&
     valuesOf(value).some((item) => mentions(item, colorId, shade))
@@ -178,12 +214,19 @@ export function referencesTo(
       ([name]) => name,
     );
   const found: Reference[] = [];
-  for (const [context, tree] of treesOf(doc))
+
+  for (const [context, tree] of treesOf(doc)) {
     walkValues(tree, '', (token, path) => {
-      if (path.startsWith(`color.${colorId}.`)) return;
-      if (names.some((name) => mentions(token.$value, colorId, name)))
+      if (path.startsWith(`color.${colorId}.`)) {
+        return;
+      }
+
+      if (names.some((name) => mentions(token.$value, colorId, name))) {
         found.push({ context, path });
+      }
     });
+  }
+
   return found;
 }
 
@@ -193,10 +236,11 @@ function repoint(
   shade: string,
   next: unknown,
 ) {
-  for (const [, tree] of treesOf(doc))
+  for (const [, tree] of treesOf(doc)) {
     walkValues(tree, '', (token) => {
       token.$value = replaceReference(token.$value, colorId, shade, next);
     });
+  }
 }
 
 function generated(
@@ -208,6 +252,7 @@ function generated(
   const { [vendor]: own = {}, ...others } = $extensions ?? {};
   const { overridden, ...kept } = own;
   const next = isEmpty(kept) ? others : { ...others, [vendor]: kept };
+
   return !isEmpty(next)
     ? { ...rest, $value: color, $extensions: next }
     : { ...rest, $value: color };
@@ -227,25 +272,34 @@ export function addColor(
   vendor: string,
 ): ResolverDoc {
   const out = clone(doc);
+
   colorsOf(out)[id] = withVendorData({ base: { $value: color } }, vendor, {
     base: 'base',
   });
+
   return out;
 }
 
 function blackOrWhite(value: unknown): unknown {
   const color = narrow(value, isColor);
-  if (!color) return value;
+
+  if (!color) {
+    return value;
+  }
+
   const [lightness, , , alpha] = toOklch(color);
+
   return oklch(lightness >= 0.5 ? 1 : 0, 0, 0, alpha);
 }
 
 function monochromeRoles(doc: ResolverDoc) {
-  for (const [, tree] of treesOf(doc))
+  for (const [, tree] of treesOf(doc)) {
     walkValues(tree, '', (token, path) => {
-      if (ROLES.includes(path.split('.')[1]))
+      if (ROLES.includes(path.split('.')[1])) {
         token.$value = blackOrWhite(token.$value);
+      }
     });
+  }
 }
 
 export function moveColor(
@@ -258,16 +312,26 @@ export function moveColor(
     .filter(([key, group]) => isPaletteGroup(key, group))
     .map(([key]) => key);
   const order = move(ids, ids.indexOf(id), dir);
-  if (!colors || order === ids) return doc;
+
+  if (!colors || order === ids) {
+    return doc;
+  }
+
   const out = clone(doc);
   const slots = [...order];
+
   foundation(out).color = recordOf(
     entriesOf(colors).map(([key, value]) => {
-      if (!ids.includes(key)) return [key, value];
+      if (!ids.includes(key)) {
+        return [key, value];
+      }
+
       const next = slots.shift() ?? key;
+
       return [next, colors[next]];
     }),
   );
+
   return out;
 }
 
@@ -277,39 +341,58 @@ export function renameColor(
   to: string,
 ): ResolverDoc {
   const original = child(colorsOf(doc), from);
+
   if (
     !original ||
     !isPaletteGroup(from, original) ||
     !to ||
     from === to ||
     ROLES.includes(to)
-  )
+  ) {
     return doc;
-  if (treesOf(doc).some(([, tree]) => child(child(tree, 'color'), to)))
+  }
+
+  if (treesOf(doc).some(([, tree]) => child(child(tree, 'color'), to))) {
     return doc;
+  }
+
   const out = clone(doc);
   const shades = new Set(
     treesOf(doc).flatMap(([, tree]) =>
       children(child(child(tree, 'color'), from)).map(([shade]) => shade),
     ),
   );
+
   for (const [, tree] of treesOf(out)) {
     const colors = child(tree, 'color');
-    if (colors && child(colors, from)) tree.color = renameKey(colors, from, to);
+
+    if (colors && child(colors, from)) {
+      tree.color = renameKey(colors, from, to);
+    }
   }
-  for (const shade of shades) repoint(out, from, shade, aliasOf(to, shade));
+
+  for (const shade of shades) {
+    repoint(out, from, shade, aliasOf(to, shade));
+  }
+
   return out;
 }
 
 export function removeColor(doc: ResolverDoc, id: string): ResolverDoc {
   const out = clone(doc);
   const colors = colorsOf(out);
-  for (const [name, token] of children(child(colors, id)))
+
+  for (const [name, token] of children(child(colors, id))) {
     repoint(out, id, name, token.$value);
+  }
+
   const remaining = without(colors, id);
+
   foundation(out).color = remaining;
-  if (!children(remaining).some(([key, group]) => isPaletteGroup(key, group)))
+  if (!children(remaining).some(([key, group]) => isPaletteGroup(key, group))) {
     monochromeRoles(out);
+  }
+
   return out;
 }
 
@@ -323,12 +406,18 @@ export function setShade(
 ): ResolverDoc {
   const out = clone(doc);
   const group = child(colorsOf(out), colorId);
-  if (!group) return doc;
+
+  if (!group) {
+    return doc;
+  }
+
   const token = child(group, shade) ?? {};
+
   group[shade] =
     shade === baseShadeOf(group, vendor)
       ? { ...token, $value: color }
       : handSet(token, vendor, color);
+
   return out;
 }
 
@@ -339,7 +428,11 @@ export function addShade(
   vendor: string,
 ): ResolverDoc {
   const group = child(child(foundation(doc), 'color'), at.color);
-  if (!group || child(group, at.shade)) return doc;
+
+  if (!group || child(group, at.shade)) {
+    return doc;
+  }
+
   return setShade(doc, at, color, vendor);
 }
 
@@ -352,13 +445,19 @@ export function renameShade(
   const out = clone(doc);
   const group = child(colorsOf(out), colorId);
   const token = child(group, from);
-  if (!group || !token || child(group, to)) return doc;
+
+  if (!group || !token || child(group, to)) {
+    return doc;
+  }
+
   const wasBase = baseShadeOf(group, vendor) === from;
   const renamed = renameKey(group, from, to);
+
   colorsOf(out)[colorId] = wasBase
     ? withVendorData(renamed, vendor, { base: to })
     : renamed;
   repoint(out, colorId, from, aliasOf(colorId, to));
+
   return out;
 }
 
@@ -371,9 +470,14 @@ export function removeShade(
   const out = clone(doc);
   const group = child(colorsOf(out), colorId);
   const token = child(group, shade);
-  if (!group || !token || baseShadeOf(group, vendor) === shade) return doc;
+
+  if (!group || !token || baseShadeOf(group, vendor) === shade) {
+    return doc;
+  }
+
   repoint(out, colorId, shade, token.$value);
   colorsOf(out)[colorId] = without(group, shade);
+
   return out;
 }
 
@@ -385,8 +489,13 @@ export function setBase(
 ): ResolverDoc {
   const out = clone(doc);
   const group = child(colorsOf(out), colorId);
-  if (!group || !child(group, shade)) return doc;
+
+  if (!group || !child(group, shade)) {
+    return doc;
+  }
+
   colorsOf(out)[colorId] = withVendorData(group, vendor, { base: shade });
+
   return out;
 }
 
@@ -396,9 +505,9 @@ export function handSetShades(
   vendor: string,
 ): string[] {
   const color = paletteColors(doc, vendor).find((c) => c.id === colorId);
-  return (
-    color?.shades.filter((s) => s.byHand && !s.isBase).map((s) => s.name) ?? []
-  );
+  const handSet = color?.shades.filter((s) => s.byHand && !s.isBase) ?? [];
+
+  return handSet.map((s) => s.name);
 }
 
 export type GenerateMode = 'keep' | 'overwrite';
@@ -413,21 +522,36 @@ export function generateShades(
   const group = child(colorsOf(out), colorId);
   const base = group && baseShadeOf(group, vendor);
   const baseColor = base ? narrow(child(group, base)?.$value, isColor) : null;
-  if (!group || !base || !baseColor) return doc;
+
+  if (!group || !base || !baseColor) {
+    return doc;
+  }
+
   const { scale, anchor } = anchoredScale(baseColor);
-  if (!(base in scale) && !child(group, anchor))
+
+  if (!(base in scale) && !child(group, anchor)) {
     return generateShades(
       renameShade(doc, { color: colorId, shade: base }, anchor, vendor),
       colorId,
       vendor,
       mode,
     );
+  }
+
   for (const [step, color] of entriesOf(scale)) {
-    if (step === base) continue;
+    if (step === base) {
+      continue;
+    }
+
     const token = child(group, step) ?? {};
-    if (isHandSet(token, vendor) && mode === 'keep') continue;
+
+    if (isHandSet(token, vendor) && mode === 'keep') {
+      continue;
+    }
+
     group[step] = generated(token, vendor, color);
   }
+
   return out;
 }
 
@@ -438,10 +562,15 @@ const FILLED_ROLES = new Set(['primary', 'destructive', 'success']);
 function monochromeRole(path: string, paper: string, ink: string): string {
   const [, role, name = ''] = path.split('.');
   const filled = FILLED_ROLES.has(role);
-  if (name.startsWith('foreground'))
+
+  if (name.startsWith('foreground')) {
     return aliasOf(filled ? paper : ink, 'base');
-  if (name.startsWith('background'))
+  }
+
+  if (name.startsWith('background')) {
     return aliasOf(filled ? ink : paper, 'base');
+  }
+
   return aliasOf(ink, 'base');
 }
 
@@ -450,19 +579,31 @@ function keepOnlyRoles(
   inputs: Record<string, string>,
   doc: ResolverDoc,
 ) {
-  for (const key of keysOf(tree))
-    if (key !== 'color' && key !== 'spacing' && !key.startsWith('$'))
+  for (const key of keysOf(tree)) {
+    if (key !== 'color' && key !== 'spacing' && !key.startsWith('$')) {
       Reflect.deleteProperty(tree, key);
+    }
+  }
+
   const colors = child(tree, 'color');
-  if (!colors) return;
-  for (const [key] of children(colors))
-    if (!ROLES.includes(key)) Reflect.deleteProperty(colors, key);
+
+  if (!colors) {
+    return;
+  }
+
+  for (const [key] of children(colors)) {
+    if (!ROLES.includes(key)) {
+      Reflect.deleteProperty(colors, key);
+    }
+  }
+
   const page = narrow(
     resolve(doc, inputs).get('color.page.background')?.resolved,
     isColor,
   );
   const darkPage = isDark(page);
   const [paper, ink] = darkPage ? ['black', 'white'] : ['white', 'black'];
+
   walkValues(colors, 'color', (token, path) => {
     token.$value = monochromeRole(path, paper, ink);
   });
@@ -470,21 +611,33 @@ function keepOnlyRoles(
 
 export function blankBrand(doc: ResolverDoc, vendor: string): ResolverDoc {
   const out = clone(doc);
+
   out.name = 'Untitled brand';
   delete out.description;
-  for (const { sources } of valuesOf(out.sets))
-    for (const tree of sources) keepOnlyRoles(tree, defaultInputs(doc), doc);
-  for (const [modifier, { contexts }] of entriesOf(out.modifiers ?? {}))
-    for (const [context, sources] of entriesOf(contexts))
-      for (const tree of sources)
+  for (const { sources } of valuesOf(out.sets)) {
+    for (const tree of sources) {
+      keepOnlyRoles(tree, defaultInputs(doc), doc);
+    }
+  }
+
+  for (const [modifier, { contexts }] of entriesOf(out.modifiers ?? {})) {
+    for (const [context, sources] of entriesOf(contexts)) {
+      for (const tree of sources) {
         keepOnlyRoles(
           tree,
           { ...defaultInputs(doc), [modifier]: context },
           doc,
         );
+      }
+    }
+  }
+
   let blank = out;
-  for (const [id, color] of entriesOf(MONOCHROME))
+
+  for (const [id, color] of entriesOf(MONOCHROME)) {
     blank = addColor(blank, id, color, vendor);
+  }
+
   return blank;
 }
 
@@ -492,6 +645,7 @@ const chroma = (color: PaletteColor) => {
   const cs = color.shades.flatMap((s) =>
     s.color ? [toOklch(s.color)[1]] : [],
   );
+
   return cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : Infinity;
 };
 
@@ -503,15 +657,21 @@ export function roleFromShade(
 ): Record<string, string> {
   const color = colors.find((c) => c.id === colorId);
   const i = color?.shades.findIndex((s) => s.name === shadeName) ?? -1;
-  if (!color || i < 0) return {};
+
+  if (!color || i < 0) {
+    return {};
+  }
+
   const step = darkPage ? -1 : 1;
   const at = (k: number) => {
     const shade =
       color.shades[
         Math.min(Math.max(i + k * step, 0), color.shades.length - 1)
       ];
+
     return `{color.${color.id}.${shade.name}}`;
   };
+
   const background = color.shades[i].color;
   const scales = colors.filter((c) => c.shades.length > 1);
   const ink = (scales.length ? scales : colors)
@@ -521,11 +681,17 @@ export function roleFromShade(
   const readable = (shade: Shade | undefined) =>
     shade?.color && background ? contrastRatio(shade.color, background) : 0;
   const text = ends.toSorted((a, b) => readable(b) - readable(a)).at(0);
-  return {
+
+  const parts: Record<string, string> = {
     background: at(0),
     'background-hover': at(1),
     'background-active': at(2),
     border: at(borderSteps),
-    ...(text && ink ? { foreground: `{color.${ink.id}.${text.name}}` } : {}),
   };
+
+  if (text && ink) {
+    parts.foreground = `{color.${ink.id}.${text.name}}`;
+  }
+
+  return parts;
 }

@@ -14,13 +14,20 @@ export const NEW_TOKEN_TYPES = [
 
 export function tokenValue(type: string, text: string): unknown {
   const entered = text.trim();
-  if (type === 'color') return parseCssColor(entered);
-  if (type === 'number')
+
+  if (type === 'color') {
+    return parseCssColor(entered);
+  }
+
+  if (type === 'number') {
     return entered && Number.isFinite(Number(entered)) ? Number(entered) : null;
+  }
+
   const unit = valueAt(UNITS, type)?.find((candidate) =>
     entered.endsWith(candidate),
   );
   const amount = unit ? entered.slice(0, -unit.length).trim() : '';
+
   return amount && Number.isFinite(Number(amount))
     ? { value: Number(amount), unit }
     : null;

@@ -50,12 +50,14 @@ test('a read-only session can show and change a brand without writing to the dra
     validator: zodValidator,
     editable: false,
   });
+
   session.store.set({ ...session.doc, name: 'Changed' });
   session.store.flush();
   await session.prune();
   assert.equal(session.editable, false);
   assert.deepEqual(writes, []);
   const saved = await files.getAll();
+
   assert.equal(saved.size, 0);
   vi.unstubAllGlobals();
 });

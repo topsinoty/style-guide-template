@@ -7,6 +7,7 @@ import type { ResolverDoc, TokenNode, Tokens } from '~/lib';
 
 export function present<T>(value: T | null | undefined, what = 'value'): T {
   assert.ok(value !== null && value !== undefined, `${what} is missing`);
+
   return value;
 }
 
@@ -41,16 +42,20 @@ function parentOf(tree: TokenNode, path: string): [TokenNode, string] {
     (node, key) => (isNode(node) ? node[key] : undefined),
     tree,
   );
+
   assert.ok(isNode(parent), `${path} has no parent`);
+
   return [parent, last];
 }
 
 export function setAt(tree: TokenNode, path: string, value: unknown) {
   const [parent, key] = parentOf(tree, path);
+
   parent[key] = value;
 }
 
 export function removeAt(tree: TokenNode, path: string) {
   const [parent, key] = parentOf(tree, path);
+
   Reflect.deleteProperty(parent, key);
 }

@@ -63,6 +63,7 @@ test('composites accept aliases for their parts and reject missing parts', () =>
     blur: px(2),
     spread: px(0),
   };
+
   assert.ok(isShadow(layer) && isShadow([layer, '{shadow.sm}']));
   assert.ok(!isShadow({ ...layer, blur: undefined }));
   assert.ok(isBorder({ color: red, width: px(1), style: 'solid' }));
@@ -81,6 +82,7 @@ test('composites accept aliases for their parts and reject missing parts', () =>
     letterSpacing: px(0),
     lineHeight: 1.5,
   };
+
   assert.ok(isTypography(typography));
   assert.ok(!isTypography({ ...typography, letterSpacing: undefined }));
 });
@@ -114,10 +116,15 @@ test('guards agree with the brand file schema on every preset token', () => {
   };
   const schemas: Record<string, z.core.$ZodType> = VALUES;
   let checked = 0;
+
   for (const [path, token] of flatten(mergedTree(doc, defaultInputs(doc)))) {
     const guard = token.type ? guards[token.type] : undefined;
     const schema = token.type ? schemas[token.type] : undefined;
-    if (!guard || !schema || isAlias(token.value)) continue;
+
+    if (!guard || !schema || isAlias(token.value)) {
+      continue;
+    }
+
     assert.equal(
       guard(token.value),
       z.safeParse(schema, token.value).success,
@@ -125,5 +132,6 @@ test('guards agree with the brand file schema on every preset token', () => {
     );
     checked++;
   }
+
   assert.ok(checked > 50, `only ${checked} tokens checked`);
 });

@@ -23,6 +23,7 @@ async function copy() {
   } catch {
     status.value = 'Copy failed';
   }
+
   clearLater();
 }
 </script>

@@ -56,8 +56,9 @@ const specimenEls = useTemplateRef<HTMLElement[]>('specimenText');
 function measureSpecimen() {
   specimen.value = (specimenEls.value ?? []).map((el) => {
     const style = getComputedStyle(el);
-    const family = style.fontFamily.split(',')[0].replace(/['"]/g, '');
+    const family = style.fontFamily.split(',')[0].replaceAll(/['"]/g, '');
     const size = Math.round(Number.parseFloat(style.fontSize));
+
     return `${style.fontWeight} ${family} ${size}px`;
   });
 }
@@ -70,16 +71,24 @@ const sectionEls = shallowReactive(new Map<string, HTMLElement>());
 const { height } = useWindowSize();
 
 function keepSection(id: string, el: unknown) {
-  if (el instanceof HTMLElement) sectionEls.set(id, el);
-  else sectionEls.delete(id);
+  if (el instanceof HTMLElement) {
+    sectionEls.set(id, el);
+  } else {
+    sectionEls.delete(id);
+  }
 }
 
 function trackSections(entries: IntersectionObserverEntry[]) {
   const ids = new Set(current.value);
+
   for (const entry of entries) {
-    if (entry.isIntersecting) ids.add(entry.target.id);
-    else ids.delete(entry.target.id);
+    if (entry.isIntersecting) {
+      ids.add(entry.target.id);
+    } else {
+      ids.delete(entry.target.id);
+    }
   }
+
   current.value = [...ids];
 }
 

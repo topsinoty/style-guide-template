@@ -78,6 +78,7 @@ const active = computed({
 const current = computed(
   () => groups.find((g) => g.name === active.value) ?? groups[0],
 );
+
 function jump(name: string) {
   scrollToArea(name)
     ?.querySelector<HTMLElement>('input, textarea, button')

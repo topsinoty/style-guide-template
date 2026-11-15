@@ -9,6 +9,7 @@ export const child = (
   key: string,
 ): TokenNode | undefined => {
   const value = parent?.[key];
+
   return isNode(value) ? value : undefined;
 };
 
@@ -23,6 +24,7 @@ export const childKeys = (node?: TokenNode) =>
 export const children = (node?: TokenNode): [string, TokenNode][] =>
   childKeys(node).flatMap((key) => {
     const value = child(node, key);
+
     return value ? [[key, value]] : [];
   });
 
@@ -55,21 +57,31 @@ export function ensureChild(
   created: TokenNode = {},
 ): TokenNode {
   const existing = child(parent, key);
-  if (existing) return existing;
+
+  if (existing) {
+    return existing;
+  }
+
   parent[key] = created;
+
   return created;
 }
 
 export function deepMerge(target: TokenNode, source: TokenNode): TokenNode {
   const out = { ...target };
+
   for (const [key, value] of entriesOf(source)) {
     const existing = out[key];
-    if (!isNode(value) || !isNode(existing)) out[key] = value;
-    else
+
+    if (!isNode(value) || !isNode(existing)) {
+      out[key] = value;
+    } else {
       out[key] =
         '$value' in value
           ? { ...existing, ...value }
           : deepMerge(existing, value);
+    }
   }
+
   return out;
 }

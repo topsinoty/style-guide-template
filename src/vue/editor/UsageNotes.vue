@@ -23,7 +23,11 @@ const matches = computed(() => {
     .toLowerCase()
     .replace(/^--/, '')
     .replaceAll('-', '.');
-  if (!q) return written.value;
+
+  if (!q) {
+    return written.value;
+  }
+
   return notable.value.filter(
     (path) => path.includes(q) || cssName(path).includes(query.value.trim()),
   );

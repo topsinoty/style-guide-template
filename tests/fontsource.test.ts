@@ -26,6 +26,7 @@ test('parseList keeps what the picker needs', () => {
       (f) => f.id === 'merriweather',
     ),
   );
+
   assert.deepEqual(
     keysOf(m).sort((a, b) => a.localeCompare(b)),
     ['category', 'defSubset', 'family', 'id', 'license', 'styles', 'weights'],
@@ -35,6 +36,7 @@ test('parseList keeps what the picker needs', () => {
 
 test('files for chosen weights and styles', () => {
   const files = fontFiles(detail, latin);
+
   assert.equal(files.length, 2);
   assert.equal(files[0].src, 'fonts/merriweather-latin-400-normal.woff2');
   assert.equal(files[0].version, detail.npmVersion);
@@ -59,6 +61,7 @@ test('extra subsets are opt-in', () => {
     weights: [400],
     subsets: ['latin', 'cyrillic'],
   });
+
   assert.deepEqual(
     files.map((x) => x.subset),
     ['latin', 'cyrillic'],
@@ -83,17 +86,22 @@ test('list is cached for a day', async () => {
   let calls = 0;
   const fetch = async () => {
     calls++;
+
     return listResponse();
   };
+
   const fonts = fontsource({ fetch, cache: memoryKeyValueStore() });
+
   await fonts.list();
   const second = await fonts.list();
+
   assert.equal(calls, 1);
   assert.ok(second.some((f) => f.id === 'merriweather'));
 });
 
 test('a corrupt cache is refetched and a full storage drops it', async () => {
   const cache = memoryKeyValueStore();
+
   cache.setItem('styleguide:fontsource-list', '{not json');
   const full = {
     ...cache,
@@ -102,6 +110,7 @@ test('a corrupt cache is refetched and a full storage drops it', async () => {
     },
   };
   const list = await fontsource({ fetch: listResponse, cache: full }).list();
+
   assert.ok(list.some((f) => f.id === 'merriweather'));
   assert.equal(cache.getItem('styleguide:fontsource-list'), null);
 });
@@ -116,6 +125,7 @@ test('previewUrl falls back to the first weight and style a font has', () => {
     defSubset: 'latin',
     license: 'OFL',
   };
+
   assert.match(
     fontsource().previewUrl(font),
     /\/x@latest\/latin-300-italic\.woff2$/,

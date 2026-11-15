@@ -18,15 +18,25 @@ function shadowText(value: unknown): string {
   const shadow = narrow(value, isShadow);
   const layers = Array.isArray(shadow) ? shadow : [shadow];
   const [first] = layers;
-  if (!isShadowLayer(first)) return '';
+
+  if (!isShadowLayer(first)) {
+    return '';
+  }
+
   const text = [first.offsetX, first.offsetY, first.blur].map(dim).join(' ');
+
   return layers.length > 1 ? `${text} +${String(layers.length - 1)}` : text;
 }
 
 function radiusText(value: unknown): string {
   const radius = narrow(value, isSize);
-  if (!radius) return dim(value);
+
+  if (!radius) {
+    return dim(value);
+  }
+
   const px = radius.unit === 'rem' ? radius.value * 16 : radius.value;
+
   return px >= 9999 ? 'full' : dim(radius);
 }
 </script>

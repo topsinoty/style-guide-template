@@ -7,7 +7,7 @@ import type { FontFile, ResolverDoc, Tokens } from './types';
 
 const tailwindName = (path: string) =>
   path.startsWith('font-size.')
-    ? `--text-${path.slice('font-size.'.length).replaceAll(/\./g, '-')}`
+    ? `--text-${path.slice('font-size.'.length).replaceAll('.', '-')}`
     : cssName(path);
 
 export function tailwindCss(
@@ -31,6 +31,7 @@ export function tailwindCss(
       ({ context }) =>
         `@custom-variant ${context} (&:where([data-theme="${context}"], [data-theme="${context}"] *));`,
     );
+
   return ['@import "tailwindcss";', '', ...variants, '', css].join('\n');
 }
 
@@ -62,18 +63,27 @@ const RADIUS = ['radius.md', 'radius.lg', 'radius.sm'];
 
 function shadcnVars(tokens: Tokens, withRadius: boolean) {
   const lines: string[] = [];
+
   if (withRadius) {
     const radius = RADIUS.map((p) =>
       narrow(tokens.get(p)?.resolved, isSize),
     ).find(Boolean);
-    if (radius) lines.push(`--radius: ${radius.value}${radius.unit};`);
+
+    if (radius) {
+      lines.push(`--radius: ${radius.value}${radius.unit};`);
+    }
   }
+
   for (const [name, paths] of SHADCN) {
     const color = paths
       .map((x) => narrow(tokens.get(x)?.resolved, isColor))
       .find(Boolean);
-    if (color) lines.push(`--${name}: ${toOklchString(color)};`);
+
+    if (color) {
+      lines.push(`--${name}: ${toOklchString(color)};`);
+    }
   }
+
   return lines;
 }
 
@@ -84,23 +94,25 @@ export function shadcnCss(doc: ResolverDoc): string {
     (c) => c.modifier === 'theme' && c.context === 'dark',
   );
   const names = light.map((l) => l.split(':')[0].slice(2));
-  return [
+  const themeVar = (name: string) =>
+    name === 'radius'
+      ? '--radius-lg: var(--radius);'
+      : `--color-${name}: var(--${name});`;
+  let dark = '';
+
+  if (hasDark) {
+    const darkTokens = resolve(doc, { ...inputs, theme: 'dark' });
+
+    dark = block('.dark', shadcnVars(darkTokens, false));
+  }
+
+  const blocks = [
     block(':root', light),
-    hasDark
-      ? block(
-          '.dark',
-          shadcnVars(resolve(doc, { ...inputs, theme: 'dark' }), false),
-        )
-      : '',
-    block(
-      '@theme inline',
-      names.map((n) =>
-        n === 'radius'
-          ? '--radius-lg: var(--radius);'
-          : `--color-${n}: var(--${n});`,
-      ),
-    ),
-  ].join('\n');
+    dark,
+    block('@theme inline', names.map(themeVar)),
+  ];
+
+  return blocks.join('\n');
 }
 
 const relativeFontSrc = (file: FontFile) => `../${file.src}`;

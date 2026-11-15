@@ -34,14 +34,17 @@ test('ratio scale', () => {
     ratio: 1.25,
     steps: { xs: -2, md: 0, '4xl': 5 },
   };
+
   assert.deepEqual(generateScale(type).xs, { value: 0.64, unit: 'rem' });
   assert.deepEqual(generateScale(type)['4xl'], { value: 3.0518, unit: 'rem' });
 });
 
 test('applyScale writes every step and keeps other extensions', () => {
   const g = groupWith(spacing);
+
   present(g.$extensions)['org.tool.x'] = { a: 1 };
   const out = applyScale(g, V);
+
   assert.deepEqual(
     keysOf(out).filter((k) => !k.startsWith('$')),
     keysOf(spacing.steps),
@@ -52,6 +55,7 @@ test('applyScale writes every step and keeps other extensions', () => {
 
 test('new steps track the base and ratio when regenerated', () => {
   const group = addScaleStep(applyScale(groupWith(spacing), V), '4xl', 20, V);
+
   assert.deepEqual(child(group, '4xl')?.$value, { value: 80, unit: 'px' });
   assert.deepEqual(child(group, '4xl')?.$extensions?.[V], undefined);
   const next = applyScale(
@@ -64,11 +68,13 @@ test('new steps track the base and ratio when regenerated', () => {
     }),
     V,
   );
+
   assert.deepEqual(child(next, '4xl')?.$value, { value: 100, unit: 'px' });
 });
 
 test('a hand override survives regeneration', () => {
   let g = applyScale(groupWith(spacing), V);
+
   g = setStep(g, 'md', { value: 18, unit: 'px' }, V);
   g = applyScale(
     {
@@ -91,6 +97,7 @@ test('setScaleUnit converts the base and hand-set steps between px and rem', () 
     V,
   );
   const rem = setScaleUnit(g, 'rem', V);
+
   assert.deepEqual(child(rem, 'md')?.$value, { value: 1, unit: 'rem' });
   assert.deepEqual(child(rem, 'xs')?.$value, { value: 0.375, unit: 'rem' });
   assert.deepEqual(child(setScaleUnit(rem, 'px', V), 'xs')?.$value, {
