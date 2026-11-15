@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import type { EditorContext } from './context';
 import { elementPreview } from './preview';
-import TextArea from './TextArea.vue';
+import TextAreaField from './TextAreaField.vue';
 import TextField from './TextField.vue';
 
 const { ctx } = defineProps<{ ctx: EditorContext }>();
@@ -24,7 +24,7 @@ const FORMAT_HINT =
     :value="ctx.doc.name"
     @commit="(value) => value && ctx.edit((doc) => ({ ...doc, name: value }))"
   />
-  <TextArea
+  <TextAreaField
     label="Introduction"
     :preview="p"
     :value="ctx.doc.description"

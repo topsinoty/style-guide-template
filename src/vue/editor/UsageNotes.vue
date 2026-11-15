@@ -5,7 +5,7 @@ import * as E from '../../lib/edit';
 import { nodeAt } from '../../lib/tree';
 import type { EditorContext } from './context';
 import ItemRow from './ItemRow.vue';
-import TextArea from './TextArea.vue';
+import TextAreaField from './TextAreaField.vue';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const LIMIT = 12;
@@ -57,7 +57,7 @@ const uid = useId();
       :meta="noteOf(path) ?? 'No note yet'"
       @update:open="(open) => (opened = open ? path : undefined)"
     >
-      <TextArea
+      <TextAreaField
         label="Usage note"
         :value="noteOf(path)"
         :rows="2"

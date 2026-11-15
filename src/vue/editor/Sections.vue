@@ -13,7 +13,7 @@ import {
 } from '../guide/sections';
 import type { EditorContext } from './context';
 import ItemRow from './ItemRow.vue';
-import TextArea from './TextArea.vue';
+import TextAreaField from './TextAreaField.vue';
 import TextField from './TextField.vue';
 import { elementPreview } from './preview';
 
@@ -86,7 +86,7 @@ const uid = useId();
         :value="section.title"
         @commit="(value) => value && rename(section, value)"
       />
-      <TextArea
+      <TextAreaField
         label="Text"
         :preview="p"
         :placeholder="
