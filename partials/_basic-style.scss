@@ -332,6 +332,28 @@ section {
 	}
 }
 
+.cd-table-scroll {
+	overflow-x: auto;
+
+	.cd-roles {
+		width: max-content;
+		min-width: 100%;
+		table-layout: auto;
+	}
+
+	th,
+	td {
+		white-space: nowrap;
+		overflow-wrap: normal;
+	}
+
+	td:last-child {
+		width: chrome(20);
+		min-width: chrome(14);
+		white-space: normal;
+	}
+}
+
 .cd-typography {
 	h1::before {
 		content: 'Aa - ';

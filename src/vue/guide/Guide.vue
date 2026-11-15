@@ -137,7 +137,7 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
           :kind="section.id"
           :tokens="tokens"
         />
-        <div v-else-if="section.id === 'other-tokens'" class="cd-box">
+        <div v-else-if="section.id === 'other-tokens'" class="cd-box cd-table-scroll">
           <table class="cd-roles">
             <thead>
               <tr>

@@ -115,7 +115,7 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
   </template>
   <template v-for="table in color.tables" :key="table.title">
     <h3>{{ table.title }}</h3>
-    <div class="cd-box">
+    <div class="cd-box cd-table-scroll">
       <table class="cd-roles">
         <thead>
           <tr>
