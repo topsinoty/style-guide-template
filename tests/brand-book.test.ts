@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { zodValidator } from '../src/adapters/zod-validator.js';
@@ -13,15 +12,16 @@ import { addColor, generateShades, paletteColors, roleFromShade } from '../src/l
 import { oklch } from '../src/lib/color.js';
 import { resolve } from '../src/lib/resolver.js';
 import { nodeAt } from '../src/lib/tree.js';
-import type { BrandMeta, ResolverDoc } from '../src/lib/types.js';
+import type { BrandMeta } from '../src/lib/types.js';
 import {
   addSection,
   editSection,
   moveSection,
   removeSection,
   sectionsOf,
+  visibleSections,
 } from '../src/vue/guide/sections.js';
-import { load, token, V } from './helpers.js';
+import { load, preset, token, V } from './helpers.js';
 
 test('markdown: headings, paragraphs, lists and inline marks; unsafe links stay text', () => {
   const blocks = parseBlocks(
@@ -160,7 +160,7 @@ test('text styles map to elements by name, and setting one takes it from the oth
 });
 
 test('roleFromShade fills a role from one shade, darker on a light page and lighter on a dark one', () => {
-  const doc = JSON.parse(readFileSync('public/library/brands/default.resolver.json', 'utf8')) as ResolverDoc;
+  const doc = preset();
   const colors = paletteColors(doc, 'com.example.styleguide');
   const light = roleFromShade(colors, 'brand', '600', false);
   assert.equal(light.background, '{color.brand.600}');
@@ -182,8 +182,18 @@ test('generating shades from a lone base shade gives eleven steps, the base amon
 });
 
 test('roleFromShade can set the border apart from the background', () => {
-  const doc = JSON.parse(readFileSync('public/library/brands/default.resolver.json', 'utf8')) as ResolverDoc;
+  const doc = preset();
   const colors = paletteColors(doc, 'com.example.styleguide');
   assert.equal(roleFromShade(colors, 'neutral', '50', false, 2).border, '{color.neutral.200}');
   assert.equal(roleFromShade(colors, 'neutral', '50', false, 5).border, '{color.neutral.500}');
+});
+
+test('view mode hides sections with nothing to show; editing and written text keep them', () => {
+  const meta: BrandMeta = { assetGroups: [{ id: 'icons', items: [] }], fontFiles: [] };
+  const tokens = new Map([...resolve(load())].filter(([path]) => !path.startsWith('shadow.')));
+  const ids = (m: BrandMeta, editable: boolean) => visibleSections(m, tokens, editable).map((s) => s.id);
+  assert.ok(!ids(meta, false).includes('shadow'));
+  assert.ok(!ids(meta, false).includes('icons'));
+  assert.ok(ids(meta, true).includes('shadow'));
+  assert.ok(ids({ ...meta, sections: [{ id: 'shadow', body: 'Use sparingly.' }] }, false).includes('shadow'));
 });

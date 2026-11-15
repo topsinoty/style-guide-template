@@ -40,6 +40,9 @@ const question = ref<Question>();
 const addingTo = ref<Record<string, boolean>>({});
 const renaming = ref<Record<string, boolean>>({});
 const renameDraft = ref<Record<string, string>>({});
+const draftName = (id: string, event: Event) => {
+  if (event.target instanceof HTMLInputElement) renameDraft.value[id] = event.target.value;
+};
 const renameError = ref<Record<string, string>>({});
 const asking = ref(false);
 
@@ -166,7 +169,7 @@ function addNewColor() {
                 :value="renameDraft[color.id] ?? color.id"
                 type="text"
                 :aria-invalid="renameError[color.id] ? 'true' : undefined"
-                @input="renameDraft[color.id] = ($event.target as HTMLInputElement).value"
+                @input="draftName(color.id, $event)"
               />
             </label>
             <p v-if="renameError[color.id]" class="cd-error" role="alert">{{ renameError[color.id] }}</p>

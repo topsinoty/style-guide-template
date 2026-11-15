@@ -5,7 +5,8 @@ import { readMode } from '../src/app/mode.js';
 import { Session } from '../src/app/session.js';
 import { memoryFileStore, readOnlyFileStore, readOnlyKeyValueStore } from '../src/adapters/memory.js';
 import { zodValidator } from '../src/adapters/zod-validator.js';
-import type { FontProvider, KeyValueStore } from '../src/ports.js';
+import { fontsource } from '../src/adapters/fontsource.js';
+import type { KeyValueStore } from '../src/ports.js';
 
 test('the address picks the mode, and a hosted brand always wins', () => {
   assert.deepEqual(readMode(''), { kind: 'private' });
@@ -33,7 +34,7 @@ test('a read-only session can show and change a brand without writing to the dra
   const session = await Session.open({
     drafts: readOnlyKeyValueStore(backing),
     files: readOnlyFileStore(files),
-    fonts: {} as FontProvider,
+    fonts: fontsource(),
     validator: zodValidator,
     editable: false,
   });

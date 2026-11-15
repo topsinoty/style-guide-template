@@ -116,12 +116,12 @@ useEventListener(document.fonts, 'loadingerror', (e: FontFaceSetLoadEvent) => {
   session.value.warn(...failed.map((font) => `Font could not be loaded: ${font}`));
 });
 
-function previewTheme(next: string) {
+async function previewTheme(next: string) {
   const apply = async () => {
     themeChoice.value = next;
     await nextTick();
   };
-  if (next === theme.value || !document.startViewTransition || reduceMotion.value === 'reduce') void apply();
+  if (next === theme.value || !document.startViewTransition || reduceMotion.value === 'reduce') await apply();
   else document.startViewTransition(apply);
 }
 

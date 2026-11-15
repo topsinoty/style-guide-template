@@ -90,7 +90,8 @@ function put(name: string, i: number, patch: Record<string, unknown>) {
   const row = shadows.value.find((s) => s.name === name);
   if (!row) return;
   const values = rawLayers(row.token);
-  values[i] = { ...(values[i] as object), ...patch };
+  const current = values[i];
+  values[i] = { ...(isNode(current) ? current : {}), ...patch };
   write(name, row.token, values, row.inherited);
 }
 

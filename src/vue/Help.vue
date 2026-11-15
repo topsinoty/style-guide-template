@@ -118,19 +118,19 @@ const emit = defineEmits<{ tour: [] }>();
               <dt><kbd>←</kbd> <kbd>→</kbd></dt>
               <dd>Previous and next step in the tour</dd>
             </dl>
-          </template>
 
-          <h3>Sharing a brand book</h3>
-          <ul>
-            <li>
-              Add <code>?brand=</code> and a library path to the address to show that brand read-only, for
-              example <code>?brand=brands/harbor.resolver.json</code>.
-            </li>
-            <li>
-              To host your own brand, add its file to the library and build the site with
-              <code>VITE_PUBLIC_BRAND</code> set to its path. Every visitor then sees that brand, read-only.
-            </li>
-          </ul>
+            <h3>Sharing a brand book</h3>
+            <ul>
+              <li>
+                Add <code>?brand=</code> and a library path to the address to show that brand read-only, for
+                example <code>?brand=brands/harbor.resolver.json</code>.
+              </li>
+              <li>
+                To host your own brand, add its file to the library and build the site with
+                <code>VITE_PUBLIC_BRAND</code> set to its path. Every visitor then sees that brand, read-only.
+              </li>
+            </ul>
+          </template>
         </div>
       </DialogContent>
     </DialogPortal>

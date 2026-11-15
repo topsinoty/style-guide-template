@@ -22,9 +22,9 @@ async function close() {
 
 onKeyStroke(
   'Escape',
-  (e) => {
+  async (e) => {
     e.stopPropagation();
-    void close();
+    await close();
   },
   { target: panel },
 );

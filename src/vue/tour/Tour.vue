@@ -12,6 +12,7 @@ const emit = defineEmits<{ drawer: [open: boolean] }>();
 const GAP = 12;
 const MARGIN = 16;
 const PAD = 6;
+const KEYS = new Set(['Escape', 'ArrowRight', 'ArrowLeft']);
 
 const tab = useStorage('styleguide:editor-tab', 'Brand');
 const index = ref(0);
@@ -65,7 +66,7 @@ async function move(to: number, dir: 1 | -1): Promise<void> {
   if (el === undefined) return move(to + dir, dir);
   index.value = to;
   target = el;
-  inDrawer.value = !!el?.closest('.cd-drawer');
+  inDrawer.value = el instanceof Element && el.closest('.cd-drawer') !== null;
   if (s.area) scrollToArea(s.area);
   else el?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   await nextTick();
@@ -134,13 +135,13 @@ function finish() {
 
 watch(
   open,
-  (isOpen) => {
+  async (isOpen) => {
     if (isOpen) {
       if (document.activeElement instanceof HTMLElement) returnTo = document.activeElement;
       box.value = null;
       target = null;
       frame = requestAnimationFrame(track);
-      void go(0, 1);
+      await go(0, 1);
     } else {
       cancelAnimationFrame(frame);
       target = null;
@@ -151,13 +152,12 @@ watch(
   { immediate: true },
 );
 
-useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!open.value) return;
-  if (e.key === 'Escape') finish();
-  else if (e.key === 'ArrowRight') void go(index.value + 1, 1);
-  else if (e.key === 'ArrowLeft' && index.value > 0) void go(index.value - 1, -1);
-  else return;
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  if (!open.value || !KEYS.has(e.key)) return;
   e.preventDefault();
+  if (e.key === 'Escape') finish();
+  else if (e.key === 'ArrowRight') await go(index.value + 1, 1);
+  else if (index.value > 0) await go(index.value - 1, -1);
 });
 </script>
 

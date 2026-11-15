@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, reactive, ref, useTemplateRef, watch } f
 import { useAsyncState } from '@vueuse/core';
 import { errorMessage } from '../lib/io.js';
 import type { FontDetail, FontFile, FontListing } from '../lib/types.js';
-import type { FontProvider } from '../ports.js';
+import type { FontPicks, FontProvider } from '../ports.js';
 import Listbox from './Listbox.vue';
 import Icon from './Icon.vue';
 
@@ -16,7 +16,7 @@ const category = ref('all');
 const query = ref('');
 const limit = ref(PAGE);
 const detail = ref<Detail | null>(null);
-const picked = reactive({ weights: [] as number[], styles: [] as string[], subsets: [] as string[] });
+const picked = reactive<FontPicks>({ weights: [], styles: [], subsets: [] });
 const search = useTemplateRef<HTMLInputElement>('search');
 const heading = useTemplateRef<HTMLElement>('heading');
 
