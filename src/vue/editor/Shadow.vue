@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { toHex, toOklch } from '../../lib/color.js';
+import { toHex } from '../../lib/color.js';
 import * as E from '../../lib/edit.js';
 import { child, children, isNode } from '../../lib/tree.js';
 import { keysOf } from '../../lib/records.js';
@@ -38,10 +38,6 @@ const STANDARD = {
 
 const fallback = computed(() => E.defaultTheme(props.ctx.doc) ?? props.ctx.theme);
 const isDefault = computed(() => props.ctx.theme === fallback.value);
-const darkPage = computed(() => {
-  const page = narrow(props.ctx.tokens.get('color.page.background')?.resolved, isColor);
-  return page ? toOklch(page)[0] < 0.5 : false;
-});
 const own = computed(() => child(E.themeSource(props.ctx.doc, props.ctx.theme), 'shadow'));
 
 const readLayer = (value: unknown) =>
@@ -119,7 +115,7 @@ function remove(name: string) {
 }
 
 const allInherited = computed(() => shadows.value.length > 0 && shadows.value.every((s) => s.inherited));
-const standard = computed(() => (darkPage.value ? STANDARD.dark : STANDARD.light));
+const standard = computed(() => (props.ctx.darkPage ? STANDARD.dark : STANDARD.light));
 function useStandard() {
   const group: TokenNode = { $type: 'shadow' };
   for (const [name, layers] of Object.entries(standard.value))
@@ -216,7 +212,7 @@ function addShadow(name: string) {
       </button>
     </ItemRow>
   </ul>
-  <div v-if="isDefault ? !shadows.length : darkPage && allInherited" class="ed-blocked">
+  <div v-if="isDefault ? !shadows.length : ctx.darkPage && allInherited" class="ed-blocked">
     <p class="cd-hint">
       {{
         shadows.length
@@ -225,7 +221,7 @@ function addShadow(name: string) {
       }}
     </p>
     <button type="button" class="btn btn-secondary" @click="useStandard">
-      Use standard {{ darkPage ? 'dark ' : '' }}shadows ({{ keysOf(standard).join(', ') }})
+      Use standard {{ ctx.darkPage ? 'dark ' : '' }}shadows ({{ keysOf(standard).join(', ') }})
     </button>
   </div>
   <NameForm

@@ -9,6 +9,11 @@ export const cssString = (s: unknown) =>
     .replace(/[\n\r]/g, ' ')}"`;
 const STYLES = new Set(['normal', 'italic', 'oblique']);
 
+export const sortFontFiles = (files: FontFile[]) =>
+  files.toSorted(
+    (a, b) => a.family.localeCompare(b.family) || a.weight - b.weight || a.style.localeCompare(b.style),
+  );
+
 export function fontFaceRules(fontFiles: FontFile[] | undefined, fontSrc: (f: FontFile) => string): string {
   return (fontFiles ?? [])
     .map((f) =>

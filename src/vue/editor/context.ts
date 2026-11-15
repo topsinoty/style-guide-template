@@ -3,6 +3,8 @@ import { withBrandMeta } from '../../lib/assets.js';
 import * as E from '../../lib/edit.js';
 import { checkBrand, problemText } from '../../lib/io.js';
 import { isNode, nodeAt } from '../../lib/tree.js';
+import { isDark } from '../../lib/color.js';
+import { narrow, isColor } from '../../lib/values.js';
 import type { BrandMeta, ResolverDoc, TokenNode, Tokens } from '../../lib/types.js';
 
 export interface EditorContext {
@@ -13,6 +15,7 @@ export interface EditorContext {
   tokens: Tokens;
   meta: BrandMeta;
   theme: string;
+  darkPage: boolean;
   setTheme(theme: string): void;
   edit(fn: (doc: ResolverDoc) => ResolverDoc, typingKey?: string): void;
   setToken(path: string, token: TokenNode): void;
@@ -46,6 +49,7 @@ export function editorContext(
     tokens,
     meta: session.meta,
     theme,
+    darkPage: isDark(narrow(tokens.get('color.page.background')?.resolved, isColor)),
     setTheme,
     edit,
     setToken,

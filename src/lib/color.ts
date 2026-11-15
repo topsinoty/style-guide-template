@@ -51,6 +51,8 @@ export function toOklch(color: DtcgColor): [number, number, number, number] {
   return [...okParts(toCulori(color)), alpha];
 }
 
+export const isDark = (color: DtcgColor | null) => color !== null && toOklch(color)[0] < 0.5;
+
 export function toSrgb(color: DtcgColor) {
   const { r, g, b } = converted(toRgb(toCulori(color)), color);
   return { r, g, b, alpha: color.alpha ?? 1 };

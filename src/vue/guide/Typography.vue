@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { cssName } from '../../lib/css.js';
-import { cssString } from '../../lib/fonts.js';
+import { cssString, sortFontFiles } from '../../lib/fonts.js';
 import type { BrandMeta, FontFile, Tokens } from '../../lib/types.js';
 import { narrow, isTypography } from '../../lib/values.js';
 import { dim } from './parts.js';
@@ -19,7 +19,9 @@ const styles = computed(() =>
     return [{ path, name: path.slice('typography.'.length), summary, description: token.description }];
   }),
 );
-const families = computed(() => [...Map.groupBy(props.meta.fontFiles, (f: FontFile) => f.family)]);
+const families = computed(() => [
+  ...Map.groupBy(sortFontFiles(props.meta.fontFiles), (f: FontFile) => f.family),
+]);
 const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
 </script>
 

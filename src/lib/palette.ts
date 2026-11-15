@@ -1,4 +1,4 @@
-import { anchoredScale, contrastRatio, oklch, toOklch } from './color.js';
+import { anchoredScale, contrastRatio, isDark, oklch, toOklch } from './color.js';
 import { ROLES } from './contrast.js';
 import { foundation } from './edit.js';
 import { entriesOf, isEmpty, keysOf, mapValues, renameKey, valuesOf, without } from './records.js';
@@ -309,7 +309,7 @@ function keepOnlyRoles(tree: TokenNode, inputs: Record<string, string>, doc: Res
   if (!colors) return;
   for (const [key] of children(colors)) if (!ROLES.includes(key)) Reflect.deleteProperty(colors, key);
   const page = narrow(resolve(doc, inputs).get('color.page.background')?.resolved, isColor);
-  const darkPage = page !== null && toOklch(page)[0] < 0.5;
+  const darkPage = isDark(page);
   const [paper, ink] = darkPage ? ['black', 'white'] : ['white', 'black'];
   walkValues(colors, 'color', (token, path) => {
     token.$value = monochromeRole(path, paper, ink);

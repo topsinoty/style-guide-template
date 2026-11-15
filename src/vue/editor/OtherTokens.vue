@@ -11,11 +11,10 @@ import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections.js';
 import Choice from './Choice.vue';
 import type { EditorContext } from './context.js';
 import IconButton from './IconButton.vue';
-import NumberField from './NumberField.vue';
 import { NEW_TOKEN_TYPES, UNITS, tokenValue, valueExample } from './other-tokens.js';
 import { colorOptions, roleEntry, roleText } from './role-color.js';
 import RoleColorCombobox from './RoleColorCombobox.vue';
-import TextField from './TextField.vue';
+import Listbox from '../Listbox.vue';
 import ThemeBar from './ThemeBar.vue';
 
 const props = defineProps<{ ctx: EditorContext }>();
@@ -53,11 +52,26 @@ function setColor(path: string, text: string) {
   else setValue(path, 'color', value);
 }
 
-function setJson(path: string, type: string, text: string) {
+const inputValue = (event: Event) =>
+  event.target instanceof HTMLInputElement ? event.target.value.trim() : '';
+
+function setNumber(path: string, event: Event) {
+  const value = Number.parseFloat(inputValue(event));
+  if (Number.isFinite(value)) props.ctx.patchValue(path, { value });
+}
+
+function setText(row: { path: string; type: string; value: unknown }, event: Event) {
+  const text = inputValue(event);
+  if (typeof row.value === 'number') {
+    const value = Number.parseFloat(text);
+    if (Number.isFinite(value)) setValue(row.path, row.type, value);
+    return;
+  }
+  if (typeof row.value === 'string') return setValue(row.path, row.type, text);
   try {
-    setValue(path, type, JSON.parse(text));
+    setValue(row.path, row.type, JSON.parse(text));
   } catch {
-    props.ctx.session.warn(`${cssName(path)}: the value is not valid JSON.`);
+    props.ctx.session.warn(`${cssName(row.path)}: the value is not valid JSON.`);
   }
 }
 
@@ -97,54 +111,51 @@ function add() {
 <template>
   <p class="cd-hint">Tokens outside the palette, scales and type: durations, easing, extra colors.</p>
   <ThemeBar v-if="rows.some((row) => row.type === 'color')" :ctx="ctx" />
-  <div v-for="row in rows" :key="row.path" class="cd-field-row ed-token-row">
-    <div v-if="row.type === 'color' && typeof row.value !== 'number'" class="cd-field">
-      <span>{{ row.label }}</span>
+  <ul v-if="rows.length" class="ed-table ed-token-table" aria-label="Other tokens">
+    <li v-for="row in rows" :key="row.path">
+      <span class="ed-table-name"
+        ><code>{{ row.label }}</code
+        ><span class="ed-row-meta">{{ row.type }}</span></span
+      >
       <RoleColorCombobox
+        v-if="row.type === 'color' && typeof row.value !== 'number'"
         :label="row.label"
         :text="roleText(row.value, shades)"
         :hex="hexOf(row.resolved)"
         :options="shades"
         @commit="setColor(row.path, $event)"
       />
-    </div>
-    <TextField
-      v-else-if="typeof row.value === 'string'"
-      :label="row.label"
-      :value="row.value"
-      @commit="setValue(row.path, row.type, $event)"
-    />
-    <NumberField
-      v-else-if="typeof row.value === 'number'"
-      :label="row.label"
-      :value="row.value"
-      @commit="setValue(row.path, row.type, $event)"
-    />
-    <template v-else-if="isMeasure(row.value) && UNITS[row.type]">
-      <NumberField
-        :label="row.label"
-        :value="row.value.value"
-        @commit="ctx.patchValue(row.path, { value: $event })"
+      <span v-else-if="isMeasure(row.value) && UNITS[row.type]" class="ed-unit-input">
+        <label
+          ><span class="cd-sr-only">{{ row.label }}</span
+          ><input type="number" step="any" :value="row.value.value" @change="setNumber(row.path, $event)"
+        /></label>
+        <Listbox
+          :label="`${row.label} unit`"
+          :options="UNITS[row.type].map((unit) => ({ value: unit, label: unit }))"
+          :value="row.value.unit"
+          @update:value="ctx.patchValue(row.path, { unit: $event })"
+        />
+      </span>
+      <label v-else
+        ><span class="cd-sr-only">{{ row.label }}</span
+        ><input
+          :type="typeof row.value === 'number' ? 'number' : 'text'"
+          step="any"
+          :value="
+            typeof row.value === 'string' || typeof row.value === 'number'
+              ? row.value
+              : JSON.stringify(row.value)
+          "
+          @change="setText(row, $event)"
+      /></label>
+      <IconButton
+        name="trash"
+        :label="`Remove ${row.label}`"
+        @click="ctx.edit((doc) => E.removeToken(doc, row.path))"
       />
-      <Choice
-        label="Unit"
-        :options="UNITS[row.type].map((unit) => ({ value: unit, label: unit }))"
-        :value="row.value.unit"
-        @update:value="ctx.patchValue(row.path, { unit: $event })"
-      />
-    </template>
-    <TextField
-      v-else
-      :label="`${row.label} (JSON)`"
-      :value="JSON.stringify(row.value)"
-      @commit="setJson(row.path, row.type, $event)"
-    />
-    <IconButton
-      name="trash"
-      :label="`Remove ${row.label}`"
-      @click="ctx.edit((doc) => E.removeToken(doc, row.path))"
-    />
-  </div>
+    </li>
+  </ul>
   <p v-if="!rows.length" class="cd-hint">No other tokens yet. Add one below.</p>
   <AddPanel label="Add a token">
     <template #default="{ close }">

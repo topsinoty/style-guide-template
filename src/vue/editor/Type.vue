@@ -15,6 +15,7 @@ import ItemRow from './ItemRow.vue';
 import Scales from './Scales.vue';
 import Listbox from '../Listbox.vue';
 import { cssName } from '../../lib/css.js';
+import { sortFontFiles } from '../../lib/fonts.js';
 import { ELEMENTS, elementOf, setElement } from '../../lib/elements.js';
 
 const props = defineProps<{ ctx: EditorContext }>();
@@ -74,11 +75,7 @@ const styles = computed(() =>
 );
 
 const opened = ref<string>();
-const sortedFiles = computed(() =>
-  props.ctx.meta.fontFiles.toSorted(
-    (a, b) => a.family.localeCompare(b.family) || a.weight - b.weight || a.style.localeCompare(b.style),
-  ),
-);
+const sortedFiles = computed(() => sortFontFiles(props.ctx.meta.fontFiles));
 const labelOf = (options: { value: string; label: string }[], value: string) =>
   options.find((o) => o.value === value)?.label.replace(/ font$/, '') ?? '?';
 const styleSummary = (style: (typeof styles.value)[number]) =>

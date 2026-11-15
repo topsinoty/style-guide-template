@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { checkContrast, ROLES } from '../../lib/contrast.js';
-import { toHex, toOklch } from '../../lib/color.js';
+import { toHex } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
 import * as E from '../../lib/edit.js';
 import { paletteColors, roleFromShade } from '../../lib/palette.js';
@@ -62,12 +62,6 @@ const summary = (role: string, tokens: { path: string; text: string }[]) => {
   return ground ? `Uses ${pretty(ground.text)}` : '';
 };
 
-// Parts follow the page: hover and active go darker on a light page, lighter on a dark one.
-const darkPage = computed(() => {
-  const page = narrow(props.ctx.tokens.get('color.page.background')?.resolved, isColor);
-  return page ? toOklch(page)[0] < 0.5 : false;
-});
-
 function fill(role: string, option: string) {
   const [, colorId, shade] = /^\{color\.([^.]+)\.([^}]+)\}$/.exec(option) ?? [];
   if (!colorId) return;
@@ -76,7 +70,7 @@ function fill(role: string, option: string) {
   let borderSteps = 2;
   if (has('background-hover') || !has('background')) borderSteps = 0;
   else if (role === 'input') borderSteps = 5;
-  const parts = roleFromShade(palette.value, colorId, shade, darkPage.value, borderSteps);
+  const parts = roleFromShade(palette.value, colorId, shade, props.ctx.darkPage, borderSteps);
   props.ctx.edit((doc) =>
     Object.entries(parts)
       .filter(([part]) => has(part))

@@ -27,7 +27,7 @@ import {
 import type { Session } from '../app/session.js';
 import { download } from './download.js';
 import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets.js';
-import { toOklch } from '../lib/color.js';
+import { isDark } from '../lib/color.js';
 import { defaultTheme, themesOf } from '../lib/edit.js';
 import { narrow, isColor } from '../lib/values.js';
 import Listbox from './Listbox.vue';
@@ -82,7 +82,7 @@ watchEffect(() => {
     `${DEFAULT_ROOT_SIZE / (view.value.meta.rootSize ?? DEFAULT_ROOT_SIZE)}rem`,
   );
   const page = narrow(view.value.tokens.get('color.page.background')?.resolved, isColor);
-  root.style.colorScheme = page && toOklch(page)[0] < 0.5 ? 'dark' : 'light';
+  root.style.colorScheme = isDark(page) ? 'dark' : 'light';
 });
 
 useTitle(() => `${session.value.doc.name ?? 'Brand'} | Style Guide`);
