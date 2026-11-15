@@ -4,6 +4,7 @@ import { checkContrast, ROLES } from '../../lib/contrast.js';
 import { toHex } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
 import * as E from '../../lib/edit.js';
+import { entriesOf } from '../../lib/records.js';
 import { paletteColors, roleFromShade } from '../../lib/palette.js';
 import Choice from './Choice.vue';
 import { narrow, isColor } from '../../lib/values.js';
@@ -72,7 +73,7 @@ function fill(role: string, option: string) {
   else if (role === 'input') borderSteps = 5;
   const parts = roleFromShade(palette.value, colorId, shade, props.ctx.darkPage, borderSteps);
   props.ctx.edit((doc) =>
-    Object.entries(parts)
+    entriesOf(parts)
       .filter(([part]) => has(part))
       .reduce((next, [part, value]) => E.setRole(next, props.ctx.theme, `${role}.${part}`, value), doc),
   );

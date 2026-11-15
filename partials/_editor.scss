@@ -103,14 +103,6 @@
 	}
 }
 
-.cd-actions-more {
-	display: none;
-
-	@include MQ(S) {
-		display: contents;
-	}
-}
-
 .cd-panels {
 	display: grid;
 	gap: var(--spacing-lg);

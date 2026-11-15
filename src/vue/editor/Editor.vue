@@ -19,6 +19,7 @@ import Themes from './Themes.vue';
 import ThemeBar from './ThemeBar.vue';
 import UsageNotes from './UsageNotes.vue';
 import Contrast from './Contrast.vue';
+import { areaId, scrollToArea } from './areas.js';
 
 const props = defineProps<{ session: Session; tokens: Tokens; theme: string }>();
 const emit = defineEmits<{ theme: [theme: string] }>();
@@ -63,22 +64,8 @@ const active = computed({
   set: (value) => (tab.value = value),
 });
 const current = computed(() => groups.find((g) => g.name === active.value) ?? groups[0]);
-const slug = (name: string) => `ed-${name.toLowerCase().replaceAll(' ', '-')}`;
-
 function jump(name: string) {
-  const heading = document.getElementById(slug(name));
-  const body = heading?.closest('.cd-drawer-body');
-  const sticky = body?.querySelector('.ed-sticky');
-  if (!heading || !body || !sticky) return;
-  // Land just under the sticky bar, whose height changes with the theme switch.
-  const gap = 12;
-  body.scrollBy({
-    top: heading.getBoundingClientRect().top - sticky.getBoundingClientRect().bottom - gap,
-  });
-  heading
-    .closest('section')
-    ?.querySelector<HTMLElement>('input, textarea, button')
-    ?.focus({ preventScroll: true });
+  scrollToArea(name)?.querySelector<HTMLElement>('input, textarea, button')?.focus({ preventScroll: true });
 }
 </script>
 
@@ -103,9 +90,9 @@ function jump(name: string) {
         v-for="area in group.areas"
         :key="area.name"
         class="ed-area"
-        :aria-labelledby="slug(area.name)"
+        :aria-labelledby="areaId(area.name)"
       >
-        <h3 :id="slug(area.name)">{{ area.name }}</h3>
+        <h3 :id="areaId(area.name)">{{ area.name }}</h3>
         <component :is="area.component" :ctx="ctx" />
       </section>
     </TabsContent>

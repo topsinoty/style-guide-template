@@ -9,6 +9,7 @@ import { manifest as manifestSchema, resolverDoc, validateResolver } from '../sr
 import { resolve } from '../src/lib/resolver.js';
 import { checkContrast, ROLES } from '../src/lib/contrast.js';
 import { brandMeta, missingAssets } from '../src/lib/assets.js';
+import { keysOf } from '../src/lib/records.js';
 
 const root = new URL('../public/library/', import.meta.url).pathname;
 const readJson = (path: string): unknown => JSON.parse(readFileSync(path, 'utf8'));
@@ -41,7 +42,7 @@ test('the first preset is Default', () => {
 for (const { name, doc } of brands) {
   test(`${name} is valid DTCG and resolves in every theme`, () => {
     assert.deepEqual(validateResolver(doc).errors, []);
-    for (const theme of Object.keys(doc.modifiers?.theme?.contexts ?? {}))
+    for (const theme of keysOf(doc.modifiers?.theme?.contexts ?? {}))
       assert.doesNotThrow(() => resolve(doc, { theme }));
   });
 

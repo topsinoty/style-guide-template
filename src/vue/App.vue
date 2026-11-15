@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef, watch, watchEffect } from 'vue';
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch, watchEffect } from 'vue';
 import {
   onKeyStroke,
   useDropZone,
@@ -39,6 +39,9 @@ import Action from './Action.vue';
 import Icon from './Icon.vue';
 import Guide from './guide/Guide.vue';
 import Editor from './editor/Editor.vue';
+import Help from './Help.vue';
+import Tour from './tour/Tour.vue';
+import { EDIT_STEPS, READ_STEPS } from './tour/steps.js';
 import { visibleSections } from './guide/sections.js';
 import { provideSession } from './useSession.js';
 import { deriveView } from './view.js';
@@ -67,6 +70,21 @@ const reduceMotion = usePreferredReducedMotion();
 const { height: headerHeight } = useElementBounding(useTemplateRef('header'));
 
 const editing = ref(false);
+const helping = ref(false);
+const touring = ref(false);
+const toured = useStorage('styleguide:toured', false);
+onMounted(() => {
+  if (session.value.editable && !toured.value) touring.value = true;
+});
+watch(touring, (on) => {
+  if (!on) toured.value = true;
+});
+
+async function startTour() {
+  helping.value = false;
+  await nextTick();
+  touring.value = true;
+}
 const editorMounted = ref(false);
 const exporting = ref(false);
 
@@ -249,23 +267,21 @@ function onNavWheel(e: WheelEvent) {
           >
             <Icon name="back" /><span class="cd-action-label">Back to editing</span>
           </a>
-          <div class="cd-actions-more">
-            <Action
-              v-if="session.editable"
-              id="load-btn"
-              icon="load"
-              label="Load"
-              title="Load a brand file, ZIP, fonts or assets"
-              @click="loadDialog.open()"
-            />
-            <Action
-              id="save-btn"
-              icon="save"
-              label="Save JSON"
-              title="Save the brand file as JSON"
-              @click="save"
-            />
-          </div>
+          <Action
+            v-if="session.editable"
+            id="load-btn"
+            icon="load"
+            label="Load"
+            title="Load a brand file, ZIP, fonts or assets"
+            @click="loadDialog.open()"
+          />
+          <Action
+            id="save-btn"
+            icon="save"
+            label="Save JSON"
+            title="Save the brand file as JSON"
+            @click="save"
+          />
           <Action
             id="export-btn"
             icon="export"
@@ -274,6 +290,7 @@ function onNavWheel(e: WheelEvent) {
             :busy="exporting"
             @click="exportKit"
           />
+          <Action id="help-btn" icon="help" label="Help" title="Help and the tour" @click="helping = true" />
         </div>
       </header>
       <Guide
@@ -284,6 +301,12 @@ function onNavWheel(e: WheelEvent) {
         :meta="view.meta"
         :covered="editing && !wide"
         :inset="headerHeight"
+      />
+      <Help v-model:open="helping" :editable="session.editable" @tour="startTour" />
+      <Tour
+        v-model:open="touring"
+        :steps="session.editable ? EDIT_STEPS : READ_STEPS"
+        @drawer="editing = $event"
       />
       <div v-if="session.editable" class="cd-drop" aria-hidden="true">Drop files to load them</div>
       <DialogContent

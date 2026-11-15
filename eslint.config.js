@@ -28,7 +28,19 @@ export default tseslint.config(
       'default-param-last': 'error',
       'no-await-in-loop': 'error',
       'vuejs-accessibility/aria-role': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name='Object'][property.name=/^(keys|values|entries|fromEntries)$/]",
+          message: 'Use keysOf, valuesOf, entriesOf or recordOf from src/lib/records.ts.',
+        },
+      ],
     },
+  },
+  {
+    files: ['src/lib/records.ts'],
+    rules: { 'no-restricted-syntax': 'off' },
   },
   {
     files: ['**/*.vue'],

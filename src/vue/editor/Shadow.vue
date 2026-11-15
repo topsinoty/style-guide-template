@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { toHex } from '../../lib/color.js';
 import * as E from '../../lib/edit.js';
 import { child, children, isNode } from '../../lib/tree.js';
-import { keysOf } from '../../lib/records.js';
+import { entriesOf, keysOf } from '../../lib/records.js';
 import { narrow, isColor, isSize } from '../../lib/values.js';
 import ColorInput from '../ColorInput.vue';
 import type { EditorContext } from './context.js';
@@ -118,7 +118,7 @@ const allInherited = computed(() => shadows.value.length > 0 && shadows.value.ev
 const standard = computed(() => (props.ctx.darkPage ? STANDARD.dark : STANDARD.light));
 function useStandard() {
   const group: TokenNode = { $type: 'shadow' };
-  for (const [name, layers] of Object.entries(standard.value))
+  for (const [name, layers] of entriesOf(standard.value))
     group[name] = { $value: layers.length === 1 ? layers[0] : layers };
   props.ctx.edit((doc) => E.setThemed(doc, props.ctx.theme, 'shadow', group));
 }
