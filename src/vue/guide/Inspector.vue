@@ -39,9 +39,12 @@ function visibleRect(el: HTMLElement) {
   return { top, left, width: right - left, height: bottom - top };
 }
 
+const hasText = (el: HTMLElement) =>
+  [...el.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
+
 function show(el: Element | null | undefined) {
   const found = el?.closest(TEXT);
-  if (!(found instanceof HTMLElement) || !props.root?.contains(found)) {
+  if (!(found instanceof HTMLElement) || !props.root?.contains(found) || !hasText(found)) {
     target.value = undefined;
     return;
   }
