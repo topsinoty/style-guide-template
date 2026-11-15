@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import Card from './Card.vue';
 import { cssName } from '../../lib/css.js';
 import { cssString, sortFontFiles } from '../../lib/fonts.js';
 import type { BrandMeta, FontFile, Tokens } from '../../lib/types.js';
@@ -26,7 +27,7 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
 </script>
 
 <template>
-  <div class="cd-box">
+  <Card label="font sizes">
     <h3>Font sizes</h3>
     <p
       v-for="[path, token] in sizes"
@@ -40,8 +41,8 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
         <small v-if="token.description" class="cd-usage">{{ token.description }}</small></span
       >
     </p>
-  </div>
-  <div class="cd-box">
+  </Card>
+  <Card label="text styles">
     <h3>Text styles</h3>
     <p
       v-for="{ path, name, summary, description } in styles"
@@ -59,8 +60,8 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
       <span class="cd-type-meta">{{ summary }}</span>
       <small v-if="description" class="cd-usage">{{ description }}</small>
     </p>
-  </div>
-  <div class="cd-box">
+  </Card>
+  <Card label="fonts">
     <h3>Fonts</h3>
     <template v-if="families.length">
       <div v-for="[family, files] in families" :key="family" class="cd-specimen">
@@ -76,5 +77,5 @@ const variable = (p: string, field: string) => `var(${cssName(p)}-${field})`;
       </div>
     </template>
     <p v-else>No font files loaded yet.</p>
-  </div>
+  </Card>
 </template>

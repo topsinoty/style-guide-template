@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import Card from './Card.vue';
 import { RovingFocusGroup, RovingFocusItem } from 'reka-ui';
 import { cmyk, toHex, toOklchString, toRgbaString } from '../../lib/color.js';
 import { cssName } from '../../lib/css.js';
@@ -115,29 +116,31 @@ const background = (path: string) => ({ background: `var(${cssName(path)})` });
   </template>
   <template v-for="table in color.tables" :key="table.title">
     <h3>{{ table.title }}</h3>
-    <div class="cd-box cd-table-scroll">
-      <table class="cd-roles">
-        <thead>
-          <tr>
-            <th>Token</th>
-            <th>Value</th>
-            <th>Hex</th>
-            <th>Usage</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in table.rows" :key="r.path">
-            <td>
-              <span class="cd-chip" :style="background(r.path)"></span><code>{{ cssName(r.path) }}</code>
-            </td>
-            <td>
-              <code>{{ r.source }}</code>
-            </td>
-            <td>{{ r.hex }}</td>
-            <td>{{ r.description }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <Card :label="table.title.toLowerCase()">
+      <div class="cd-table-scroll">
+        <table class="cd-roles">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Value</th>
+              <th>Hex</th>
+              <th>Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in table.rows" :key="r.path">
+              <td>
+                <span class="cd-chip" :style="background(r.path)"></span><code>{{ cssName(r.path) }}</code>
+              </td>
+              <td>
+                <code>{{ r.source }}</code>
+              </td>
+              <td>{{ r.hex }}</td>
+              <td>{{ r.description }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </Card>
   </template>
 </template>

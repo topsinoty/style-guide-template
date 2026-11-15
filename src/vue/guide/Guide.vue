@@ -8,6 +8,7 @@ import { cssName, cssValue } from '../../lib/css.js';
 import { fileName } from '../../lib/path.js';
 import type { BrandMeta, ResolverDoc, Tokens } from '../../lib/types.js';
 import AssetImage from './AssetImage.vue';
+import Card from './Card.vue';
 import Code from './Code.vue';
 import Colors from './Colors.vue';
 import FileCard from './FileCard.vue';
@@ -92,7 +93,7 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
     >
       <h2>{{ section.title }}</h2>
       <Prose v-if="section.body" :text="section.body" />
-      <div v-if="section.id === 'typography'" class="cd-box">
+      <Card v-if="section.id === 'typography'" label="the type specimen">
         <h1 ref="specimenText" role="presentation">
           Heading, <span class="cd-specimen-label">{{ specimen[0] }}</span>
         </h1>
@@ -102,19 +103,20 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
           <a href="#0">voluptatum eaque</a>. Optio ea aperiam nisi distinctio nemo repellat, voluptate fugiat.
           Quidem neque illum, blanditiis!
         </p>
-      </div>
+      </Card>
       <div v-if="!section.text" class="cd-section-body">
         <template v-if="section.id === 'branding'">
           <ul class="cd-logos">
-            <li
+            <Card
               v-for="item in itemsOf('logos')"
               :key="item.src"
-              class="cd-box"
+              as="li"
+              :label="item.label ?? fileName(item.src)"
               :class="{ 'cd-logo-wide': item.wide }"
               :style="{ background: cssBackground(item.background) }"
             >
               <AssetImage :item="item" :ctx="session.ctx" />
-            </li>
+            </Card>
           </ul>
           <ul class="cd-favicons">
             <li v-for="item in itemsOf('favicons')" :key="item.src">
@@ -124,61 +126,65 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
         </template>
         <Colors v-else-if="section.id === 'colors'" :tokens="tokens" :vendor="session.vendor" />
         <Typography v-else-if="section.id === 'typography'" :tokens="tokens" :meta="meta" />
-        <ul v-else-if="section.id === 'icons'" class="cd-box">
-          <li v-for="item in itemsOf('icons')" :key="item.src">
-            <figure>
-              <AssetImage :item="item" :ctx="session.ctx" alt="" />
-              <figcaption>{{ item.label ?? fileName(item.src) }}</figcaption>
-            </figure>
-          </li>
-        </ul>
+        <Card v-else-if="section.id === 'icons'" label="icons">
+          <ul>
+            <li v-for="item in itemsOf('icons')" :key="item.src">
+              <figure>
+                <AssetImage :item="item" :ctx="session.ctx" alt="" />
+                <figcaption>{{ item.label ?? fileName(item.src) }}</figcaption>
+              </figure>
+            </li>
+          </ul>
+        </Card>
         <Scale
           v-else-if="section.id === 'spacing' || section.id === 'radius' || section.id === 'shadow'"
           :kind="section.id"
           :tokens="tokens"
         />
-        <div v-else-if="section.id === 'other-tokens'" class="cd-box cd-table-scroll">
-          <table class="cd-roles">
-            <thead>
-              <tr>
-                <th>Token</th>
-                <th>Type</th>
-                <th>CSS value</th>
-                <th>Preview</th>
-                <th>Usage</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="[path, token] in otherTokens" :key="path">
-                <td>
-                  <code>{{ cssName(path) }}</code>
-                </td>
-                <td>{{ token.type }}</td>
-                <td>
-                  <code>{{ cssValue(token.type, token.value) ?? '' }}</code>
-                </td>
-                <td>
-                  <MotionPreview
-                    v-if="token.type === 'duration' || token.type === 'cubicBezier'"
-                    :name="cssName(path)"
-                    :type="token.type"
-                  />
-                  <span
-                    v-else-if="token.type === 'color'"
-                    class="cd-preview-swatch"
-                    :style="{ background: `var(${cssName(path)})` }"
-                  ></span>
-                  <span
-                    v-else-if="token.type === 'dimension'"
-                    class="cd-preview-bar"
-                    :style="{ width: `var(${cssName(path)})` }"
-                  ></span>
-                </td>
-                <td>{{ token.description }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <Card v-else-if="section.id === 'other-tokens'" label="other tokens">
+          <div class="cd-table-scroll">
+            <table class="cd-roles">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th>Type</th>
+                  <th>CSS value</th>
+                  <th>Preview</th>
+                  <th>Usage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="[path, token] in otherTokens" :key="path">
+                  <td>
+                    <code>{{ cssName(path) }}</code>
+                  </td>
+                  <td>{{ token.type }}</td>
+                  <td>
+                    <code>{{ cssValue(token.type, token.value) ?? '' }}</code>
+                  </td>
+                  <td>
+                    <MotionPreview
+                      v-if="token.type === 'duration' || token.type === 'cubicBezier'"
+                      :name="cssName(path)"
+                      :type="token.type"
+                    />
+                    <span
+                      v-else-if="token.type === 'color'"
+                      class="cd-preview-swatch"
+                      :style="{ background: `var(${cssName(path)})` }"
+                    ></span>
+                    <span
+                      v-else-if="token.type === 'dimension'"
+                      class="cd-preview-bar"
+                      :style="{ width: `var(${cssName(path)})` }"
+                    ></span>
+                  </td>
+                  <td>{{ token.description }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
         <Code v-else-if="section.id === 'css-variables'" :doc="doc" :vendor="session.vendor" />
         <template v-else-if="section.group">
           <div v-if="itemsOf(section.group).length" class="cd-files">

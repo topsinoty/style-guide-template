@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import Card from './Card.vue';
 import { cssName } from '../../lib/css.js';
 import type { Tokens } from '../../lib/types.js';
 import { narrow, isSize } from '../../lib/values.js';
@@ -18,7 +19,7 @@ function radiusText(value: unknown) {
 </script>
 
 <template>
-  <div v-if="kind === 'spacing'" class="cd-box cd-token-list">
+  <Card v-if="kind === 'spacing'" class="cd-token-list" label="spacing">
     <div v-for="[path, token] in steps" :key="path" class="cd-token-row">
       <span
         ><code>{{ cssName(path) }}</code> <span class="cd-token-value">{{ dim(token.resolved) }}</span>
@@ -26,7 +27,7 @@ function radiusText(value: unknown) {
       >
       <div class="cd-bar" :style="{ width: value(path) }"></div>
     </div>
-  </div>
+  </Card>
   <div v-else :class="['cd-swatch-grid', { 'cd-shadow-stage': kind === 'shadow' }]">
     <figure v-for="[path, token] in steps" :key="path">
       <div

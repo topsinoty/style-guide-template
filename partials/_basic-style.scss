@@ -527,3 +527,73 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 		opacity: 0.75;
 	}
 }
+
+.cd-card {
+	position: relative;
+
+	&.is-open {
+		position: fixed;
+		inset: 0;
+		z-index: 30;
+		overflow: auto;
+		margin: 0;
+		border: 0;
+		border-radius: 0;
+		padding: chrome(3) max(chrome(3), 5vw);
+	}
+}
+
+.cd-logos > .cd-card.is-open {
+	display: grid;
+	grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+}
+
+.cd-fullscreen {
+	position: absolute;
+	top: chrome(0.5);
+	right: chrome(0.5);
+	z-index: 1;
+
+	.cd-card.is-open > & {
+		position: fixed;
+		top: chrome(1);
+		right: chrome(1);
+	}
+	display: grid;
+	place-items: center;
+	width: chrome(2);
+	height: chrome(2);
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-sm, chrome(0.25));
+	background: transparent;
+	color: var(--color-muted-foreground);
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity var(--duration-fast);
+
+	.cd-card:hover > &,
+	.cd-card.is-open > &,
+	&:focus-visible {
+		opacity: 1;
+	}
+
+	@media (hover: none) {
+		opacity: 1;
+	}
+
+	&:hover {
+		background: var(--color-muted-background);
+		color: var(--color-card-foreground);
+	}
+
+	&:focus-visible {
+		outline: chrome(0.125) solid var(--color-focus-border);
+	}
+}

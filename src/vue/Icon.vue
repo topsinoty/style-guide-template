@@ -22,6 +22,8 @@ import {
   Eye,
   CircleHelp,
   ArrowLeft,
+  Maximize2,
+  Minimize2,
 } from '@lucide/vue';
 
 const icons = {
@@ -47,6 +49,8 @@ const icons = {
   view: Eye,
   help: CircleHelp,
   back: ArrowLeft,
+  maximize: Maximize2,
+  minimize: Minimize2,
 };
 
 export type IconName = keyof typeof icons;
