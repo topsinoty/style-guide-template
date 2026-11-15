@@ -43,7 +43,7 @@ const hasText = (el: HTMLElement) =>
   [...el.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim());
 
 function show(el: Element | null | undefined) {
-  const found = el?.closest(TEXT);
+  const found = el?.closest('.cd-code') ? null : el?.closest(TEXT);
   if (!(found instanceof HTMLElement) || !props.root?.contains(found) || !hasText(found)) {
     target.value = undefined;
     return;
