@@ -5,7 +5,6 @@ import { parseBlocks, type Block, type Inline } from '~/lib';
 defineProps<{ text: string }>();
 
 const TAGS = { strong: 'strong', em: 'em', code: 'code' } as const;
-// Text goes in as text nodes, never as HTML: brand files come from anyone.
 const inline = (parts: Inline[]) =>
   parts.map((part) => {
     if (part.kind === 'text') return createTextVNode(part.text);

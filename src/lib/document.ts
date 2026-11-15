@@ -10,8 +10,6 @@ export const isResolver = (json: unknown): json is ResolverDoc =>
 
 const REF = /^#\/(sets|modifiers)\/(.+)$/;
 
-// The spec allows sets and modifiers at the root or inline in resolutionOrder; files are written inline,
-// the form most tools read, and kept at the root inside the app.
 export function inlineResolver({
   sets,
   modifiers,

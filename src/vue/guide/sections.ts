@@ -79,7 +79,6 @@ export function sectionsOf(meta: BrandMeta, tokens: Tokens): Section[] {
       },
     ];
   });
-  // A section the brand does not place yet goes right after the one it follows by default.
   defaults.forEach((section, i) => {
     if (placed.some((s) => s.id === section.id)) return;
     const before = defaults
@@ -121,7 +120,6 @@ const clean = ({ id, title, body }: TextSection): TextSection => ({
   ...(body ? { body } : {}),
 });
 
-// Every edit writes the whole current order, so placing one section never moves another.
 function rewrite(
   meta: BrandMeta,
   tokens: Tokens,
@@ -170,7 +168,6 @@ export function addSection(
 ): BrandMeta {
   const taken = new Set(sectionsOf(meta, tokens).map((s) => s.id));
   const id = uniquePath(`${TEXT_PREFIX}${slug(title)}`, taken);
-  // New text goes before Code, which stays the technical appendix at the end.
   return rewrite(meta, tokens, (list) => {
     const code = list.findIndex((s) => s.id === 'css-variables');
     return code === -1

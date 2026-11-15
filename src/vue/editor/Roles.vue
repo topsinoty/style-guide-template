@@ -91,7 +91,6 @@ function fill(role: string, option: string) {
   const [, colorId, shade] = /^\{color\.([^.]+)\.([^}]+)\}$/.exec(option) ?? [];
   if (!colorId) return;
   const has = (part: string) => props.ctx.tokens.has(`color.${role}.${part}`);
-  // Buttons outline in their own color; surfaces need a visible edge, and fields a 3:1 one.
   let borderSteps = 2;
   if (has('background-hover') || !has('background')) borderSteps = 0;
   else if (role === 'input') borderSteps = 5;

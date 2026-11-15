@@ -222,7 +222,6 @@ const metaOf = (doc: ResolverDoc, vendor?: string) =>
     vendor ? valueAt(doc.sets, 'foundation')?.$extensions?.[vendor] : undefined,
   );
 
-// A percentage keeps the reader's own browser font size in play: 10px per rem is 62.5%.
 function rootRule(size = DEFAULT_ROOT_SIZE): string {
   if (size === DEFAULT_ROOT_SIZE) return '';
   return block('html', [

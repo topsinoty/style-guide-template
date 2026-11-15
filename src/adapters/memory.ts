@@ -15,24 +15,11 @@ export function memoryKeyValueStore(): KeyValueStore {
 }
 
 export function readOnlyKeyValueStore(source: KeyValueStore): KeyValueStore {
-  return {
-    getItem: (key) => source.getItem(key),
-    setItem() {
-      // read-only
-    },
-    removeItem() {
-      // read-only
-    },
-  };
+  return { ...memoryKeyValueStore(), getItem: (key) => source.getItem(key) };
 }
 
 export function readOnlyFileStore(source: FileStore): FileStore {
-  return {
-    put: () => Promise.resolve(),
-    delete: () => Promise.resolve(),
-    clear: () => Promise.resolve(),
-    getAll: () => source.getAll(),
-  };
+  return { ...memoryFileStore(), getAll: () => source.getAll() };
 }
 
 export function memoryFileStore(): FileStore {

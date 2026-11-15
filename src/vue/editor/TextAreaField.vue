@@ -15,7 +15,6 @@ const key = `textarea-${crypto.randomUUID()}`;
 const draft = ref('');
 const focused = ref(false);
 
-// While typing, the field keeps its own text so trimming never eats the space just typed.
 watch(
   () => props.value,
   (value) => {
@@ -36,7 +35,6 @@ function done() {
   draft.value = draft.value.trim();
 }
 
-// Switching tabs or closing a row unmounts the field; keep the last keystrokes.
 onBeforeUnmount(send);
 const uid = useId();
 </script>

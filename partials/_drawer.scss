@@ -1,9 +1,5 @@
 @use 'layout' as *;
 
-// The editor is a tool, not part of the brand: it keeps its own look so a brand
-// with missing or unreadable tokens can still be edited. Brand colors appear here
-// only as previews (swatches, chips), never as the editor's own chrome.
-
 :root {
 	--ed-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 	--ed-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
@@ -61,7 +57,6 @@
 		color: var(--ed-text);
 	}
 
-	// The page gives form controls the brand's body font.
 	button,
 	input,
 	select,
@@ -119,7 +114,6 @@
 			min-height: chrome(1.75);
 			padding: 0 var(--ed-2);
 
-			// Text lines up with the content edge; the padding only shows on hover.
 			&:first-child {
 				margin-inline-start: calc(-1 * var(--ed-2));
 			}
@@ -308,7 +302,6 @@
 		margin: var(--ed-2) var(--ed-4);
 	}
 
-	// The sticky bar draws the bottom edge; a second line under the tabs would double it.
 	.ed-tabs:last-child {
 		border-bottom: 0;
 	}
@@ -371,7 +364,6 @@
 	}
 }
 
-// Slides under the selected tab; Reka measures the tab into these variables.
 .ed-tab-indicator {
 	position: absolute;
 	bottom: 0;

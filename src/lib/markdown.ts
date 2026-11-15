@@ -5,10 +5,8 @@ export type Block =
   | { kind: 'heading' | 'paragraph'; inline: Inline[] }
   | { kind: 'list'; items: Inline[][] };
 
-// Bounded spans keep a hostile file from making this scan quadratic.
 const INLINE =
   /`([^`]{1,300})`|\*\*([^*]{1,300})\*\*|\*([^*]{1,300})\*|\[([^\]]{1,300})\]\(([^)\s]{1,2000})\)/g;
-// Brand files come from anyone, so links only open web, mail and in-page addresses.
 const SAFE_HREF = /^(https?:|mailto:|#)/i;
 
 function part(match: RegExpMatchArray): Inline {

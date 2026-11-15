@@ -144,7 +144,6 @@ function setRatio(key: string, value: number) {
     return;
   }
   const ratio = value > 0 && value !== 1 ? value : undefined;
-  // Steps mean multipliers without a ratio and exponents with one; convert so every size stays put.
   const multiplier = (step: number) => (spec.ratio ? spec.ratio ** step : step);
   const next = mapValues(spec.steps, (step) => {
     const m = multiplier(step);

@@ -415,7 +415,6 @@ export function generateShades(
   const baseColor = base ? narrow(child(group, base)?.$value, isColor) : null;
   if (!group || !base || !baseColor) return doc;
   const { scale, anchor } = anchoredScale(baseColor);
-  // A lone shade with no step name (like "base") becomes the step it sits at, so 50 to 950 make 11.
   if (!(base in scale) && !child(group, anchor))
     return generateShades(
       renameShade(doc, { color: colorId, shade: base }, anchor, vendor),

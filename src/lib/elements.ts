@@ -16,7 +16,6 @@ export const ELEMENTS = [
 ];
 const KNOWN = new Set(ELEMENTS.map((e) => e.value));
 
-// A style named heading-2 or body needs no setting; an explicit one, even "none" (''), wins.
 const inferred = (name: string) => {
   const heading = /^h(?:eading)?-?([1-6])$/.exec(name)?.[1];
   if (heading) return `h${heading}`;

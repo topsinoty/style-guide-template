@@ -92,9 +92,7 @@ watch(hits, (fonts) => {
     );
     face.load().then(
       (loaded) => document.fonts.add(loaded),
-      () => {
-        // The name stays in the editor's font.
-      },
+      () => previews.delete(font.id),
     );
   }
 });
