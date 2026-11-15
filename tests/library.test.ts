@@ -59,7 +59,10 @@ for (const { name, doc } of brands) {
       checkContrast(doc).filter((r) => !r.pass),
       [],
     );
-    assert.deepEqual([...new Set(checkContrast(doc).map((r) => r.context))].sort(), ['dark', 'light']);
+    assert.deepEqual(
+      [...new Set(checkContrast(doc).map((r) => r.context))].sort((a, b) => a.localeCompare(b)),
+      ['dark', 'light'],
+    );
   });
 
   test(`${name} assets all resolve from the library`, () => {
