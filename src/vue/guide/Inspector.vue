@@ -24,15 +24,30 @@ const info = computed(() => {
   };
 });
 
+function visibleRect(el: HTMLElement) {
+  let { top, left, right, bottom } = el.getBoundingClientRect();
+  top = Math.max(top, document.querySelector('header')?.getBoundingClientRect().bottom ?? 0);
+  for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+    const { overflowX, overflowY } = getComputedStyle(parent);
+    if (overflowX === 'visible' && overflowY === 'visible') continue;
+    const r = parent.getBoundingClientRect();
+    top = Math.max(top, r.top);
+    left = Math.max(left, r.left);
+    right = Math.min(right, r.right);
+    bottom = Math.min(bottom, r.bottom);
+  }
+  return { top, left, width: right - left, height: bottom - top };
+}
+
 function show(el: Element | null | undefined) {
   const found = el?.closest(TEXT);
   if (!(found instanceof HTMLElement) || !props.root?.contains(found)) {
     target.value = undefined;
     return;
   }
-  const r = found.getBoundingClientRect();
-  target.value = found;
-  box.value = { top: r.top, left: r.left, width: r.width, height: r.height };
+  const rect = visibleRect(found);
+  target.value = rect.width > 0 && rect.height > 0 ? found : undefined;
+  box.value = rect;
 }
 
 useEventListener(
@@ -53,7 +68,10 @@ useEventListener(document, 'selectionchange', () => {
   if (!node || selection.isCollapsed) target.value = undefined;
   else show(node instanceof Element ? node : node.parentElement);
 });
-useEventListener(window, 'scroll', () => (target.value = undefined), { passive: true });
+useEventListener(window, 'scroll', () => target.value && show(target.value), {
+  passive: true,
+  capture: true,
+});
 
 const tipTop = computed(() =>
   box.value.top > 64 ? box.value.top - 8 : box.value.top + box.value.height + 8,
