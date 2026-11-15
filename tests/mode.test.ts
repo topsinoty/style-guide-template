@@ -22,8 +22,12 @@ test('a read-only session can show and change a brand without writing to the dra
   const writes: string[] = [];
   const backing: KeyValueStore = {
     getItem: () => null,
-    setItem: (key) => void writes.push(key),
-    removeItem: (key) => void writes.push(key),
+    setItem(key) {
+      writes.push(key);
+    },
+    removeItem(key) {
+      writes.push(key);
+    },
   };
   const files = memoryFileStore();
   const session = await Session.open({
