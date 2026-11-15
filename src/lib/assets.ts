@@ -1,54 +1,256 @@
-import * as z from 'zod/mini';
-import { holds, isNode } from './tree.js';
-import { fileName } from './path.js';
-import { brandMeta as brandMetaSchema, isSafeSrc } from './schema.js';
-import type { AssetContext, AssetItem, BrandMeta, FontFile, ResolverDoc, SessionFiles } from './types.js';
+import { holds, isNode } from './tree';
+import { fileName, isSafeSrc } from './path';
+import { isFontStyle } from './values';
+import { entriesOf, keysOf, valueAt, without } from './records';
+import type {
+  AssetContext,
+  AssetGroup,
+  AssetItem,
+  BrandMeta,
+  ContrastPair,
+  FontFile,
+  ResolverDoc,
+  SessionFiles,
+  TextSection,
+} from './types';
 
 export type AssetSource = 'session' | 'library' | 'provider' | 'missing';
 export type SrcEntry =
   | { src: string; kind: 'asset'; groupId: string; entry: AssetItem }
   | { src: string; kind: 'font'; entry: FontFile };
 
-const META_KEYS = ['assetGroups', 'fontFiles'];
+export const META_KEYS = [
+  'assetGroups',
+  'fontFiles',
+  'sections',
+  'contrast',
+  'rootSize',
+];
+export const DEFAULT_ROOT_SIZE = 16;
+export const isRootSize = (n: unknown): n is number =>
+  typeof n === 'number' && n >= 4 && n <= 64;
 const basename = (p: string) => fileName(p).toLowerCase();
 
 function metaKey(doc: ResolverDoc, vendor: string): string | null {
-  const ext = doc.sets?.foundation?.$extensions ?? {};
-  if (ext[vendor]) return vendor;
-  const others = Object.keys(ext).filter((k) => META_KEYS.some((m) => holds(ext[k], m)));
+  const ext = valueAt(doc.sets, 'foundation')?.$extensions ?? {};
+
+  if (ext[vendor]) {
+    return vendor;
+  }
+
+  const others = keysOf(ext).filter((k) =>
+    META_KEYS.some((m) => holds(ext[k], m)),
+  );
+
   return others.length === 1 ? others[0] : null;
+}
+
+const optionalString = (value: unknown) =>
+  typeof value === 'string' ? value : undefined;
+
+function readItem(value: unknown): AssetItem | null {
+  if (!isNode(value) || !isSafeSrc(value.src)) {
+    return null;
+  }
+
+  return {
+    ...value,
+    src: value.src,
+    label: optionalString(value.label),
+    description: optionalString(value.description),
+    provider: optionalString(value.provider),
+    background: optionalString(value.background),
+    wide: value.wide === true ? true : undefined,
+  };
+}
+
+function readFontFile(value: unknown): FontFile | null {
+  const item = readItem(value);
+
+  if (
+    !item ||
+    !isNode(value) ||
+    typeof value.family !== 'string' ||
+    !value.family
+  ) {
+    return null;
+  }
+
+  const { weight, style } = value;
+  const validWeight =
+    typeof weight === 'number' && weight >= 1 && weight <= 1000;
+  const fontWeight = validWeight ? weight : 400;
+  const fontStyle = isFontStyle(style) ? style : 'normal';
+
+  return {
+    ...item,
+    family: value.family,
+    weight: fontWeight,
+    style: fontStyle,
+    subset: optionalString(value.subset),
+    unicodeRange: optionalString(value.unicodeRange),
+    fontsourceId: optionalString(value.fontsourceId),
+    version: optionalString(value.version),
+  };
+}
+
+function readGroup(value: unknown): AssetGroup | null {
+  if (
+    !isNode(value) ||
+    typeof value.id !== 'string' ||
+    !Array.isArray(value.items)
+  ) {
+    return null;
+  }
+
+  return {
+    ...value,
+    id: value.id,
+    label: optionalString(value.label),
+    items: value.items.flatMap((item) => readItem(item) ?? []),
+  };
+}
+
+function readSection(value: unknown): TextSection | null {
+  if (!isNode(value) || typeof value.id !== 'string' || !value.id) {
+    return null;
+  }
+
+  return {
+    id: value.id,
+    title: optionalString(value.title),
+    body: optionalString(value.body),
+  };
+}
+
+function readPair(value: unknown): ContrastPair | null {
+  if (
+    !isNode(value) ||
+    typeof value.fg !== 'string' ||
+    typeof value.bg !== 'string'
+  ) {
+    return null;
+  }
+
+  return {
+    fg: value.fg,
+    bg: value.bg,
+    min: typeof value.min === 'number' ? value.min : 4.5,
+  };
+}
+
+export function readBrandMeta(value: unknown): BrandMeta {
+  const { logo, sections, contrast, rootSize, ...rest } = isNode(value)
+    ? value
+    : {};
+  const list = (key: string): unknown[] => {
+    const items = rest[key];
+
+    return Array.isArray(items) ? items : [];
+  };
+
+  const assetGroups = list('assetGroups').flatMap(
+    (group) => readGroup(group) ?? [],
+  );
+
+  const fontFiles = list('fontFiles').flatMap(
+    (file) => readFontFile(file) ?? [],
+  );
+
+  const meta: BrandMeta = { ...rest, assetGroups, fontFiles };
+
+  if (typeof logo === 'string') {
+    meta.logo = logo;
+  }
+
+  if (isRootSize(rootSize)) {
+    meta.rootSize = rootSize;
+  }
+
+  if (Array.isArray(sections)) {
+    meta.sections = sections.flatMap((s) => readSection(s) ?? []);
+  }
+
+  if (Array.isArray(contrast)) {
+    meta.contrast = contrast.flatMap((p) => readPair(p) ?? []);
+  }
+
+  return meta;
+}
+
+export const BUILT_IN_GROUPS = new Set(['logos', 'favicons', 'icons']);
+
+export function mainLogo(meta: BrandMeta): AssetItem | undefined {
+  const items = meta.assetGroups.flatMap((group) => group.items);
+  const chosen = items.find((item) => item.src === meta.logo);
+  const firstLogo = meta.assetGroups.find((g) => g.id === 'logos')?.items[0];
+
+  return chosen ?? firstLogo;
 }
 
 export function brandMeta(doc: ResolverDoc, vendor: string): BrandMeta {
   const key = metaKey(doc, vendor);
-  return z.parse(brandMetaSchema, (key && doc.sets.foundation.$extensions?.[key]) || {});
+
+  return readBrandMeta(
+    key ? doc.sets.foundation.$extensions?.[key] : undefined,
+  );
 }
 
-export function withBrandMeta(doc: ResolverDoc, vendor: string, meta: BrandMeta): ResolverDoc {
+export function withBrandMeta(
+  doc: ResolverDoc,
+  vendor: string,
+  meta: BrandMeta,
+): ResolverDoc {
   const out = structuredClone(doc);
   const key = metaKey(doc, vendor);
   const foreign = key !== vendor ? key : null;
-  const kept = Object.entries(out.sets.foundation.$extensions ?? {}).filter(([k]) => k !== foreign);
-  const ext = { ...Object.fromEntries(kept), [vendor]: meta };
-  out.sets.foundation.$extensions = ext;
+  const others = foreign
+    ? without(out.sets.foundation.$extensions ?? {}, foreign)
+    : out.sets.foundation.$extensions;
+
+  out.sets.foundation.$extensions = { ...others, [vendor]: meta };
+
   return out;
 }
 
 export const allSrcs = (meta: BrandMeta): SrcEntry[] => [
   ...meta.assetGroups.flatMap((g) =>
-    g.items.map((entry) => ({ src: entry.src, kind: 'asset' as const, groupId: g.id, entry })),
+    g.items.map((entry) => ({
+      src: entry.src,
+      kind: 'asset' as const,
+      groupId: g.id,
+      entry,
+    })),
   ),
-  ...meta.fontFiles.map((entry) => ({ src: entry.src, kind: 'font' as const, entry })),
+  ...meta.fontFiles.map((entry) => ({
+    src: entry.src,
+    kind: 'font' as const,
+    entry,
+  })),
 ];
 
 export function resolveAsset(
   item: AssetItem,
   { session, library, fonts }: AssetContext,
 ): { source: AssetSource; url?: string } {
-  if (!isSafeSrc(item.src)) return { source: 'missing' };
-  if (session.has(item.src)) return { source: 'session' };
-  if (library.has(item.src)) return { source: 'library', url: `library/${item.src}` };
-  if (item.provider === fonts.id) return { source: 'provider', url: fonts.fileUrl(item as FontFile) };
+  if (!isSafeSrc(item.src)) {
+    return { source: 'missing' };
+  }
+
+  if (session.has(item.src)) {
+    return { source: 'session' };
+  }
+
+  if (library.has(item.src)) {
+    return { source: 'library', url: `library/${item.src}` };
+  }
+
+  const font = item.provider === fonts.id ? readFontFile(item) : null;
+
+  if (font) {
+    return { source: 'provider', url: fonts.fileUrl(font) };
+  }
+
   return { source: 'missing' };
 }
 
@@ -59,30 +261,57 @@ export const missingAssets = (meta: BrandMeta, ctx: AssetContext): string[] =>
 
 export function matchDropped(missing: string[], files: File[]) {
   const matched: SessionFiles = new Map();
-  const ambiguous: Array<{ name: string; candidates: string[] }> = [];
+  const ambiguous: { name: string; candidates: string[] }[] = [];
   const unmatched: File[] = [];
+
   for (const file of files) {
-    const candidates = missing.filter((p) => basename(p) === file.name.toLowerCase());
-    if (candidates.length === 1) matched.set(candidates[0], file);
-    else if (candidates.length > 1) ambiguous.push({ name: file.name, candidates });
-    else unmatched.push(file);
+    const candidates = missing.filter(
+      (p) => basename(p) === file.name.toLowerCase(),
+    );
+
+    if (candidates.length === 1) {
+      matched.set(candidates[0], file);
+    } else if (candidates.length > 1) {
+      ambiguous.push({ name: file.name, candidates });
+    } else {
+      unmatched.push(file);
+    }
   }
+
   return { matched, ambiguous, unmatched };
 }
 
 export function adoptVendor(doc: ResolverDoc, vendor: string): ResolverDoc {
   const key = metaKey(doc, vendor);
-  if (!key || key === vendor) return doc;
+
+  if (!key || key === vendor) {
+    return doc;
+  }
+
   const out = structuredClone(doc);
   const visit = (node: unknown) => {
-    if (Array.isArray(node)) node.forEach(visit);
-    if (!isNode(node)) return;
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+    }
+
+    if (!isNode(node)) {
+      return;
+    }
+
     if (node.$extensions && key in node.$extensions) {
       const { [key]: moved, ...rest } = node.$extensions;
+
       node.$extensions = { ...rest, [vendor]: moved };
     }
-    for (const [k, v] of Object.entries(node)) if (k !== '$extensions') visit(v);
+
+    for (const [k, v] of entriesOf(node)) {
+      if (k !== '$extensions') {
+        visit(v);
+      }
+    }
   };
+
   visit(out);
+
   return out;
 }

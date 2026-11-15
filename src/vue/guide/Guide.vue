@@ -1,20 +1,33 @@
 <script setup lang="ts">
 import { computed, ref, shallowReactive, useTemplateRef, watch } from 'vue';
-import { useEventListener, useIntersectionObserver, useWindowSize } from '@vueuse/core';
-import type { Session } from '../../app/session.js';
-import { missingAssets } from '../../lib/assets.js';
-import { checkContrast } from '../../lib/contrast.js';
-import { cssName, cssValue } from '../../lib/css.js';
-import { fileName } from '../../lib/path.js';
-import type { BrandMeta, ResolverDoc, Tokens } from '../../lib/types.js';
+import {
+  useEventListener,
+  useIntersectionObserver,
+  useWindowSize,
+} from '@vueuse/core';
+import type { Session } from '~/app';
+import {
+  missingAssets,
+  checkContrast,
+  cssName,
+  cssValue,
+  fileName,
+} from '~/lib';
+import type { BrandMeta, ResolverDoc, Tokens } from '~/lib';
 import AssetImage from './AssetImage.vue';
+import Card from './Card.vue';
 import Code from './Code.vue';
 import Colors from './Colors.vue';
 import FileCard from './FileCard.vue';
+import ContrastStatus from './ContrastStatus.vue';
 import Panels from './Panels.vue';
+import Prose from './Prose.vue';
 import Scale from './Scale.vue';
 import Typography from './Typography.vue';
-import { isOtherToken, sectionsOf } from './sections.js';
+import { cssBackground } from './parts';
+import { isOtherToken, visibleSections } from './sections';
+import MotionPreview from './MotionPreview.vue';
+import Inspector from './Inspector.vue';
 
 const props = defineProps<{
   session: Session;
@@ -26,19 +39,26 @@ const props = defineProps<{
 }>();
 const current = defineModel<string[]>('current', { required: true });
 
-const sections = computed(() => sectionsOf(props.meta, props.tokens));
-const itemsOf = (id: string) => props.meta.assetGroups.find((g) => g.id === id)?.items ?? [];
+const sections = computed(() =>
+  visibleSections(props.meta, props.tokens, props.session.editable),
+);
+const guideRoot = useTemplateRef<HTMLElement>('guideRoot');
+const itemsOf = (id: string) =>
+  props.meta.assetGroups.find((g) => g.id === id)?.items ?? [];
 
-const otherTokens = computed(() => [...props.tokens].filter(([path]) => isOtherToken(path)));
+const otherTokens = computed(() =>
+  [...props.tokens].filter(([path]) => isOtherToken(path)),
+);
 
 const specimen = ref(['', '']);
-const specimenEls = useTemplateRef<HTMLElement[]>('specimen');
+const specimenEls = useTemplateRef<HTMLElement[]>('specimenText');
 
 function measureSpecimen() {
   specimen.value = (specimenEls.value ?? []).map((el) => {
     const style = getComputedStyle(el);
-    const family = style.fontFamily.split(',')[0].replace(/['"]/g, '');
+    const family = style.fontFamily.split(',')[0].replaceAll(/['"]/g, '');
     const size = Math.round(Number.parseFloat(style.fontSize));
+
     return `${style.fontWeight} ${family} ${size}px`;
   });
 }
@@ -51,16 +71,24 @@ const sectionEls = shallowReactive(new Map<string, HTMLElement>());
 const { height } = useWindowSize();
 
 function keepSection(id: string, el: unknown) {
-  if (el instanceof HTMLElement) sectionEls.set(id, el);
-  else sectionEls.delete(id);
+  if (el instanceof HTMLElement) {
+    sectionEls.set(id, el);
+  } else {
+    sectionEls.delete(id);
+  }
 }
 
 function trackSections(entries: IntersectionObserverEntry[]) {
   const ids = new Set(current.value);
+
   for (const entry of entries) {
-    if (entry.isIntersecting) ids.add(entry.target.id);
-    else ids.delete(entry.target.id);
+    if (entry.isIntersecting) {
+      ids.add(entry.target.id);
+    } else {
+      ids.delete(entry.target.id);
+    }
   }
+
   current.value = [...ids];
 }
 
@@ -70,10 +98,12 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
 </script>
 
 <template>
-  <main :inert="covered || undefined">
+  <main ref="guideRoot" :inert="covered || undefined">
+    <Inspector :doc="doc" :vendor="session.vendor" :root="guideRoot" />
     <h1>{{ doc.name ?? 'Style Guide' }}</h1>
+    <Prose v-if="doc.description" class="cd-intro" :text="doc.description" />
     <div class="cd-panels" aria-live="polite">
-      <Panels :session="session" :contrast="checkContrast(doc)" :missing="missingAssets(meta, session.ctx)" />
+      <Panels :missing="missingAssets(meta, session.ctx)" />
     </div>
     <section
       v-for="section in sections"
@@ -83,23 +113,32 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
       :class="section.cls"
     >
       <h2>{{ section.title }}</h2>
-      <div v-if="section.id === 'typography'" class="cd-box">
-        <h1 ref="specimen" role="presentation">
+      <Prose v-if="section.body" :text="section.body" />
+      <Card v-if="section.id === 'typography'" label="the type specimen">
+        <h1 ref="specimenText" role="presentation">
           Heading, <span class="cd-specimen-label">{{ specimen[0] }}</span>
         </h1>
-        <p ref="specimen">
-          Aa - <span class="cd-specimen-label">{{ specimen[1] }}</span>. Lorem ipsum dolor sit amet,
-          consectetur adipisicing elit. Omnis voluptate distinctio reprehenderit, autem deleniti ad
-          <a href="#0">voluptatum eaque</a>. Optio ea aperiam nisi distinctio nemo repellat, voluptate fugiat.
-          Quidem neque illum, blanditiis!
+        <p ref="specimenText">
+          Aa - <span class="cd-specimen-label">{{ specimen[1] }}</span>. Lorem
+          ipsum dolor sit amet, consectetur adipisicing elit. Omnis voluptate
+          distinctio reprehenderit, autem deleniti ad
+          <a href="#0">voluptatum eaque</a>. Optio ea aperiam nisi distinctio
+          nemo repellat, voluptate fugiat. Quidem neque illum, blanditiis!
         </p>
-      </div>
-      <div class="cd-section-body">
+      </Card>
+      <div v-if="!section.text" class="cd-section-body">
         <template v-if="section.id === 'branding'">
           <ul class="cd-logos">
-            <li v-for="item in itemsOf('logos')" :key="item.src" class="cd-box">
+            <Card
+              v-for="item in itemsOf('logos')"
+              :key="item.src"
+              as="li"
+              :label="item.label ?? fileName(item.src)"
+              :class="{ 'cd-logo-wide': item.wide }"
+              :style="{ background: cssBackground(item.background) }"
+            >
               <AssetImage :item="item" :ctx="session.ctx" />
-            </li>
+            </Card>
           </ul>
           <ul class="cd-favicons">
             <li v-for="item in itemsOf('favicons')" :key="item.src">
@@ -107,44 +146,87 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
             </li>
           </ul>
         </template>
-        <Colors v-else-if="section.id === 'colors'" :tokens="tokens" :vendor="session.vendor" />
-        <Typography v-else-if="section.id === 'typography'" :tokens="tokens" :meta="meta" />
-        <ul v-else-if="section.id === 'icons'" class="cd-box">
-          <li v-for="item in itemsOf('icons')" :key="item.src">
-            <figure>
-              <AssetImage :item="item" :ctx="session.ctx" alt="" />
-              <figcaption>{{ item.label ?? fileName(item.src) }}</figcaption>
-            </figure>
-          </li>
-        </ul>
+        <Colors
+          v-else-if="section.id === 'colors'"
+          :tokens="tokens"
+          :vendor="session.vendor"
+        />
+        <Typography
+          v-else-if="section.id === 'typography'"
+          :tokens="tokens"
+          :meta="meta"
+        />
+        <Card v-else-if="section.id === 'icons'" label="icons">
+          <ul>
+            <li v-for="item in itemsOf('icons')" :key="item.src">
+              <figure>
+                <AssetImage :item="item" :ctx="session.ctx" alt="" />
+                <figcaption>{{ item.label ?? fileName(item.src) }}</figcaption>
+              </figure>
+            </li>
+          </ul>
+        </Card>
         <Scale
-          v-else-if="section.id === 'spacing' || section.id === 'radius' || section.id === 'shadow'"
+          v-else-if="
+            section.id === 'spacing' ||
+            section.id === 'radius' ||
+            section.id === 'shadow'
+          "
           :kind="section.id"
           :tokens="tokens"
         />
-        <div v-else-if="section.id === 'other-tokens'" class="cd-box">
-          <table class="cd-roles">
-            <thead>
-              <tr>
-                <th>Token</th>
-                <th>Type</th>
-                <th>CSS value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="[path, token] in otherTokens" :key="path">
-                <td>
-                  <code>{{ cssName(path) }}</code>
-                </td>
-                <td>{{ token.type }}</td>
-                <td>
-                  <code>{{ cssValue(token.type, token.value) ?? '' }}</code>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <Code v-else-if="section.id === 'css-variables'" :doc="doc" :vendor="session.vendor" />
+        <Card v-else-if="section.id === 'other-tokens'" label="other tokens">
+          <div class="cd-table-scroll">
+            <table class="cd-roles">
+              <thead>
+                <tr>
+                  <th>Token</th>
+                  <th>Type</th>
+                  <th>CSS value</th>
+                  <th>Preview</th>
+                  <th>Usage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="[path, token] in otherTokens" :key="path">
+                  <td>
+                    <code>{{ cssName(path) }}</code>
+                  </td>
+                  <td>{{ token.type }}</td>
+                  <td>
+                    <code>{{ cssValue(token.type, token.value) ?? '' }}</code>
+                  </td>
+                  <td>
+                    <MotionPreview
+                      v-if="
+                        token.type === 'duration' ||
+                        token.type === 'cubicBezier'
+                      "
+                      :name="cssName(path)"
+                      :type="token.type"
+                    />
+                    <span
+                      v-else-if="token.type === 'color'"
+                      class="cd-preview-swatch"
+                      :style="{ background: `var(${cssName(path)})` }"
+                    ></span>
+                    <span
+                      v-else-if="token.type === 'dimension'"
+                      class="cd-preview-bar"
+                      :style="{ width: `var(${cssName(path)})` }"
+                    ></span>
+                  </td>
+                  <td>{{ token.description }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+        <Code
+          v-else-if="section.id === 'css-variables'"
+          :doc="doc"
+          :vendor="session.vendor"
+        />
         <template v-else-if="section.group">
           <div v-if="itemsOf(section.group).length" class="cd-files">
             <FileCard
@@ -154,9 +236,10 @@ useIntersectionObserver(() => [...sectionEls.values()], trackSections, {
               :ctx="session.ctx"
             />
           </div>
-          <p v-else>No files in this group yet.</p>
+          <p v-else-if="!section.body">No files in this group yet.</p>
         </template>
       </div>
     </section>
+    <ContrastStatus :contrast="checkContrast(doc, meta.contrast)" />
   </main>
 </template>

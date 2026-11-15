@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { fontsource } from '../src/adapters/fontsource.js';
-import { brandMeta } from '../src/lib/assets.js';
-import type { FileData, ResolverDoc } from '../src/lib/types.js';
-import { preset as presetDoc } from './helpers.js';
-import { deriveView, type ViewSession } from '../src/vue/view.js';
+import { fontsource } from '~/adapters';
+import { brandMeta } from '~/lib';
+import type { FileData, ResolverDoc } from '~/lib';
+import { preset as presetDoc } from './helpers';
+import { deriveView, type ViewSession } from '~/vue';
 
 const preset = presetDoc();
 const vendor = 'com.example.styleguide';
-const ctx = { session: new Map<string, FileData>(), library: new Set<string>(), fonts: fontsource() };
+const ctx = {
+  session: new Map<string, FileData>(),
+  library: new Set<string>(),
+  fonts: fontsource(),
+};
 
 function fixture(doc: ResolverDoc) {
   let current = doc;
@@ -28,6 +32,7 @@ function fixture(doc: ResolverDoc) {
       current = preset;
     },
   } satisfies ViewSession;
+
   return {
     session,
     get recovered() {
@@ -39,6 +44,7 @@ function fixture(doc: ResolverDoc) {
 test('derives tokens and brand CSS from the same valid document and theme', () => {
   const state = fixture(preset);
   const view = deriveView(state.session, 'dark');
+
   assert.equal(state.recovered, false);
   assert.ok(view.tokens.size > 0);
   assert.ok(view.css.includes('--color-'));
@@ -49,8 +55,12 @@ test('derives tokens and brand CSS from the same valid document and theme', () =
 });
 
 test('falls back to the preset when the current draft cannot resolve', () => {
-  const state = fixture({ ...preset, resolutionOrder: [{ $ref: '#/sets/missing' }] });
+  const state = fixture({
+    ...preset,
+    resolutionOrder: [{ $ref: '#/sets/missing' }],
+  });
   const view = deriveView(state.session, 'light');
+
   assert.equal(state.recovered, true);
   assert.ok(view.tokens.size > 0);
 });

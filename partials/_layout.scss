@@ -34,3 +34,7 @@ $L: 100rem;
 	clip-path: inset(50%);
 	white-space: nowrap;
 }
+
+@function chrome($n) {
+	@return calc(#{$n} * var(--chrome-rem, 1rem));
+}

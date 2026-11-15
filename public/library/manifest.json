@@ -12,14 +12,34 @@
     "icons/icon-6.svg",
     "icons/icon-7.svg",
     "icons/icon-8.svg",
+    "logos/circuit.svg",
     "logos/codyhouse.svg",
+    "logos/harbor.svg",
     "logos/logo-ver-1.jpg",
-    "logos/logo-ver-2.jpg"
+    "logos/logo-ver-2.jpg",
+    "logos/meadow.svg",
+    "logos/mono.svg"
   ],
   "brands": [
     {
       "name": "Default",
       "path": "brands/default.resolver.json"
+    },
+    {
+      "name": "Harbor",
+      "path": "brands/harbor.resolver.json"
+    },
+    {
+      "name": "Circuit",
+      "path": "brands/circuit.resolver.json"
+    },
+    {
+      "name": "Meadow",
+      "path": "brands/meadow.resolver.json"
+    },
+    {
+      "name": "Mono",
+      "path": "brands/mono.resolver.json"
     }
   ]
 }

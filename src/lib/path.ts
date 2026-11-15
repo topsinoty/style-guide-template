@@ -3,6 +3,7 @@ export const fileName = (path: string) => path.slice(path.lastIndexOf('/') + 1);
 export function extension(path: string) {
   const name = fileName(path);
   const dot = name.lastIndexOf('.');
+
   return dot < 0 ? '' : name.slice(dot + 1).toLowerCase();
 }
 
@@ -13,9 +14,17 @@ export function uniquePath(path: string, taken: Set<string>): string {
   const ext = hasExtension ? path.slice(dot) : '';
   let candidate = path;
   let n = 2;
+
   while (taken.has(candidate)) {
     candidate = `${stem}-${n}${ext}`;
     n++;
   }
+
   return candidate;
 }
+
+export const isSafeSrc = (src: unknown): src is string =>
+  typeof src === 'string' &&
+  src !== '' &&
+  !/^[a-z][a-z0-9+.-]*:|^\/|\\/i.test(src) &&
+  !src.split('/').includes('..');

@@ -1,15 +1,8 @@
 @use 'sass:meta';
 @use '../partials/layout' as *;
 
-// Every color, font, size, radius, shadow and duration comes from the brand's
-// CSS custom properties, generated from its DTCG resolver file at runtime.
-
 :root {
 	color-scheme: light;
-
-	&[data-theme='dark'] {
-		color-scheme: dark;
-	}
 }
 
 body {
@@ -18,7 +11,7 @@ body {
 }
 
 .cd-box {
-	border: 1px solid var(--color-card-border); // ds-allow-hardcode: hairline
+	border: 1px solid var(--color-card-border);
 	border-radius: var(--radius-sm);
 	background: var(--color-card-background);
 	color: var(--color-card-foreground);
@@ -27,8 +20,8 @@ body {
 }
 
 :focus-visible {
-	outline: 0.125rem solid var(--color-focus-border);
-	outline-offset: 0.125rem;
+	outline: chrome(0.125) solid var(--color-focus-border);
+	outline-offset: chrome(0.125);
 }
 
 header {
@@ -38,14 +31,14 @@ header {
 
 .cd-logo {
 	background-color: var(--color-primary-background);
-	width: 5.5rem;
+	width: chrome(5.5);
 
 	@include MQ(S) {
-		width: 7.5rem;
+		width: chrome(7.5);
 	}
 
 	@include MQ(M) {
-		width: 11.25rem;
+		width: chrome(11.25);
 	}
 }
 
@@ -55,7 +48,7 @@ header {
 
 		&.selected {
 			color: var(--color-page-foreground);
-			box-shadow: inset 0 -0.125rem 0 var(--color-primary-background);
+			box-shadow: inset 0 chrome(-0.125) 0 var(--color-primary-background);
 		}
 
 		@include hover {
@@ -125,7 +118,7 @@ p {
 	border-radius: var(--radius-sm);
 	font: {
 		size: var(--font-size-md);
-		family: var(--font-heading);
+		family: var(--font-body);
 	}
 	color: var(--color-primary-foreground);
 	padding: 0.6em 2.2em;
@@ -146,7 +139,7 @@ p {
 	&.btn-secondary {
 		color: var(--color-secondary-foreground);
 		background: transparent;
-		box-shadow: inset 0 0 0 1px var(--color-secondary-border); // ds-allow-hardcode: hairline
+		box-shadow: inset 0 0 0 1px var(--color-secondary-border);
 
 		@include hover {
 			background: var(--color-secondary-background-hover);
@@ -165,8 +158,9 @@ p {
 }
 
 .cd-icons li {
-	min-width: 4rem;
+	min-width: chrome(4);
 }
 
 @include meta.load-css('../partials/basic-style');
 @include meta.load-css('../partials/editor');
+@include meta.load-css('../partials/drawer');

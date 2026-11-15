@@ -11,20 +11,27 @@ import {
   AlertDialogTitle,
 } from 'reka-ui';
 
-export interface ConfirmChoice {
+export type ConfirmChoice = {
   value: string;
   label: string;
   primary?: boolean;
-}
+};
 
-defineProps<{ title: string; message: string; items?: string[]; choices: ConfirmChoice[] }>();
+defineProps<{
+  title: string;
+  message: string;
+  items?: string[];
+  choices: ConfirmChoice[];
+}>();
 const open = defineModel<boolean>('open', { required: true });
 const emit = defineEmits<{ choose: [value: string] }>();
 
 let returnFocusTo: HTMLElement | null = null;
 
 watch(open, (isOpen) => {
-  if (isOpen && document.activeElement instanceof HTMLElement) returnFocusTo = document.activeElement;
+  if (isOpen && document.activeElement instanceof HTMLElement) {
+    returnFocusTo = document.activeElement;
+  }
 });
 
 function restoreFocus(event: Event) {
@@ -46,7 +53,9 @@ function restoreFocus(event: Event) {
           </li>
         </ul>
         <div class="cd-field-row">
-          <AlertDialogCancel class="btn btn-secondary btn-small">Cancel</AlertDialogCancel>
+          <AlertDialogCancel class="btn btn-secondary btn-small"
+            >Cancel</AlertDialogCancel
+          >
           <AlertDialogAction
             v-for="choice in choices"
             :key="choice.value"

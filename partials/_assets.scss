@@ -1,5 +1,7 @@
+@use 'layout' as *;
+
 .cd-files {
-	columns: 14rem;
+	columns: chrome(14);
 	column-gap: var(--spacing-lg);
 
 	> * {
@@ -42,7 +44,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 8rem;
+	height: chrome(8);
 	border-radius: var(--radius-sm);
 	background: var(--color-muted-background);
 	color: var(--color-muted-foreground);
@@ -56,9 +58,9 @@
 	align-items: center;
 	justify-content: center;
 	gap: var(--spacing-xs);
-	min-height: 5rem;
+	min-height: chrome(5);
 	padding: var(--spacing-sm);
-	border: 0.125rem dashed var(--color-input-border);
+	border: chrome(0.125) dashed var(--color-input-border);
 	border-radius: var(--radius-sm);
 	color: var(--color-muted-foreground);
 	font-size: var(--font-size-xs);

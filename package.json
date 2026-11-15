@@ -1,7 +1,15 @@
 {
   "name": "style-guide-template",
+  "version": "1.0.0",
+  "description": "A brand book that is its own editor: load, edit and export a W3C design tokens brand in the browser.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/topsinoty/style-guide-template"
+  },
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.22.0",
   "scripts": {
     "dev": "vite",
     "build": "pnpm typecheck && vite build",

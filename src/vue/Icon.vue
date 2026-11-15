@@ -15,6 +15,14 @@ import {
   Copy,
   Trash2,
   ChevronUp,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Eye,
+  CircleHelp,
+  ArrowLeft,
+  Maximize2,
 } from '@lucide/vue';
 
 const icons = {
@@ -33,6 +41,14 @@ const icons = {
   trash: Trash2,
   up: ChevronUp,
   down: ChevronDown,
+  expand: ChevronRight,
+  'move-up': ArrowUp,
+  'move-down': ArrowDown,
+  plus: Plus,
+  view: Eye,
+  help: CircleHelp,
+  back: ArrowLeft,
+  maximize: Maximize2,
 };
 
 export type IconName = keyof typeof icons;

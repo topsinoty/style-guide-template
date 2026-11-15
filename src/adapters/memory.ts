@@ -1,12 +1,13 @@
-import type { FileStore, KeyValueStore } from '../ports.js';
-import type { FileData } from '../lib/types.js';
+import type { FileStore, KeyValueStore } from '~/ports';
+import type { FileData } from '~/lib';
 
 export function memoryKeyValueStore(): KeyValueStore {
   const values = new Map<string, string>();
+
   return {
     getItem: (key) => values.get(key) ?? null,
     setItem(key, value) {
-      values.set(key, String(value));
+      values.set(key, value);
     },
     removeItem(key) {
       values.delete(key);
@@ -14,14 +15,29 @@ export function memoryKeyValueStore(): KeyValueStore {
   };
 }
 
+export function readOnlyKeyValueStore(source: KeyValueStore): KeyValueStore {
+  return { ...memoryKeyValueStore(), getItem: (key) => source.getItem(key) };
+}
+
+export function readOnlyFileStore(source: FileStore): FileStore {
+  return { ...memoryFileStore(), getAll: () => source.getAll() };
+}
+
 export function memoryFileStore(): FileStore {
   const files = new Map<string, FileData>();
+
   return {
-    async put(path, data) {
+    put(path, data) {
       files.set(path, data);
+
+      return Promise.resolve();
     },
-    delete: async (path) => files.delete(path),
-    clear: async () => files.clear(),
-    getAll: async () => new Map(files),
+    delete: (path) => Promise.resolve(files.delete(path)),
+    clear() {
+      files.clear();
+
+      return Promise.resolve();
+    },
+    getAll: () => Promise.resolve(new Map(files)),
   };
 }

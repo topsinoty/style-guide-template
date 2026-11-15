@@ -1,8 +1,12 @@
-import { resolve, contexts, defaultInputs } from './resolver.js';
-import { contrastRatio } from './color.js';
-import type { ContrastResult, ResolverDoc, Tokens } from './types.js';
-import { VALUES } from './schema.js';
-import { valueAs } from './values.js';
+import { resolve, contexts, defaultInputs } from './resolver';
+import { contrastRatio } from './color';
+import type {
+  ContrastPair,
+  ContrastResult,
+  ResolverDoc,
+  Tokens,
+} from './types';
+import { narrow, isColor } from './values';
 
 export const ROLES = [
   'primary',
@@ -18,33 +22,78 @@ export const ROLES = [
   'focus',
 ];
 
-export function requiredPairs(tokens: Tokens) {
-  const pairs: Array<{ fg: string; bg: string; min: number; label: string }> = [];
+const short = (path: string) => path.replace(/^color\./, '');
+
+export const pairLabel = ({ fg, bg }: Pick<ContrastPair, 'fg' | 'bg'>) =>
+  `${short(fg)} on ${short(bg)}`;
+
+export function requiredPairs(tokens: Tokens, declared: ContrastPair[] = []) {
+  const pairs: { fg: string; bg: string; min: number; label: string }[] = [];
+
   for (const role of ROLES) {
     const fg = `color.${role}.foreground`;
     const bg = `color.${role}.background`;
-    if (tokens.has(fg) && tokens.has(bg)) pairs.push({ fg, bg, min: 4.5, label: `${role} text` });
-  }
-  for (const role of ['input', 'focus']) {
-    const fg = `color.${role}.border`;
-    if (tokens.has(fg) && tokens.has('color.page.background')) {
-      pairs.push({ fg, bg: 'color.page.background', min: 3, label: `${role} border on page` });
+
+    if (tokens.has(fg) && tokens.has(bg)) {
+      pairs.push({ fg, bg, min: 4.5, label: `${role} text` });
     }
   }
+
+  for (const role of ['input', 'focus']) {
+    const fg = `color.${role}.border`;
+
+    if (tokens.has(fg) && tokens.has('color.page.background')) {
+      pairs.push({
+        fg,
+        bg: 'color.page.background',
+        min: 3,
+        label: `${role} border on page`,
+      });
+    }
+  }
+
+  for (const pair of declared) {
+    if (tokens.has(pair.fg) && tokens.has(pair.bg)) {
+      pairs.push({ ...pair, label: pairLabel(pair) });
+    }
+  }
+
   return pairs;
 }
 
-export function checkContrast(doc: ResolverDoc): ContrastResult[] {
+export function checkContrast(
+  doc: ResolverDoc,
+  declared: ContrastPair[] = [],
+): ContrastResult[] {
   const inputs = defaultInputs(doc);
   const themes = contexts(doc).filter((c) => c.modifier === 'theme');
-  return (themes.length ? themes : [{ context: 'default' }]).flatMap(({ context }): ContrastResult[] => {
-    const tokens = resolve(doc, themes.length ? { ...inputs, theme: context } : inputs);
-    return requiredPairs(tokens).flatMap((p) => {
-      const fg = valueAs(VALUES.color, tokens.get(p.fg)?.resolved);
-      const bg = valueAs(VALUES.color, tokens.get(p.bg)?.resolved);
-      if (!fg || !bg) return [];
-      const raw = contrastRatio(fg, bg);
-      return [{ context, ...p, ratio: Math.round(raw * 100) / 100, pass: raw >= p.min }];
-    });
-  });
+  const names = themes.length ? themes.map((t) => t.context) : ['default'];
+
+  const resultsFor = (context: string): ContrastResult[] => {
+    const choice = themes.length ? { ...inputs, theme: context } : inputs;
+    const tokens = resolve(doc, choice);
+    const results: ContrastResult[] = [];
+
+    for (const pair of requiredPairs(tokens, declared)) {
+      const fg = narrow(tokens.get(pair.fg)?.resolved, isColor);
+      const bg = narrow(tokens.get(pair.bg)?.resolved, isColor);
+
+      if (!fg || !bg) {
+        continue;
+      }
+
+      const ratio = contrastRatio(fg, bg);
+
+      results.push({
+        context,
+        ...pair,
+        ratio: Math.round(ratio * 100) / 100,
+        pass: ratio >= pair.min,
+      });
+    }
+
+    return results;
+  };
+
+  return names.flatMap(resultsFor);
 }

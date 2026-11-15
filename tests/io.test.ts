@@ -1,11 +1,12 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { setToken } from '../src/lib/edit.js';
-import { isNode, nodeAt } from '../src/lib/tree.js';
-import { fontsource } from '../src/adapters/fontsource.js';
-import { present, load, V } from './helpers.js';
-import { unzipSync } from 'fflate';
+import { zodValidator, fontsource } from '~/adapters';
 import {
+  keysOf,
+  setToken,
+  isNode,
+  nodeAt,
+  withVendorData,
   classify,
   parseBrandJson,
   loadZip,
@@ -14,9 +15,14 @@ import {
   exportLayout,
   buildExport,
   readme,
-} from '../src/lib/io.js';
-import { resolve } from '../src/lib/resolver.js';
-import { brandMeta } from '../src/lib/assets.js';
+  resolve,
+  brandMeta,
+  withBrandMeta,
+  blankBrand,
+  addScaleStep,
+} from '~/lib';
+import { present, load, preset, token, V } from './helpers';
+import { unzipSync } from 'fflate';
 
 const bytes = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);
@@ -26,7 +32,7 @@ const ctx = (over = {}) => ({
   files: new Map([['patterns/dots.svg', bytes('<svg/>')]]),
   library: new Set(['logos/primary.svg']),
   fonts: fontsource(),
-  fetchBytes: async (url: string) => bytes(`bytes of ${url}`),
+  fetchBytes: (url: string) => Promise.resolve(bytes(`bytes of ${url}`)),
   ...over,
 });
 
@@ -46,12 +52,22 @@ test('slug', () => {
 });
 
 test('invalid JSON reports it', () => {
-  assert.match(parseBrandJson('{', 'x.json').errors[0].message, /JSON/);
+  assert.match(
+    parseBrandJson('{', 'x.json', zodValidator).errors[0].message,
+    /JSON/,
+  );
 });
 
 test('schema and alias errors are reported with paths', () => {
-  const doc = setToken(load(), 'color.primary.background', { $value: '{color.nope}' });
-  const r = parseBrandJson(JSON.stringify(doc), 'x.resolver.json');
+  const doc = setToken(load(), 'color.primary.background', {
+    $value: '{color.nope}',
+  });
+  const r = parseBrandJson(
+    JSON.stringify(doc),
+    'x.resolver.json',
+    zodValidator,
+  );
+
   assert.ok(
     r.errors.some((e) => e.path === 'color.primary.background'),
     JSON.stringify(r.errors),
@@ -59,21 +75,86 @@ test('schema and alias errors are reported with paths', () => {
 });
 
 test('a plain tokens file loads as a resolver named after the file', () => {
-  const r = parseBrandJson(JSON.stringify(load().sets.foundation.sources[0]), 'acme.tokens.json');
+  const r = parseBrandJson(
+    JSON.stringify(load().sets.foundation.sources[0]),
+    'acme.tokens.json',
+    zodValidator,
+  );
+
   assert.deepEqual(r.errors, []);
   assert.equal(present(r.doc).name, 'acme');
 });
 
-test('saveJson', () => {
-  const s = saveJson({ version: '2025.10', sets: {}, resolutionOrder: [] });
-  assert.equal(s, '{\n  "version": "2025.10",\n  "sets": {},\n  "resolutionOrder": []\n}\n');
+test('saveJson writes sets and modifiers inline in resolutionOrder', () => {
+  const saved: unknown = JSON.parse(saveJson(preset()));
+
+  assert.ok(isNode(saved) && Array.isArray(saved.resolutionOrder));
+  assert.equal(saved.sets, undefined);
+  assert.equal(saved.modifiers, undefined);
+  const [set, modifier] = saved.resolutionOrder;
+
+  assert.ok(isNode(set) && isNode(modifier));
+  assert.deepEqual(
+    [set.type, set.name, modifier.type, modifier.name],
+    ['set', 'foundation', 'modifier', 'theme'],
+  );
+  assert.ok(Array.isArray(set.sources));
+  assert.ok(isNode(modifier.contexts) && 'dark' in modifier.contexts);
+});
+
+test('a saved brand loads back as the same document', () => {
+  const doc = preset();
+  const loaded = parseBrandJson(
+    saveJson(doc),
+    'default.resolver.json',
+    zodValidator,
+  );
+
+  assert.deepEqual(loaded.errors, []);
+  assert.deepEqual(loaded.doc, doc);
+});
+
+test('a resolver with only inline sets and modifiers loads', () => {
+  const text = JSON.stringify({
+    version: '2025.10',
+    resolutionOrder: [
+      {
+        type: 'set',
+        name: 'foundation',
+        sources: [{ size: { $type: 'number', one: { $value: 1 } } }],
+      },
+      {
+        type: 'modifier',
+        name: 'theme',
+        contexts: { light: [], dark: [] },
+        default: 'light',
+      },
+    ],
+  });
+  const { doc, errors } = parseBrandJson(
+    text,
+    'inline.resolver.json',
+    zodValidator,
+  );
+
+  assert.deepEqual(errors, []);
+  assert.deepEqual(present(doc).resolutionOrder, [
+    { $ref: '#/sets/foundation' },
+    { $ref: '#/modifiers/theme' },
+  ]);
+  assert.equal(token(resolve(present(doc)), 'size.one').value, 1);
 });
 
 test('export layout: one folder per group, fonts in fonts/, duplicates numbered', () => {
   const layout = exportLayout({
-    assetGroups: [{ id: 'logos', items: [{ src: 'a/logo.svg' }, { src: 'b/logo.svg' }] }],
-    fontFiles: [{ src: 'x/m.woff2', family: 'M', weight: 400, style: 'normal' }],
+    assetGroups: [
+      { id: 'logos', items: [{ src: 'a/logo.svg' }, { src: 'b/logo.svg' }] },
+    ],
+    fontFiles: [
+      { src: 'x/m.woff2', family: 'M', weight: 400, style: 'normal' },
+    ],
   });
+
   assert.deepEqual(
     [...layout],
     [
@@ -85,7 +166,9 @@ test('export layout: one folder per group, fonts in fonts/, duplicates numbered'
 });
 
 test('zip contents', async () => {
-  const names = Object.keys(unzipSync((await buildExport(load(), ctx())).zip));
+  const { zip } = await buildExport(load(), ctx());
+  const names = keysOf(unzipSync(zip));
+
   for (const n of [
     'README.md',
     'css/theme.css',
@@ -94,55 +177,144 @@ test('zip contents', async () => {
     'patterns/dots.svg',
     'fonts/merriweather-latin-700-normal.woff2',
     'fonts/merriweather-LICENSE.txt',
-  ])
+  ]) {
     assert.ok(names.includes(n), n);
+  }
 });
 
 test('theme.css points fonts at ../fonts', async () => {
-  const css = text(unzipSync((await buildExport(load(), ctx())).zip)['css/theme.css']);
-  assert.match(css, /url\("\.\.\/fonts\/merriweather-latin-700-normal\.woff2"\)/);
+  const { zip } = await buildExport(load(), ctx());
+  const css = text(unzipSync(zip)['css/theme.css']);
+
+  assert.match(
+    css,
+    /url\("\.\.\/fonts\/merriweather-latin-700-normal\.woff2"\)/,
+  );
 });
 
 test('round trip', async () => {
   const doc = load();
   const { zip } = await buildExport(doc, ctx());
-  const back = loadZip(zip);
+  const back = loadZip(zip, zodValidator);
+
   assert.deepEqual(back.errors, []);
   const loaded = present(back.doc);
+
   assert.deepEqual(resolve(loaded), resolve(doc));
   assert.deepEqual(
     brandMeta(loaded, V).assetGroups.map((g) => g.id),
     ['logos', 'patterns'],
   );
   const dots = back.files.get('patterns/dots.svg');
+
   assert.ok(dots instanceof Uint8Array);
   assert.equal(text(dots), '<svg/>');
   assert.equal(back.files.has('README.md'), false);
   assert.equal(back.files.has('css/theme.css'), false);
 });
 
+test('a brand built from reset can save, reload and export', async () => {
+  let doc = blankBrand(preset(), V);
+  const radius = withVendorData({ $type: 'dimension' }, V, {
+    scale: { base: { value: 4, unit: 'px' }, steps: {} },
+  });
+
+  doc = setToken(doc, 'radius', addScaleStep(radius, 'md', 2, V));
+  doc = setToken(doc, 'font.body', {
+    $type: 'fontFamily',
+    $value: ['sans-serif'],
+  });
+  doc = setToken(doc, 'font-size.md', {
+    $type: 'dimension',
+    $value: { value: 1, unit: 'rem' },
+  });
+  doc = setToken(doc, 'typography.body', {
+    $type: 'typography',
+    $value: {
+      fontFamily: '{font.body}',
+      fontSize: '{font-size.md}',
+      fontWeight: 400,
+      letterSpacing: { value: 0, unit: 'px' },
+      lineHeight: 1.5,
+    },
+  });
+  doc = withBrandMeta(doc, V, {
+    assetGroups: [
+      { id: 'logos', items: [{ src: 'logos/new.svg', label: 'New logo' }] },
+    ],
+    fontFiles: [],
+    logo: 'logos/new.svg',
+  });
+  const loaded = parseBrandJson(
+    saveJson(doc),
+    'untitled-brand.resolver.json',
+    zodValidator,
+  );
+
+  assert.deepEqual(loaded.errors, []);
+  assert.deepEqual(resolve(present(loaded.doc)), resolve(doc));
+  const { zip, warnings } = await buildExport(
+    doc,
+    ctx({ files: new Map([['logos/new.svg', bytes('<svg/>')]]) }),
+  );
+
+  assert.deepEqual(warnings, []);
+  const back = loadZip(zip, zodValidator);
+
+  assert.deepEqual(back.errors, []);
+  assert.deepEqual(resolve(present(back.doc)), resolve(doc));
+  assert.equal(brandMeta(present(back.doc), V).logo, 'logos/new.svg');
+});
+
 test('foreign tokens and extensions round-trip unchanged', async () => {
-  const accent = { $root: { $value: '{color.brand.600}', $extensions: { 'org.tool.x': { k: 1 } } } };
+  const accent = {
+    $root: {
+      $value: '{color.brand.600}',
+      $extensions: { 'org.tool.x': { k: 1 } },
+    },
+  };
   const doc = setToken(load(), 'color.accent', accent);
+
   present(doc.sets.foundation.$extensions)['org.tool.x'] = { keep: true };
-  const back = present(loadZip((await buildExport(doc, ctx())).zip).doc);
-  assert.deepEqual(nodeAt(back.sets.foundation.sources[0], 'color.accent'), accent);
-  assert.deepEqual(back.sets.foundation.$extensions?.['org.tool.x'], { keep: true });
+  const { zip } = await buildExport(doc, ctx());
+  const back = present(loadZip(zip, zodValidator).doc);
+
+  assert.deepEqual(
+    nodeAt(back.sets.foundation.sources[0], 'color.accent'),
+    accent,
+  );
+  assert.deepEqual(back.sets.foundation.$extensions?.['org.tool.x'], {
+    keep: true,
+  });
 });
 
 test('a failed download is a warning listed in the README', async () => {
-  const fetchBytes = async (url: string) => {
-    if (url.includes('merriweather@')) throw new Error('offline');
-    return bytes('x');
+  const fetchBytes = (url: string) => {
+    if (url.includes('merriweather@')) {
+      return Promise.reject(new Error('offline'));
+    }
+
+    return Promise.resolve(bytes('x'));
   };
+
   const { zip, warnings } = await buildExport(load(), ctx({ fetchBytes }));
-  assert.ok(warnings.some((w) => /merriweather-latin-700-normal\.woff2/.test(w)));
-  assert.match(text(unzipSync(zip)['README.md']), /merriweather-latin-700-normal\.woff2/);
+
+  assert.ok(
+    warnings.some((w) => w.includes('merriweather-latin-700-normal.woff2')),
+  );
+  assert.match(
+    text(unzipSync(zip)['README.md']),
+    /merriweather-latin-700-normal\.woff2/,
+  );
 });
 
 test('a missing asset is a warning, export still works', async () => {
-  const { zip, warnings } = await buildExport(load(), ctx({ files: new Map() }));
-  assert.ok(warnings.some((w) => /patterns\/dots\.svg/.test(w)));
+  const { zip, warnings } = await buildExport(
+    load(),
+    ctx({ files: new Map() }),
+  );
+
+  assert.ok(warnings.some((w) => w.includes('patterns/dots.svg')));
   assert.equal('patterns/dots.svg' in unzipSync(zip), false);
 });
 
@@ -163,6 +335,7 @@ test('README has the hosted URL and a contrast table with warnings', () => {
     missing: [],
     failedDownloads: [],
   });
+
   assert.match(md, /^# Brand Name/);
   assert.match(md, /https:\/\/styleguide\.example\.com/);
   assert.match(md, /\| light \| primary text \| 3\.2 \| 4\.5 \| warning \|/);
@@ -170,28 +343,52 @@ test('README has the hosted URL and a contrast table with warnings', () => {
 
 test('a file that breaks in any theme is rejected at load', () => {
   const doc = load();
+
   present(doc.modifiers?.theme).contexts.dark = [
-    { color: { page: { background: { $type: 'color', $value: '{color.nope}' } } } },
+    {
+      color: {
+        page: { background: { $type: 'color', $value: '{color.nope}' } },
+      },
+    },
   ];
-  assert.ok(parseBrandJson(JSON.stringify(doc), 'x.resolver.json').errors.length);
+  assert.ok(
+    parseBrandJson(JSON.stringify(doc), 'x.resolver.json', zodValidator).errors
+      .length,
+  );
 });
 
 test('a file with broken brand metadata is rejected at load', () => {
   const doc = load();
   const extensions = present(doc.sets.foundation.$extensions);
   const meta = extensions[V];
-  extensions[V] = { ...(isNode(meta) ? meta : {}), fontFiles: [{ family: 'A' }] };
-  assert.ok(parseBrandJson(JSON.stringify(doc), 'x.resolver.json').errors.some((e) => /src/.test(e.message)));
+
+  extensions[V] = {
+    ...(isNode(meta) ? meta : {}),
+    fontFiles: [{ family: 'A' }],
+  };
+  assert.ok(
+    parseBrandJson(
+      JSON.stringify(doc),
+      'x.resolver.json',
+      zodValidator,
+    ).errors.some((e) => e.message.includes('src')),
+  );
 });
 
 test('a resolver without a foundation set is rejected with a clear message', () => {
   const doc = load();
+
   doc.sets = { base: doc.sets.foundation };
   doc.resolutionOrder[0] = { $ref: '#/sets/base' };
-  assert.match(parseBrandJson(JSON.stringify(doc), 'x.resolver.json').errors[0].message, /foundation/);
+  assert.match(
+    parseBrandJson(JSON.stringify(doc), 'x.resolver.json', zodValidator)
+      .errors[0].message,
+    /foundation/,
+  );
 });
 
 test('a corrupt ZIP is an error, not a throw', () => {
-  const r = loadZip(new Uint8Array([1, 2, 3]));
+  const r = loadZip(new Uint8Array([1, 2, 3]), zodValidator);
+
   assert.ok(r.errors.length);
 });

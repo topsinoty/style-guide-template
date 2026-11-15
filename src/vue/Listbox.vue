@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import {
   SelectContent,
   SelectItem,
@@ -10,23 +10,37 @@ import {
 } from 'reka-ui';
 import Icon from './Icon.vue';
 
-export interface ListboxOption {
+export type ListboxOption = {
   value: string;
   label: string;
   swatch?: string;
-}
-const props = defineProps<{ label: string; options: ListboxOption[] }>();
+};
+const props = defineProps<{
+  label: string;
+  options: ListboxOption[];
+  placeholder?: string;
+}>();
 const value = defineModel<string>('value', { required: true });
+const open = ref(false);
+
 function choose(next: unknown) {
-  if (typeof next === 'string') value.value = next;
+  if (typeof next === 'string') {
+    value.value = next;
+  }
 }
 
-const selected = computed(() => props.options.find((o) => o.value === value.value));
+const selected = computed(() =>
+  props.options.find((o) => o.value === value.value),
+);
 </script>
 
 <template>
   <div class="cd-listbox">
-    <SelectRoot :model-value="value ?? ''" @update:model-value="choose">
+    <SelectRoot
+      v-model:open="open"
+      :model-value="value ?? ''"
+      @update:model-value="choose"
+    >
       <SelectTrigger class="cd-listbox-trigger" :aria-label="label">
         <span
           ><span
@@ -35,11 +49,17 @@ const selected = computed(() => props.options.find((o) => o.value === value.valu
             aria-hidden="true"
             :style="{ background: selected.swatch }"
           ></span
-          >{{ selected?.label ?? 'Choose' }}</span
+          >{{ selected?.label ?? placeholder ?? 'Choose' }}</span
         >
         <Icon name="chevron" />
       </SelectTrigger>
-      <SelectContent position="popper" :side-offset="4" :collision-padding="8" class="cd-listbox-popup">
+      <SelectContent
+        v-if="open"
+        position="popper"
+        :side-offset="4"
+        :collision-padding="8"
+        class="cd-listbox-popup"
+      >
         <SelectViewport>
           <SelectItem
             v-for="option in options"

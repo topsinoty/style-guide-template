@@ -1,7 +1,6 @@
-import { blobPart } from './download.js';
-import { resolveAsset } from '../lib/assets.js';
-import { extension } from '../lib/path.js';
-import type { AssetContext, AssetItem, FileData } from '../lib/types.js';
+import { blobPart } from './download';
+import { resolveAsset, extension } from '~/lib';
+import type { AssetContext, AssetItem, FileData } from '~/lib';
 
 const MIME: Record<string, string> = {
   svg: 'image/svg+xml',
@@ -26,12 +25,23 @@ function cachedUrl(
   type: string,
 ) {
   const cached = cache.get(path);
-  if (cached?.data === data) return cached.url;
-  if (cached) URL.revokeObjectURL(cached.url);
+
+  if (cached?.data === data) {
+    return cached.url;
+  }
+
+  if (cached) {
+    URL.revokeObjectURL(cached.url);
+  }
+
   const url = URL.createObjectURL(
-    data instanceof Blob && type === '' ? data : new Blob([blobPart(data)], { type }),
+    data instanceof Blob && type === ''
+      ? data
+      : new Blob([blobPart(data)], { type }),
   );
+
   cache.set(path, { data, url });
+
   return url;
 }
 
@@ -43,7 +53,9 @@ export const objectUrl = (path: string, data: FileData) =>
     shown,
     path,
     data,
-    data instanceof Blob ? '' : (MIME[extension(path)] ?? 'application/octet-stream'),
+    data instanceof Blob
+      ? ''
+      : (MIME[extension(path)] ?? 'application/octet-stream'),
   );
 
 export const downloadUrl = (path: string, data: FileData) =>
@@ -52,6 +64,10 @@ export const downloadUrl = (path: string, data: FileData) =>
 export function urlFor(entry: AssetItem, ctx: AssetContext): string | null {
   const data = ctx.session.get(entry.src);
   const where = resolveAsset(entry, ctx);
-  if (where.source === 'session' && data) return objectUrl(entry.src, data);
+
+  if (where.source === 'session' && data) {
+    return objectUrl(entry.src, data);
+  }
+
   return where.url ?? null;
 }

@@ -1,0 +1,87 @@
+<script setup lang="ts">
+import { computed, useId } from 'vue';
+import {
+  addTheme,
+  defaultTheme,
+  removeTheme,
+  renameTheme,
+  themesOf,
+  paletteId,
+} from '~/lib';
+import type { EditorContext } from './context';
+import IconButton from './IconButton.vue';
+import NameForm from './NameForm.vue';
+
+const props = defineProps<{ ctx: EditorContext }>();
+const themes = computed(() => themesOf(props.ctx.doc));
+const fallback = computed(() => defaultTheme(props.ctx.doc));
+
+function rename(from: string, event: Event) {
+  if (!(event.target instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const to = paletteId(event.target.value);
+
+  if (!to || to === from) {
+    event.target.value = from;
+
+    return;
+  }
+
+  if (themes.value.includes(to)) {
+    event.target.value = from;
+    props.ctx.session.warn(`There is already a theme named ${to}.`);
+
+    return;
+  }
+
+  props.ctx.edit((doc) => renameTheme(doc, from, to));
+  if (props.ctx.theme === from) {
+    props.ctx.setTheme(to);
+  }
+}
+
+function add(name: string) {
+  props.ctx.edit((doc) => addTheme(doc, name));
+  props.ctx.setTheme(name);
+}
+
+const uid = useId();
+</script>
+
+<template>
+  <p class="cd-hint">
+    Light and dark, or print and web. The default holds every color; another
+    theme starts as a copy of
+    {{ fallback ?? 'it' }} and keeps only what you change.
+  </p>
+  <ul v-if="themes.length" class="ed-list">
+    <li v-for="theme in themes" :key="theme" class="ed-row-head">
+      <label :for="`${uid}-${theme}`" class="cd-sr-only"
+        >Name of the {{ theme }} theme</label
+      >
+      <input
+        :id="`${uid}-${theme}`"
+        class="ed-inline-input"
+        type="text"
+        :value="theme"
+        @change="rename(theme, $event)"
+      />
+      <span v-if="theme === fallback" class="ed-badge">Default</span>
+      <IconButton
+        v-else
+        name="trash"
+        :label="`Remove the ${theme} theme`"
+        @click="ctx.edit((doc) => removeTheme(doc, theme))"
+      />
+    </li>
+  </ul>
+  <NameForm
+    label="New theme"
+    action="Add theme"
+    placeholder="print"
+    :taken="themes"
+    @add="add"
+  />
+</template>

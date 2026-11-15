@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { AssetContext, AssetItem } from '../../lib/types.js';
-import { extension, fileName } from '../../lib/path.js';
-import { downloadUrl, urlFor } from '../urls.js';
-import { formatSize, isImage } from './parts.js';
+import type { AssetContext, AssetItem } from '~/lib';
+import { extension, fileName } from '~/lib';
+import { downloadUrl, urlFor } from '../urls';
+import { cssBackground, formatSize, isImage } from './parts';
 import Icon from '../Icon.vue';
 
 const props = defineProps<{ item: AssetItem; ctx: AssetContext }>();
@@ -12,17 +12,29 @@ const ext = computed(() => extension(props.item.src));
 const name = computed(() => fileName(props.item.src));
 const data = computed(() => props.ctx.session.get(props.item.src));
 const size = computed(() => {
-  if (!data.value) return '';
-  const bytes = data.value instanceof Blob ? data.value.size : data.value.byteLength;
+  if (!data.value) {
+    return '';
+  }
+
+  const bytes =
+    data.value instanceof Blob ? data.value.size : data.value.byteLength;
+
   return formatSize(bytes);
 });
-const href = computed(() => (data.value ? downloadUrl(props.item.src, data.value) : url.value));
+const href = computed(() =>
+  data.value ? downloadUrl(props.item.src, data.value) : url.value,
+);
 </script>
 
 <template>
   <figure class="cd-file">
     <template v-if="url">
-      <img v-if="isImage(ext)" :src="url" :alt="item.label ?? name" />
+      <img
+        v-if="isImage(ext)"
+        :src="url"
+        :alt="item.label ?? name"
+        :style="{ background: cssBackground(item.background) }"
+      />
       <div v-else class="cd-file-card" aria-hidden="true">{{ ext }}</div>
       <figcaption>
         <b>{{ item.label ?? name }}</b>
@@ -33,7 +45,8 @@ const href = computed(() => (data.value ? downloadUrl(props.item.src, data.value
     </template>
     <template v-else>
       <div class="cd-missing">
-        <Icon name="alert" /><span>Missing file</span><code>{{ item.src }}</code>
+        <Icon name="alert" /><span>Missing file</span
+        ><code>{{ item.src }}</code>
       </div>
       <figcaption>{{ item.label }}</figcaption>
     </template>
