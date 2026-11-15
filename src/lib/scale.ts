@@ -1,13 +1,7 @@
-import {
-  child,
-  isHandSet,
-  isNode,
-  vendorData,
-  withVendorData,
-} from './tree.js';
-import { narrow } from './values.js';
-import { entriesOf, mapValues, valuesOf, without } from './records.js';
-import type { Dimension, TokenNode } from './types.js';
+import { child, isHandSet, isNode, vendorData, withVendorData } from './tree';
+import { narrow } from './values';
+import { entriesOf, mapValues, valuesOf, without } from './records';
+import type { Dimension, TokenNode } from './types';
 
 export type ScaleSpec = {
   base: Dimension;

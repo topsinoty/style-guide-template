@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
-import { parseCssColor } from '../../lib/color.js';
-import { addShade, paletteId, type PaletteColor } from '../../lib/palette.js';
+import { parseCssColor, COLOR_ERROR } from '../../lib/color';
+import { addShade, paletteId, type PaletteColor } from '../../lib/palette';
 import ColorInput from '../ColorInput.vue';
-import { COLOR_ERROR } from '../../lib/color.js';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 
 const props = defineProps<{ ctx: EditorContext; color: PaletteColor }>();
 const emit = defineEmits<{ added: [] }>();

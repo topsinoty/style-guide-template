@@ -1,6 +1,6 @@
-import { entriesOf, keysOf, mapValues, recordOf, valueAt } from './records.js';
-import { deepMerge, isNode } from './tree.js';
-import type { FlatToken, ResolverDoc, TokenNode, Tokens } from './types.js';
+import { entriesOf, keysOf, mapValues, recordOf, valueAt } from './records';
+import { deepMerge, isNode } from './tree';
+import type { FlatToken, ResolverDoc, TokenNode, Tokens } from './types';
 
 export class ResolveError extends Error {
   path: string;

@@ -1,6 +1,6 @@
-import { entriesOf, recordOf, valueAt } from './records.js';
-import { isNode } from './tree.js';
-import type { ResolverDoc, TokenNode } from './types.js';
+import { entriesOf, recordOf, valueAt } from './records';
+import { isNode } from './tree';
+import type { ResolverDoc, TokenNode } from './types';
 
 export const RESOLVER_SCHEMA =
   'https://www.designtokens.org/schemas/2025.10/resolver.json';

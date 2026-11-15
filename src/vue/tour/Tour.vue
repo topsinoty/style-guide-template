@@ -8,8 +8,8 @@ import {
   useWindowSize,
 } from '@vueuse/core';
 import { FocusScope } from 'reka-ui';
-import { areaId, scrollToArea } from '../editor/areas.js';
-import type { TourStep } from './steps.js';
+import { areaId, scrollToArea } from '../editor/areas';
+import type { TourStep } from './steps';
 
 const props = defineProps<{ steps: TourStep[] }>();
 const open = defineModel<boolean>('open', { required: true });

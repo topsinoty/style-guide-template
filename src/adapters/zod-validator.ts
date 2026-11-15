@@ -1,5 +1,5 @@
 import * as z from 'zod/mini';
-import type { Parsed, Validator } from '../ports.js';
+import type { Parsed, Validator } from '../ports';
 import type {
   AssetGroup,
   AssetItem,
@@ -11,18 +11,18 @@ import type {
   Problem,
   ResolverDoc,
   TokenNode,
-} from '../lib/types.js';
-import { entriesOf, keysOf, valuesOf } from '../lib/records.js';
-import { isSafeSrc } from '../lib/path.js';
-import { hoistResolver } from '../lib/document.js';
-import { child, deepMerge, isNode } from '../lib/tree.js';
+} from '../lib/types';
+import { entriesOf, keysOf, valuesOf } from '../lib/records';
+import { isSafeSrc } from '../lib/path';
+import { hoistResolver } from '../lib/document';
+import { child, deepMerge, isNode } from '../lib/tree';
 import {
   COLOR_SPACES,
   FONT_STYLES,
   STROKE_STYLES,
   WEIGHT_KEYWORDS,
   isAlias,
-} from '../lib/values.js';
+} from '../lib/values';
 
 const TOKEN_KEYS = new Set([
   '$type',

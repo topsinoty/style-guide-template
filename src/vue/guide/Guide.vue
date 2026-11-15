@@ -5,12 +5,12 @@ import {
   useIntersectionObserver,
   useWindowSize,
 } from '@vueuse/core';
-import type { Session } from '../../app/session.js';
-import { missingAssets } from '../../lib/assets.js';
-import { checkContrast } from '../../lib/contrast.js';
-import { cssName, cssValue } from '../../lib/css.js';
-import { fileName } from '../../lib/path.js';
-import type { BrandMeta, ResolverDoc, Tokens } from '../../lib/types.js';
+import type { Session } from '../../app/session';
+import { missingAssets } from '../../lib/assets';
+import { checkContrast } from '../../lib/contrast';
+import { cssName, cssValue } from '../../lib/css';
+import { fileName } from '../../lib/path';
+import type { BrandMeta, ResolverDoc, Tokens } from '../../lib/types';
 import AssetImage from './AssetImage.vue';
 import Card from './Card.vue';
 import Code from './Code.vue';
@@ -21,8 +21,8 @@ import Panels from './Panels.vue';
 import Prose from './Prose.vue';
 import Scale from './Scale.vue';
 import Typography from './Typography.vue';
-import { cssBackground } from './parts.js';
-import { isOtherToken, visibleSections } from './sections.js';
+import { cssBackground } from './parts';
+import { isOtherToken, visibleSections } from './sections';
 import MotionPreview from './MotionPreview.vue';
 import Inspector from './Inspector.vue';
 

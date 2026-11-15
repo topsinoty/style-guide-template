@@ -1,12 +1,6 @@
-import {
-  anchoredScale,
-  contrastRatio,
-  isDark,
-  oklch,
-  toOklch,
-} from './color.js';
-import { ROLES } from './contrast.js';
-import { foundation, move } from './edit.js';
+import { anchoredScale, contrastRatio, isDark, oklch, toOklch } from './color';
+import { ROLES } from './contrast';
+import { foundation, move } from './edit';
 import {
   entriesOf,
   isEmpty,
@@ -16,8 +10,8 @@ import {
   renameKey,
   valuesOf,
   without,
-} from './records.js';
-import { defaultInputs, resolve } from './resolver.js';
+} from './records';
+import { defaultInputs, resolve } from './resolver';
 import {
   child,
   children,
@@ -26,9 +20,9 @@ import {
   isNode,
   vendorData,
   withVendorData,
-} from './tree.js';
-import type { DtcgColor, ResolverDoc, TokenNode } from './types.js';
-import { narrow, isColor } from './values.js';
+} from './tree';
+import type { DtcgColor, ResolverDoc, TokenNode } from './types';
+import { narrow, isColor } from './values';
 
 export type Shade = {
   name: string;

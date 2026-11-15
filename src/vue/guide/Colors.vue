@@ -2,13 +2,13 @@
 import { computed } from 'vue';
 import Card from './Card.vue';
 import { RovingFocusGroup, RovingFocusItem } from 'reka-ui';
-import { cmyk, toHex, toOklchString, toRgbaString } from '../../lib/color.js';
-import { cssName } from '../../lib/css.js';
-import type { DtcgColor, ResolvedToken, Tokens } from '../../lib/types.js';
-import { byShadeOrder } from '../../lib/palette.js';
-import { isNode } from '../../lib/tree.js';
-import { colorKind, palettePath } from './color-path.js';
-import { narrow, isColor } from '../../lib/values.js';
+import { cmyk, toHex, toOklchString, toRgbaString } from '../../lib/color';
+import { cssName } from '../../lib/css';
+import type { DtcgColor, ResolvedToken, Tokens } from '../../lib/types';
+import { byShadeOrder } from '../../lib/palette';
+import { isNode } from '../../lib/tree';
+import { colorKind, palettePath } from './color-path';
+import { narrow, isColor } from '../../lib/values';
 import CopyButton from './CopyButton.vue';
 
 type Shade = {

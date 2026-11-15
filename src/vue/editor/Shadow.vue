@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { toHex } from '../../lib/color.js';
-import * as E from '../../lib/edit.js';
-import { child, children, isNode } from '../../lib/tree.js';
-import { entriesOf, keysOf } from '../../lib/records.js';
-import { narrow, isColor, isSize } from '../../lib/values.js';
+import { toHex } from '../../lib/color';
+import * as E from '../../lib/edit';
+import { child, children, isNode } from '../../lib/tree';
+import { entriesOf, keysOf } from '../../lib/records';
+import { narrow, isColor, isSize } from '../../lib/values';
 import ColorInput from '../ColorInput.vue';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 import NameForm from './NameForm.vue';
 import NumberField from './NumberField.vue';
 import ItemRow from './ItemRow.vue';
 import IconButton from './IconButton.vue';
-import { cssName } from '../../lib/css.js';
-import { cap } from '../guide/parts.js';
-import type { Dimension, DtcgColor, TokenNode } from '../../lib/types.js';
+import { cssName } from '../../lib/css';
+import { cap } from '../guide/parts';
+import type { Dimension, DtcgColor, TokenNode } from '../../lib/types';
 
 const props = defineProps<{ ctx: EditorContext }>();
 

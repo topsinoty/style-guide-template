@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createTextVNode, h, type FunctionalComponent } from 'vue';
-import { parseBlocks, type Block, type Inline } from '../../lib/markdown.js';
+import { parseBlocks, type Block, type Inline } from '../../lib/markdown';
 
 defineProps<{ text: string }>();
 

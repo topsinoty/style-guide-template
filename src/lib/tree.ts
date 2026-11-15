@@ -1,5 +1,5 @@
-import type { TokenNode, VendorData } from './types.js';
-import { entriesOf, keysOf } from './records.js';
+import type { TokenNode, VendorData } from './types';
+import { entriesOf, keysOf } from './records';
 
 export const isNode = (value: unknown): value is TokenNode =>
   value !== null && typeof value === 'object' && !Array.isArray(value);

@@ -1,6 +1,6 @@
-import type { FileStore, KeyValueStore } from '../ports.js';
-import { isResolver } from './document.js';
-import type { ResolverDoc, SessionFiles } from './types.js';
+import type { FileStore, KeyValueStore } from '../ports';
+import { isResolver } from './document';
+import type { ResolverDoc, SessionFiles } from './types';
 
 export type Store = ReturnType<typeof createStore>;
 

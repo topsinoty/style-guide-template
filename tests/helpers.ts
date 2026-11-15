@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as z from 'zod/mini';
-import { resolverDoc } from '../src/adapters/zod-validator.js';
-import { isNode } from '../src/lib/tree.js';
-import type { ResolverDoc, TokenNode, Tokens } from '../src/lib/types.js';
+import { resolverDoc } from '../src/adapters/zod-validator';
+import { isNode } from '../src/lib/tree';
+import type { ResolverDoc, TokenNode, Tokens } from '../src/lib/types';
 
 export function present<T>(value: T | null | undefined, what = 'value'): T {
   assert.ok(value !== null && value !== undefined, `${what} is missing`);

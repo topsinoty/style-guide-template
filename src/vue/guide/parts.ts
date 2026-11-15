@@ -1,5 +1,5 @@
-import { cssName } from '../../lib/css.js';
-import { isNode } from '../../lib/tree.js';
+import { cssName } from '../../lib/css';
+import { isNode } from '../../lib/tree';
 
 export function dim(value: unknown): string {
   if (

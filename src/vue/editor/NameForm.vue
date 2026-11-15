@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
-import { paletteId } from '../../lib/palette.js';
+import { paletteId } from '../../lib/palette';
 import AddPanel from './AddPanel.vue';
 
 const props = defineProps<{

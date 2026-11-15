@@ -10,8 +10,8 @@ import {
   ComboboxRoot,
   ComboboxViewport,
 } from 'reka-ui';
-import { parseCssColor } from '../../lib/color.js';
-import { optionFor, type ColorOption } from './role-color.js';
+import { parseCssColor } from '../../lib/color';
+import { optionFor, type ColorOption } from './role-color';
 
 const props = defineProps<{
   label: string;

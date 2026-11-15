@@ -1,6 +1,6 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { extension, fileName } from '../src/lib/path.js';
+import { extension, fileName } from '../src/lib/path';
 
 test('file name and extension', () => {
   assert.equal(fileName('logos/a.svg'), 'a.svg');

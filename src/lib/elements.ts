@@ -1,7 +1,7 @@
-import { uniquePath } from './path.js';
-import { valueAt } from './records.js';
-import { child, children, vendorData, withVendorData } from './tree.js';
-import type { TokenNode } from './types.js';
+import { uniquePath } from './path';
+import { valueAt } from './records';
+import { child, children, vendorData, withVendorData } from './tree';
+import type { TokenNode } from './types';
 
 export const ELEMENTS = [
   { value: 'h1', label: 'Heading 1' },

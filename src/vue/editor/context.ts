@@ -1,16 +1,16 @@
-import type { Session } from '../../app/session.js';
-import { withBrandMeta } from '../../lib/assets.js';
-import * as E from '../../lib/edit.js';
-import { checkBrand, problemText } from '../../lib/io.js';
-import { isNode, nodeAt } from '../../lib/tree.js';
-import { isDark } from '../../lib/color.js';
-import { narrow, isColor } from '../../lib/values.js';
+import type { Session } from '../../app/session';
+import { withBrandMeta } from '../../lib/assets';
+import * as E from '../../lib/edit';
+import { checkBrand, problemText } from '../../lib/io';
+import { isNode, nodeAt } from '../../lib/tree';
+import { isDark } from '../../lib/color';
+import { narrow, isColor } from '../../lib/values';
 import type {
   BrandMeta,
   ResolverDoc,
   TokenNode,
   Tokens,
-} from '../../lib/types.js';
+} from '../../lib/types';
 
 export type EditorContext = {
   session: Session;

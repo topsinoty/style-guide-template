@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import { elementStyles, ELEMENTS } from '../../lib/elements.js';
-import type { ResolverDoc } from '../../lib/types.js';
+import { elementStyles, ELEMENTS } from '../../lib/elements';
+import type { ResolverDoc } from '../../lib/types';
 
 const props = defineProps<{
   doc: ResolverDoc;

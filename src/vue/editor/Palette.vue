@@ -2,8 +2,8 @@
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
 import { PopoverContent, PopoverRoot, PopoverTrigger } from 'reka-ui';
-import { parseCssColor } from '../../lib/color.js';
-import { ROLES } from '../../lib/contrast.js';
+import { parseCssColor } from '../../lib/color';
+import { ROLES } from '../../lib/contrast';
 import {
   addColor,
   generateShades,
@@ -15,13 +15,13 @@ import {
   removeColor,
   removeShade,
   renameColor,
-} from '../../lib/palette.js';
+} from '../../lib/palette';
 import ColorInput from '../ColorInput.vue';
-import { COLOR_ERROR } from '../../lib/color.js';
+import { COLOR_ERROR } from '../../lib/color';
 import Icon from '../Icon.vue';
 import Confirm, { type ConfirmChoice } from '../Confirm.vue';
-import { cap } from '../guide/parts.js';
-import type { EditorContext } from './context.js';
+import { cap } from '../guide/parts';
+import type { EditorContext } from './context';
 import IconButton from './IconButton.vue';
 import AddShadeForm from './AddShadeForm.vue';
 import ShadeEditor from './ShadeEditor.vue';

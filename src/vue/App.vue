@@ -32,26 +32,26 @@ import {
   SwitchRoot,
   SwitchThumb,
 } from 'reka-ui';
-import type { Mode } from '../app/mode.js';
-import { download } from './download.js';
-import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets.js';
-import { isDark } from '../lib/color.js';
-import { defaultTheme, themesOf } from '../lib/edit.js';
-import { narrow, isColor } from '../lib/values.js';
+import type { Mode } from '../app/mode';
+import { download } from './download';
+import { DEFAULT_ROOT_SIZE, mainLogo } from '../lib/assets';
+import { isDark } from '../lib/color';
+import { defaultTheme, themesOf } from '../lib/edit';
+import { narrow, isColor } from '../lib/values';
 import Listbox from './Listbox.vue';
-import { cap } from './guide/parts.js';
-import { errorMessage } from '../lib/io.js';
-import { urlFor } from './urls.js';
+import { cap } from './guide/parts';
+import { errorMessage } from '../lib/io';
+import { urlFor } from './urls';
 import Action from './Action.vue';
 import Icon from './Icon.vue';
 import Guide from './guide/Guide.vue';
 import Editor from './editor/Editor.vue';
 import Help from './Help.vue';
 import Tour from './tour/Tour.vue';
-import { EDIT_STEPS, READ_STEPS } from './tour/steps.js';
-import { visibleSections } from './guide/sections.js';
-import { injectSession } from './useSession.js';
-import { deriveView } from './view.js';
+import { EDIT_STEPS, READ_STEPS } from './tour/steps';
+import { visibleSections } from './guide/sections';
+import { injectSession } from './useSession';
+import { deriveView } from './view';
 
 defineProps<{ mode: Mode }>();
 const session = injectSession();

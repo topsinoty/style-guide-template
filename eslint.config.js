@@ -114,6 +114,11 @@ export default defineConfig(
           message:
             'Use keysOf, valuesOf, entriesOf or recordOf from src/lib/records.ts.',
         },
+        {
+          selector:
+            'ImportDeclaration[source.value=/^\\.{1,2}\\/.*\\.js$/], ImportExpression[source.value=/^\\.{1,2}\\/.*\\.js$/]',
+          message: 'Import local modules without the .js extension.',
+        },
       ],
     },
   },

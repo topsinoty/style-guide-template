@@ -1,28 +1,28 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { zodValidator } from '../src/adapters/zod-validator.js';
-import { brandMeta, withBrandMeta } from '../src/lib/assets.js';
-import { checkContrast } from '../src/lib/contrast.js';
-import { generateCss } from '../src/lib/css.js';
+import { zodValidator } from '../src/adapters/zod-validator';
+import { brandMeta, withBrandMeta } from '../src/lib/assets';
+import { checkContrast } from '../src/lib/contrast';
+import { generateCss } from '../src/lib/css';
 import {
   addStandardStyles,
   elementStyles,
   setElement,
-} from '../src/lib/elements.js';
-import * as E from '../src/lib/edit.js';
-import { checkBrand } from '../src/lib/io.js';
-import { parseBlocks } from '../src/lib/markdown.js';
+} from '../src/lib/elements';
+import * as E from '../src/lib/edit';
+import { checkBrand } from '../src/lib/io';
+import { parseBlocks } from '../src/lib/markdown';
 import {
   addColor,
   generateShades,
   paletteColors,
   roleFromShade,
-} from '../src/lib/palette.js';
-import { oklch } from '../src/lib/color.js';
-import { resolve } from '../src/lib/resolver.js';
-import { nodeAt } from '../src/lib/tree.js';
-import { isTypography, narrow } from '../src/lib/values.js';
-import type { BrandMeta } from '../src/lib/types.js';
+} from '../src/lib/palette';
+import { oklch } from '../src/lib/color';
+import { resolve } from '../src/lib/resolver';
+import { nodeAt } from '../src/lib/tree';
+import { isTypography, narrow } from '../src/lib/values';
+import type { BrandMeta } from '../src/lib/types';
 import {
   addSection,
   editSection,
@@ -30,8 +30,8 @@ import {
   removeSection,
   sectionsOf,
   visibleSections,
-} from '../src/vue/guide/sections.js';
-import { load, preset, token, V } from './helpers.js';
+} from '../src/vue/guide/sections';
+import { load, preset, token, V } from './helpers';
 
 test('markdown: headings, paragraphs, lists and inline marks; unsafe links stay text', () => {
   const blocks = parseBlocks(

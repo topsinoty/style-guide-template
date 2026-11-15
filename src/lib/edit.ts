@@ -1,6 +1,6 @@
-import { slug } from './io.js';
-import { uniquePath } from './path.js';
-import { keysOf, renameKey, valueAt, without } from './records.js';
+import { slug } from './io';
+import { uniquePath } from './path';
+import { keysOf, renameKey, valueAt, without } from './records';
 import type {
   AssetGroup,
   AssetItem,
@@ -9,8 +9,8 @@ import type {
   FontFile,
   ResolverDoc,
   TokenNode,
-} from './types.js';
-import { ensureChild, nodeAt } from './tree.js';
+} from './types';
+import { ensureChild, nodeAt } from './tree';
 
 const clone = <T>(x: T): T => structuredClone(x);
 export const foundation = (doc: ResolverDoc): TokenNode =>

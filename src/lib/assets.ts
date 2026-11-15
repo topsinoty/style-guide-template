@@ -1,7 +1,7 @@
-import { holds, isNode } from './tree.js';
-import { fileName, isSafeSrc } from './path.js';
-import { isFontStyle } from './values.js';
-import { entriesOf, keysOf, valueAt, without } from './records.js';
+import { holds, isNode } from './tree';
+import { fileName, isSafeSrc } from './path';
+import { isFontStyle } from './values';
+import { entriesOf, keysOf, valueAt, without } from './records';
 import type {
   AssetContext,
   AssetGroup,
@@ -12,7 +12,7 @@ import type {
   ResolverDoc,
   SessionFiles,
   TextSection,
-} from './types.js';
+} from './types';
 
 export type AssetSource = 'session' | 'library' | 'provider' | 'missing';
 export type SrcEntry =

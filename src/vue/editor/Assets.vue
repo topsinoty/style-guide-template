@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, shallowReactive, useId } from 'vue';
-import { mainLogo } from '../../lib/assets.js';
-import { toHex } from '../../lib/color.js';
-import * as E from '../../lib/edit.js';
-import { paletteColors } from '../../lib/palette.js';
-import { extension, fileName } from '../../lib/path.js';
-import type { AssetGroup, AssetItem } from '../../lib/types.js';
-import { isColor, narrow } from '../../lib/values.js';
-import { COLOR_ERROR } from '../../lib/color.js';
-import { urlFor } from '../urls.js';
+import { mainLogo } from '../../lib/assets';
+import { toHex } from '../../lib/color';
+import * as E from '../../lib/edit';
+import { paletteColors } from '../../lib/palette';
+import { extension, fileName } from '../../lib/path';
+import type { AssetGroup, AssetItem } from '../../lib/types';
+import { isColor, narrow } from '../../lib/values';
+import { COLOR_ERROR } from '../../lib/color';
+import { urlFor } from '../urls';
 import Listbox from '../Listbox.vue';
 import IconButton from './IconButton.vue';
 import ItemRow from './ItemRow.vue';
-import { colorOptions, roleEntry, roleText } from './role-color.js';
+import { colorOptions, roleEntry, roleText } from './role-color';
 import RoleColorCombobox from './RoleColorCombobox.vue';
 import TextField from './TextField.vue';
 import UploadButton from './UploadButton.vue';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const picks = shallowReactive(new Map<string, string>());

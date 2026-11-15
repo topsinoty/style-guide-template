@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
-import { exportFormats } from '../../lib/exports.js';
-import type { ResolverDoc } from '../../lib/types.js';
+import { exportFormats } from '../../lib/exports';
+import type { ResolverDoc } from '../../lib/types';
 import Icon from '../Icon.vue';
 import CopyButton from './CopyButton.vue';
 

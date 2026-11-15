@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { checkContrast, ROLES } from '../../lib/contrast.js';
-import { toHex } from '../../lib/color.js';
-import { cssName } from '../../lib/css.js';
-import * as E from '../../lib/edit.js';
-import { entriesOf } from '../../lib/records.js';
-import { paletteColors, roleFromShade } from '../../lib/palette.js';
+import { checkContrast, ROLES } from '../../lib/contrast';
+import { toHex } from '../../lib/color';
+import { cssName } from '../../lib/css';
+import * as E from '../../lib/edit';
+import { entriesOf } from '../../lib/records';
+import { paletteColors, roleFromShade } from '../../lib/palette';
 import Choice from './Choice.vue';
-import { narrow, isColor } from '../../lib/values.js';
-import { COLOR_ERROR } from '../../lib/color.js';
-import { cap } from '../guide/parts.js';
-import type { EditorContext } from './context.js';
-import { colorOptions, roleEntry, roleText } from './role-color.js';
+import { narrow, isColor } from '../../lib/values';
+import { COLOR_ERROR } from '../../lib/color';
+import { cap } from '../guide/parts';
+import type { EditorContext } from './context';
+import { colorOptions, roleEntry, roleText } from './role-color';
 import RoleColorCombobox from './RoleColorCombobox.vue';
 import ItemRow from './ItemRow.vue';
 

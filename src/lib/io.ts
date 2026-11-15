@@ -1,13 +1,13 @@
 import { zipSync, unzipSync } from 'fflate';
-import { inlineResolver, toResolver } from './document.js';
-import { ResolveError, resolve, contexts, defaultInputs } from './resolver.js';
-import { generateCss } from './css.js';
-import { checkContrast } from './contrast.js';
-import { brandMeta, withBrandMeta, resolveAsset, META_KEYS } from './assets.js';
-import type { FontProvider, Validator } from '../ports.js';
-import { extension, fileName, uniquePath } from './path.js';
-import { entriesOf, keysOf, valueAt } from './records.js';
-import { holds, isNode } from './tree.js';
+import { inlineResolver, toResolver } from './document';
+import { ResolveError, resolve, contexts, defaultInputs } from './resolver';
+import { generateCss } from './css';
+import { checkContrast } from './contrast';
+import { brandMeta, withBrandMeta, resolveAsset, META_KEYS } from './assets';
+import type { FontProvider, Validator } from '../ports';
+import { extension, fileName, uniquePath } from './path';
+import { entriesOf, keysOf, valueAt } from './records';
+import { holds, isNode } from './tree';
 import type {
   AssetItem,
   BrandMeta,
@@ -16,7 +16,7 @@ import type {
   Problem,
   ResolverDoc,
   SessionFiles,
-} from './types.js';
+} from './types';
 
 export type FileKind =
   'resolver' | 'tokens' | 'zip' | 'font' | 'image' | 'file';

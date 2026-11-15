@@ -1,6 +1,6 @@
 import { converter, parse, type Color } from 'culori';
-import type { DtcgColor } from './types.js';
-import { keysOf } from './records.js';
+import type { DtcgColor } from './types';
+import { keysOf } from './records';
 
 const SHADES = [
   '50',

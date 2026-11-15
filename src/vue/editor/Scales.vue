@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { valueAt } from '../../lib/records.js';
+import { valueAt } from '../../lib/records';
 import { computed, reactive, useId } from 'vue';
 import {
   addScaleStep,
@@ -9,12 +9,12 @@ import {
   setScaleUnit,
   setStep,
   type ScaleSpec,
-} from '../../lib/scale.js';
-import { DEFAULT_ROOT_SIZE, isRootSize } from '../../lib/assets.js';
-import { child, children, isHandSet, withVendorData } from '../../lib/tree.js';
-import { keysOf, mapValues, valuesOf } from '../../lib/records.js';
-import { narrow, isSize } from '../../lib/values.js';
-import type { EditorContext } from './context.js';
+} from '../../lib/scale';
+import { DEFAULT_ROOT_SIZE, isRootSize } from '../../lib/assets';
+import { child, children, isHandSet, withVendorData } from '../../lib/tree';
+import { keysOf, mapValues, valuesOf } from '../../lib/records';
+import { narrow, isSize } from '../../lib/values';
+import type { EditorContext } from './context';
 import Choice from './Choice.vue';
 import IconButton from './IconButton.vue';
 import NameForm from './NameForm.vue';

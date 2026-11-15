@@ -1,9 +1,9 @@
 import { test } from 'vitest';
-import { valueAt } from '../src/lib/records.js';
+import { valueAt } from '../src/lib/records';
 import assert from 'node:assert/strict';
-import { zodValidator } from '../src/adapters/zod-validator.js';
-import { parseCssColor } from '../src/lib/color.js';
-import { checkBrand } from '../src/lib/io.js';
+import { zodValidator } from '../src/adapters/zod-validator';
+import { parseCssColor } from '../src/lib/color';
+import { checkBrand } from '../src/lib/io';
 import {
   addColor,
   addShade,
@@ -19,15 +19,15 @@ import {
   renameShade,
   setBase,
   setShade,
-} from '../src/lib/palette.js';
-import type { ResolverDoc } from '../src/lib/types.js';
-import { child, children, nodeAt, withVendorData } from '../src/lib/tree.js';
-import { resolve } from '../src/lib/resolver.js';
-import { checkContrast, ROLES } from '../src/lib/contrast.js';
-import { foundation, setToken } from '../src/lib/edit.js';
-import { setStep } from '../src/lib/scale.js';
-import { narrow, isColor } from '../src/lib/values.js';
-import { present, preset, V } from './helpers.js';
+} from '../src/lib/palette';
+import type { ResolverDoc } from '../src/lib/types';
+import { child, children, nodeAt, withVendorData } from '../src/lib/tree';
+import { resolve } from '../src/lib/resolver';
+import { checkContrast, ROLES } from '../src/lib/contrast';
+import { foundation, setToken } from '../src/lib/edit';
+import { setStep } from '../src/lib/scale';
+import { narrow, isColor } from '../src/lib/values';
+import { present, preset, V } from './helpers';
 
 const teal = present(parseCssColor('teal'));
 const pink = present(parseCssColor('#ff3399'));

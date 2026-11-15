@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { PopoverContent, PopoverRoot, PopoverTrigger } from 'reka-ui';
-import { cmyk, toHex } from '../../lib/color.js';
-import { cssName } from '../../lib/css.js';
+import { cmyk, toHex } from '../../lib/color';
+import { cssName } from '../../lib/css';
 import {
   paletteId,
   renameShade,
   setBase,
   setShade,
   type Shade,
-} from '../../lib/palette.js';
-import { vendorData, withVendorData } from '../../lib/tree.js';
+} from '../../lib/palette';
+import { vendorData, withVendorData } from '../../lib/tree';
 import ColorInput from '../ColorInput.vue';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 import NumberField from './NumberField.vue';
 import TextField from './TextField.vue';
 

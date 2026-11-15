@@ -1,12 +1,12 @@
-import { resolve, contexts, defaultInputs } from './resolver.js';
-import { contrastRatio } from './color.js';
+import { resolve, contexts, defaultInputs } from './resolver';
+import { contrastRatio } from './color';
 import type {
   ContrastPair,
   ContrastResult,
   ResolverDoc,
   Tokens,
-} from './types.js';
-import { narrow, isColor } from './values.js';
+} from './types';
+import { narrow, isColor } from './values';
 
 export const ROLES = [
   'primary',

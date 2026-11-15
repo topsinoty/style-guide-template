@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import * as E from '../../lib/edit.js';
-import { cap } from '../guide/parts.js';
-import type { EditorContext } from './context.js';
+import * as E from '../../lib/edit';
+import { cap } from '../guide/parts';
+import type { EditorContext } from './context';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const themes = computed(() => E.themesOf(props.ctx.doc));

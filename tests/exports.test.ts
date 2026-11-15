@@ -1,9 +1,9 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import type { FontFile } from '../src/lib/types.js';
-import { load, V } from './helpers.js';
-import { tailwindCss, shadcnCss } from '../src/lib/exports.js';
-import * as E from '../src/lib/edit.js';
+import type { FontFile } from '../src/lib/types';
+import { load, V } from './helpers';
+import { tailwindCss, shadcnCss } from '../src/lib/exports';
+import * as E from '../src/lib/edit';
 
 const opts = { vendor: V, fontSrc: (f: FontFile) => f.src };
 

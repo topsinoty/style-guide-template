@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue';
-import * as E from '../../lib/edit.js';
-import { paletteId } from '../../lib/palette.js';
-import type { EditorContext } from './context.js';
+import * as E from '../../lib/edit';
+import { paletteId } from '../../lib/palette';
+import type { EditorContext } from './context';
 import IconButton from './IconButton.vue';
 import NameForm from './NameForm.vue';
 

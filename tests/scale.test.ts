@@ -1,8 +1,8 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { keysOf } from '../src/lib/records.js';
-import { child, withVendorData } from '../src/lib/tree.js';
-import { present, V } from './helpers.js';
+import { keysOf } from '../src/lib/records';
+import { child, withVendorData } from '../src/lib/tree';
+import { present, V } from './helpers';
 import {
   generateScale,
   applyScale,
@@ -10,8 +10,8 @@ import {
   setStep,
   setScaleUnit,
   type ScaleSpec,
-} from '../src/lib/scale.js';
-import type { TokenNode } from '../src/lib/types.js';
+} from '../src/lib/scale';
+import type { TokenNode } from '../src/lib/types';
 
 const spacing = {
   base: { value: 4, unit: 'px' },

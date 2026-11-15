@@ -1,5 +1,5 @@
-import type { FileStore, KeyValueStore } from '../ports.js';
-import type { FileData } from '../lib/types.js';
+import type { FileStore, KeyValueStore } from '../ports';
+import type { FileData } from '../lib/types';
 
 export function memoryKeyValueStore(): KeyValueStore {
   const values = new Map<string, string>();

@@ -1,13 +1,13 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { nodeAt } from '../src/lib/tree.js';
-import { token, load } from './helpers.js';
-import type { BrandMeta } from '../src/lib/types.js';
-import * as E from '../src/lib/edit.js';
-import { removeStep } from '../src/lib/scale.js';
-import { vendorData } from '../src/lib/tree.js';
-import { uniquePath } from '../src/lib/path.js';
-import { resolve } from '../src/lib/resolver.js';
+import { nodeAt } from '../src/lib/tree';
+import { token, load } from './helpers';
+import type { BrandMeta } from '../src/lib/types';
+import * as E from '../src/lib/edit';
+import { removeStep } from '../src/lib/scale';
+import { vendorData } from '../src/lib/tree';
+import { uniquePath } from '../src/lib/path';
+import { resolve } from '../src/lib/resolver';
 
 test('setRole in light writes the foundation, in dark writes the dark context', () => {
   let doc = E.setRole(

@@ -7,7 +7,7 @@ import {
   type InjectionKey,
   type ShallowRef,
 } from 'vue';
-import type { Session } from '../app/session.js';
+import type { Session } from '../app/session';
 
 const SESSION: InjectionKey<ShallowRef<Session>> = Symbol('session');
 

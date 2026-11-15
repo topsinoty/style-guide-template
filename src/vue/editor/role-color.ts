@@ -1,8 +1,8 @@
-import { parseCssColor, toHex } from '../../lib/color.js';
-import { cssName } from '../../lib/css.js';
-import type { PaletteColor } from '../../lib/palette.js';
-import type { DtcgColor } from '../../lib/types.js';
-import { narrow, isColor } from '../../lib/values.js';
+import { parseCssColor, toHex } from '../../lib/color';
+import { cssName } from '../../lib/css';
+import type { PaletteColor } from '../../lib/palette';
+import type { DtcgColor } from '../../lib/types';
+import { narrow, isColor } from '../../lib/values';
 
 export type ColorOption = {
   value: string;

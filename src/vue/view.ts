@@ -1,8 +1,8 @@
-import type { Session } from '../app/session.js';
-import { generateCss } from '../lib/css.js';
-import { resolve } from '../lib/resolver.js';
-import type { BrandMeta, FontFile, Tokens } from '../lib/types.js';
-import { urlFor } from './urls.js';
+import type { Session } from '../app/session';
+import { generateCss } from '../lib/css';
+import { resolve } from '../lib/resolver';
+import type { BrandMeta, FontFile, Tokens } from '../lib/types';
+import { urlFor } from './urls';
 
 export type View = {
   tokens: Tokens;

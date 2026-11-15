@@ -4,14 +4,14 @@ import {
   defaultInputs,
   mergedTree,
   aliasTarget,
-} from './resolver.js';
-import { cssColor } from './color.js';
-import { fontFaceRules, cssString } from './fonts.js';
-import { DEFAULT_ROOT_SIZE, readBrandMeta } from './assets.js';
-import { elementStyles } from './elements.js';
-import { isNode } from './tree.js';
-import { valueAt } from './records.js';
-import type { FlatToken, FontFile, ResolverDoc, Dimension } from './types.js';
+} from './resolver';
+import { cssColor } from './color';
+import { fontFaceRules, cssString } from './fonts';
+import { DEFAULT_ROOT_SIZE, readBrandMeta } from './assets';
+import { elementStyles } from './elements';
+import { isNode } from './tree';
+import { valueAt } from './records';
+import type { FlatToken, FontFile, ResolverDoc, Dimension } from './types';
 import {
   narrow,
   isBorder,
@@ -23,7 +23,7 @@ import {
   isShadow,
   isSize,
   isTransition,
-} from './values.js';
+} from './values';
 
 type Namer = (path: string) => string;
 

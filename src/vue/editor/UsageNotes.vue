@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, useId } from 'vue';
-import { cssName } from '../../lib/css.js';
-import * as E from '../../lib/edit.js';
-import { nodeAt } from '../../lib/tree.js';
-import type { EditorContext } from './context.js';
+import { cssName } from '../../lib/css';
+import * as E from '../../lib/edit';
+import { nodeAt } from '../../lib/tree';
+import type { EditorContext } from './context';
 import ItemRow from './ItemRow.vue';
 import TextArea from './TextArea.vue';
 

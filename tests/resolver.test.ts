@@ -1,10 +1,10 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { setToken } from '../src/lib/edit.js';
-import { nodeAt } from '../src/lib/tree.js';
-import { narrow, isColor, isTypography } from '../src/lib/values.js';
-import type { ResolverDoc, Tokens } from '../src/lib/types.js';
-import { load, present, token } from './helpers.js';
+import { setToken } from '../src/lib/edit';
+import { nodeAt } from '../src/lib/tree';
+import { narrow, isColor, isTypography } from '../src/lib/values';
+import type { ResolverDoc, Tokens } from '../src/lib/types';
+import { load, present, token } from './helpers';
 import {
   ResolveError,
   resolve,
@@ -12,8 +12,8 @@ import {
   defaultInputs,
   aliasTarget,
   flatten,
-} from '../src/lib/resolver.js';
-import { toHex } from '../src/lib/color.js';
+} from '../src/lib/resolver';
+import { toHex } from '../src/lib/color';
 
 const tree = (doc: ResolverDoc) => doc.sets.foundation.sources[0];
 

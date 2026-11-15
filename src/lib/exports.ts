@@ -1,9 +1,9 @@
-import { block, generateCss, cssName } from './css.js';
-import { resolve, contexts, defaultInputs } from './resolver.js';
-import { toOklchString } from './color.js';
-import type { ExportFormat } from '../ports.js';
-import { narrow, isColor, isSize } from './values.js';
-import type { FontFile, ResolverDoc, Tokens } from './types.js';
+import { block, generateCss, cssName } from './css';
+import { resolve, contexts, defaultInputs } from './resolver';
+import { toOklchString } from './color';
+import type { ExportFormat } from '../ports';
+import { narrow, isColor, isSize } from './values';
+import type { FontFile, ResolverDoc, Tokens } from './types';
 
 const tailwindName = (path: string) =>
   path.startsWith('font-size.')

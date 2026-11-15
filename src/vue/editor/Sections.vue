@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
-import * as E from '../../lib/edit.js';
-import type { TextSection } from '../../lib/types.js';
+import * as E from '../../lib/edit';
+import type { TextSection } from '../../lib/types';
 import {
   addSection,
   editSection,
@@ -10,12 +10,12 @@ import {
   removeSection,
   sectionsOf,
   type Section,
-} from '../guide/sections.js';
-import type { EditorContext } from './context.js';
+} from '../guide/sections';
+import type { EditorContext } from './context';
 import ItemRow from './ItemRow.vue';
 import TextArea from './TextArea.vue';
 import TextField from './TextField.vue';
-import { elementPreview } from './preview.js';
+import { elementPreview } from './preview';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const sections = computed(() => sectionsOf(props.ctx.meta, props.ctx.tokens));

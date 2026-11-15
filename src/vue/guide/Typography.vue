@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import Card from './Card.vue';
-import { cssName } from '../../lib/css.js';
-import { cssString, sortFontFiles } from '../../lib/fonts.js';
-import type { BrandMeta, FontFile, Tokens } from '../../lib/types.js';
-import { narrow, isTypography } from '../../lib/values.js';
-import { dim } from './parts.js';
+import { cssName } from '../../lib/css';
+import { cssString, sortFontFiles } from '../../lib/fonts';
+import type { BrandMeta, FontFile, Tokens } from '../../lib/types';
+import { narrow, isTypography } from '../../lib/values';
+import { dim } from './parts';
 
 const props = defineProps<{ tokens: Tokens; meta: BrandMeta }>();
 const sizes = computed(() =>

@@ -1,10 +1,10 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { keysOf } from '../src/lib/records.js';
-import type { FileData } from '../src/lib/types.js';
-import { nodeAt, vendorData } from '../src/lib/tree.js';
-import { fontsource } from '../src/adapters/fontsource.js';
-import { present, load, V } from './helpers.js';
+import { keysOf } from '../src/lib/records';
+import type { FileData } from '../src/lib/types';
+import { nodeAt, vendorData } from '../src/lib/tree';
+import { fontsource } from '../src/adapters/fontsource';
+import { present, load, V } from './helpers';
 import {
   brandMeta,
   withBrandMeta,
@@ -12,7 +12,7 @@ import {
   resolveAsset,
   missingAssets,
   matchDropped,
-} from '../src/lib/assets.js';
+} from '../src/lib/assets';
 
 const font = {
   family: 'M',
@@ -138,8 +138,7 @@ test('srcs that are not plain relative paths are treated as missing', () => {
 });
 
 test('brand metadata is validated', async () => {
-  const { validateBrandMeta } =
-    await import('../src/adapters/zod-validator.js');
+  const { validateBrandMeta } = await import('../src/adapters/zod-validator');
   assert.deepEqual(
     validateBrandMeta({
       assetGroups: [
@@ -168,7 +167,7 @@ test('brand metadata is validated', async () => {
 });
 
 test('adoptVendor moves every foreign extension (tokens and groups) to this site', async () => {
-  const { adoptVendor } = await import('../src/lib/assets.js');
+  const { adoptVendor } = await import('../src/lib/assets');
   const doc = load();
   const t = doc.sets.foundation.sources[0];
   const move = (owner: { $extensions?: Record<string, unknown> }) => {
@@ -192,7 +191,7 @@ test('adoptVendor moves every foreign extension (tokens and groups) to this site
 });
 
 test('readBrandMeta applies defaults, keeps unknown fields and skips unusable entries', async () => {
-  const { readBrandMeta } = await import('../src/lib/assets.js');
+  const { readBrandMeta } = await import('../src/lib/assets');
   const meta = readBrandMeta({
     note: 'from another tool',
     assetGroups: [

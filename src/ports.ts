@@ -6,7 +6,7 @@ import type {
   Manifest,
   Problem,
   ResolverDoc,
-} from './lib/types.js';
+} from './lib/types';
 
 export type KeyValueStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 

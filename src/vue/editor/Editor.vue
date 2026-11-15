@@ -8,9 +8,9 @@ import {
   TabsRoot,
   TabsTrigger,
 } from 'reka-ui';
-import type { Session } from '../../app/session.js';
-import type { Tokens } from '../../lib/types.js';
-import { editorContext } from './context.js';
+import type { Session } from '../../app/session';
+import type { Tokens } from '../../lib/types';
+import { editorContext } from './context';
 import Brand from './Brand.vue';
 import Palette from './Palette.vue';
 import Roles from './Roles.vue';
@@ -25,7 +25,7 @@ import Themes from './Themes.vue';
 import ThemeBar from './ThemeBar.vue';
 import UsageNotes from './UsageNotes.vue';
 import Contrast from './Contrast.vue';
-import { areaId, scrollToArea } from './areas.js';
+import { areaId, scrollToArea } from './areas';
 
 const props = defineProps<{
   session: Session;

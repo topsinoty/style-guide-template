@@ -1,10 +1,10 @@
 import { test } from 'vitest';
-import { valueAt } from '../src/lib/records.js';
+import { valueAt } from '../src/lib/records';
 import assert from 'node:assert/strict';
-import { setToken } from '../src/lib/edit.js';
-import { present, load } from './helpers.js';
-import { checkContrast, requiredPairs, ROLES } from '../src/lib/contrast.js';
-import { resolve } from '../src/lib/resolver.js';
+import { setToken } from '../src/lib/edit';
+import { present, load } from './helpers';
+import { checkContrast, requiredPairs, ROLES } from '../src/lib/contrast';
+import { resolve } from '../src/lib/resolver';
 
 const srgb = (v: number) => ({ colorSpace: 'srgb', components: [v, v, v] });
 

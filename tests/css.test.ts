@@ -1,11 +1,11 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import type { FontFile } from '../src/lib/types.js';
-import { setToken } from '../src/lib/edit.js';
-import { load, present, V } from './helpers.js';
+import type { FontFile } from '../src/lib/types';
+import { setToken } from '../src/lib/edit';
+import { load, present, V } from './helpers';
 import { readFileSync } from 'node:fs';
-import { cssName, cssValue, generateCss } from '../src/lib/css.js';
-import { fontFaceRules } from '../src/lib/fonts.js';
+import { cssName, cssValue, generateCss } from '../src/lib/css';
+import { fontFaceRules } from '../src/lib/fonts';
 
 const opts = { vendor: V, fontSrc: (e: FontFile) => e.src };
 

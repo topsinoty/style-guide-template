@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import AddPanel from './AddPanel.vue';
 import { computed, ref, useId } from 'vue';
-import { toHex } from '../../lib/color.js';
-import { cssName } from '../../lib/css.js';
-import * as E from '../../lib/edit.js';
-import { paletteColors } from '../../lib/palette.js';
-import { narrow, isColor } from '../../lib/values.js';
-import { COLOR_ERROR } from '../../lib/color.js';
-import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections.js';
+import { toHex } from '../../lib/color';
+import { cssName } from '../../lib/css';
+import * as E from '../../lib/edit';
+import { paletteColors } from '../../lib/palette';
+import { narrow, isColor } from '../../lib/values';
+import { COLOR_ERROR } from '../../lib/color';
+import { isOtherColor, isOtherToken, ownEditor } from '../guide/sections';
 import Choice from './Choice.vue';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 import IconButton from './IconButton.vue';
 import {
   NEW_TOKEN_TYPES,
   UNITS,
   tokenValue,
   valueExample,
-} from './other-tokens.js';
-import { colorOptions, roleEntry, roleText } from './role-color.js';
+} from './other-tokens';
+import { colorOptions, roleEntry, roleText } from './role-color';
 import RoleColorCombobox from './RoleColorCombobox.vue';
 import Listbox from '../Listbox.vue';
 import ThemeBar from './ThemeBar.vue';

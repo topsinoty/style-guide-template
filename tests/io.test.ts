@@ -1,11 +1,11 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { zodValidator } from '../src/adapters/zod-validator.js';
-import { keysOf } from '../src/lib/records.js';
-import { setToken } from '../src/lib/edit.js';
-import { isNode, nodeAt } from '../src/lib/tree.js';
-import { fontsource } from '../src/adapters/fontsource.js';
-import { present, load, preset, token, V } from './helpers.js';
+import { zodValidator } from '../src/adapters/zod-validator';
+import { keysOf } from '../src/lib/records';
+import { setToken } from '../src/lib/edit';
+import { isNode, nodeAt } from '../src/lib/tree';
+import { fontsource } from '../src/adapters/fontsource';
+import { present, load, preset, token, V } from './helpers';
 import { unzipSync } from 'fflate';
 import {
   classify,
@@ -16,12 +16,12 @@ import {
   exportLayout,
   buildExport,
   readme,
-} from '../src/lib/io.js';
-import { resolve } from '../src/lib/resolver.js';
-import { brandMeta, withBrandMeta } from '../src/lib/assets.js';
-import { blankBrand } from '../src/lib/palette.js';
-import { addScaleStep } from '../src/lib/scale.js';
-import { withVendorData } from '../src/lib/tree.js';
+} from '../src/lib/io';
+import { resolve } from '../src/lib/resolver';
+import { brandMeta, withBrandMeta } from '../src/lib/assets';
+import { blankBrand } from '../src/lib/palette';
+import { addScaleStep } from '../src/lib/scale';
+import { withVendorData } from '../src/lib/tree';
 
 const bytes = (s: string) => new TextEncoder().encode(s);
 const text = (b: Uint8Array) => new TextDecoder().decode(b);

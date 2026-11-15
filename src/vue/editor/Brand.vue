@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { EditorContext } from './context.js';
-import { elementPreview } from './preview.js';
+import type { EditorContext } from './context';
+import { elementPreview } from './preview';
 import TextArea from './TextArea.vue';
 import TextField from './TextField.vue';
 

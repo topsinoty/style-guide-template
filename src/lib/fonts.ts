@@ -1,5 +1,5 @@
-import { extension } from './path.js';
-import type { FontFile } from './types.js';
+import { extension } from './path';
+import type { FontFile } from './types';
 
 const FORMATS: Record<string, string> = {
   woff2: 'woff2',

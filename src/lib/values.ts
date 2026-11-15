@@ -1,4 +1,4 @@
-import { isNode } from './tree.js';
+import { isNode } from './tree';
 import type {
   Alias,
   Border,
@@ -14,7 +14,7 @@ import type {
   StrokeStyle,
   Transition,
   Typography,
-} from './types.js';
+} from './types';
 
 type Guard<T> = (value: unknown) => value is T;
 

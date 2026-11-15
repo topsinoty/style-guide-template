@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { errorMessage } from '../../lib/io.js';
+import { errorMessage } from '../../lib/io';
 import { computed, ref, shallowReactive } from 'vue';
 import { useFileDialog } from '@vueuse/core';
 import {
@@ -11,7 +11,7 @@ import {
   DialogRoot,
   DialogTitle,
 } from 'reka-ui';
-import { injectSession } from '../useSession.js';
+import { injectSession } from '../useSession';
 import Icon from '../Icon.vue';
 import Listbox from '../Listbox.vue';
 

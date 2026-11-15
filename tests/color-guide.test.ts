@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'vitest';
-import { palettePath } from '../src/vue/guide/color-path.js';
+import { palettePath } from '../src/vue/guide/color-path';
 
 test('treats a single named color as a palette entry', () => {
   assert.deepEqual(palettePath('color.accent'), { group: 'accent', step: '' });

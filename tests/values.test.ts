@@ -1,8 +1,8 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import * as z from 'zod/mini';
-import { flatten, mergedTree, defaultInputs } from '../src/lib/resolver.js';
-import { VALUES } from '../src/adapters/zod-validator.js';
+import { flatten, mergedTree, defaultInputs } from '../src/lib/resolver';
+import { VALUES } from '../src/adapters/zod-validator';
 import {
   isAlias,
   isBorder,
@@ -16,8 +16,8 @@ import {
   isTransition,
   isTypography,
   narrow,
-} from '../src/lib/values.js';
-import { preset } from './helpers.js';
+} from '../src/lib/values';
+import { preset } from './helpers';
 
 const red = { colorSpace: 'srgb', components: [1, 0, 0] };
 const px = (value: number) => ({ value, unit: 'px' });

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { errorMessage } from '../../lib/io.js';
+import { errorMessage } from '../../lib/io';
 import Choice from './Choice.vue';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 
 const { ctx } = defineProps<{ ctx: EditorContext }>();
 const presets = computed(() =>

@@ -1,5 +1,5 @@
-import { HOSTED_URL } from '../config.js';
-import { valueAt } from '../lib/records.js';
+import { HOSTED_URL } from '../config';
+import { valueAt } from '../lib/records';
 import {
   adoptVendor,
   allSrcs,
@@ -9,8 +9,8 @@ import {
   matchDropped,
   missingAssets,
   withBrandMeta,
-} from '../lib/assets.js';
-import * as E from '../lib/edit.js';
+} from '../lib/assets';
+import * as E from '../lib/edit';
 import {
   buildExport,
   classify,
@@ -20,9 +20,9 @@ import {
   problemText,
   saveJson,
   slug,
-} from '../lib/io.js';
-import { blankBrand } from '../lib/palette.js';
-import { createStore, type Store } from '../lib/state.js';
+} from '../lib/io';
+import { blankBrand } from '../lib/palette';
+import { createStore, type Store } from '../lib/state';
 import type {
   AssetContext,
   BrandMeta,
@@ -30,16 +30,16 @@ import type {
   Problem,
   ResolverDoc,
   SessionFiles,
-} from '../lib/types.js';
-import { uniquePath } from '../lib/path.js';
+} from '../lib/types';
+import { uniquePath } from '../lib/path';
 import type {
   Parsed,
   FileStore,
   FontProvider,
   KeyValueStore,
   Validator,
-} from '../ports.js';
-import { vendorKey } from '../lib/vendor-key.js';
+} from '../ports';
+import { vendorKey } from '../lib/vendor-key';
 
 export type Ambiguous = {
   file: File;

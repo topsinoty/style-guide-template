@@ -1,17 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, useId } from 'vue';
-import * as E from '../../lib/edit.js';
-import { child, children } from '../../lib/tree.js';
-import {
-  narrow,
-  isFontFamily,
-  isSize,
-  isTypography,
-} from '../../lib/values.js';
-import { cap, dim } from '../guide/parts.js';
+import * as E from '../../lib/edit';
+import { child, children } from '../../lib/tree';
+import { narrow, isFontFamily, isSize, isTypography } from '../../lib/values';
+import { cap, dim } from '../guide/parts';
 import FontPicker from '../FontPicker.vue';
 import Choice from './Choice.vue';
-import type { EditorContext } from './context.js';
+import type { EditorContext } from './context';
 import IconButton from './IconButton.vue';
 import NameForm from './NameForm.vue';
 import NumberField from './NumberField.vue';
@@ -20,15 +15,15 @@ import ItemRow from './ItemRow.vue';
 import Scales from './Scales.vue';
 import Listbox from '../Listbox.vue';
 import Icon from '../Icon.vue';
-import { cssName } from '../../lib/css.js';
-import { sortFontFiles } from '../../lib/fonts.js';
+import { cssName } from '../../lib/css';
+import { sortFontFiles } from '../../lib/fonts';
 import {
   ELEMENTS,
   addStandardStyles,
   elementOf,
   elementStyles,
   setElement,
-} from '../../lib/elements.js';
+} from '../../lib/elements';
 
 const props = defineProps<{ ctx: EditorContext }>();
 const draftWeights = reactive<Record<string, number | undefined>>({});

@@ -6,7 +6,7 @@ import {
   PopoverRoot,
   PopoverTrigger,
 } from 'reka-ui';
-import type { ContrastResult } from '../../lib/types.js';
+import type { ContrastResult } from '../../lib/types';
 import Icon from '../Icon.vue';
 
 const props = defineProps<{ contrast: ContrastResult[] }>();

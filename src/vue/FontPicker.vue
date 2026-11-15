@@ -10,9 +10,9 @@ import {
   useId,
 } from 'vue';
 import { useAsyncState } from '@vueuse/core';
-import { errorMessage } from '../lib/io.js';
-import type { FontDetail, FontFile, FontListing } from '../lib/types.js';
-import type { FontPicks, FontProvider } from '../ports.js';
+import { errorMessage } from '../lib/io';
+import type { FontDetail, FontFile, FontListing } from '../lib/types';
+import type { FontPicks, FontProvider } from '../ports';
 import Listbox from './Listbox.vue';
 import Icon from './Icon.vue';
 

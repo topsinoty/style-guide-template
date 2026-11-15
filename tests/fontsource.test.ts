@@ -1,15 +1,15 @@
 import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { keysOf } from '../src/lib/records.js';
+import { keysOf } from '../src/lib/records';
 import * as z from 'zod/mini';
-import { fixture, present } from './helpers.js';
+import { fixture, present } from './helpers';
 import {
   fontDetail,
   fontFiles,
   fontsource,
   parseList,
-} from '../src/adapters/fontsource.js';
-import { memoryKeyValueStore } from '../src/adapters/memory.js';
+} from '../src/adapters/fontsource';
+import { memoryKeyValueStore } from '../src/adapters/memory';
 
 const detail = z.parse(fontDetail, fixture('fontsource-merriweather.json'));
 const listResponse = () =>

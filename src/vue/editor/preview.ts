@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'vue';
-import { cssName } from '../../lib/css.js';
-import { elementStyles } from '../../lib/elements.js';
-import type { TokenNode } from '../../lib/types.js';
+import { cssName } from '../../lib/css';
+import { elementStyles } from '../../lib/elements';
+import type { TokenNode } from '../../lib/types';
 
 const SIZES: Record<string, string> = {
   h1: 'var(--ed-fs-xl)',
