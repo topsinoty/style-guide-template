@@ -621,6 +621,7 @@
 @keyframes ed-expand {
 	from {
 		height: 0;
+		padding-block: 0;
 		opacity: 0;
 		overflow: hidden;
 	}
@@ -639,6 +640,7 @@
 
 	to {
 		height: 0;
+		padding-block: 0;
 		opacity: 0;
 		overflow: hidden;
 	}
