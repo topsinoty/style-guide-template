@@ -28,7 +28,7 @@ function radiusText(value: unknown) {
       <div class="cd-bar" :style="{ width: value(path) }"></div>
     </div>
   </Card>
-  <div v-else :class="['cd-swatch-grid', { 'cd-shadow-stage': kind === 'shadow' }]">
+  <Card v-else :class="['cd-swatch-grid', { 'cd-shadow-stage': kind === 'shadow' }]" :label="kind">
     <figure v-for="[path, token] in steps" :key="path">
       <div
         :class="kind === 'radius' ? 'cd-radius-box' : 'cd-shadow-box'"
@@ -40,5 +40,5 @@ function radiusText(value: unknown) {
         <small v-if="token.description" class="cd-usage">{{ token.description }}</small>
       </figcaption>
     </figure>
-  </div>
+  </Card>
 </template>
