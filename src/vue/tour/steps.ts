@@ -128,8 +128,8 @@ export const EDIT_STEPS: TourStep[] = [
   },
   {
     title: 'Keep and share your work',
-    body: 'Save JSON downloads the brand file; Load opens it again. Export ZIP downloads a brand kit with the file, CSS, fonts and assets.',
-    target: '#export-btn',
+    body: 'Save downloads the brand file as JSON, a brand kit ZIP with the file, CSS, fonts and assets, or the brand book as a PDF. Load opens a brand file again.',
+    target: '#save-btn',
     drawer: false,
   },
   {
@@ -153,8 +153,8 @@ export const READ_STEPS: TourStep[] = [
   },
   {
     title: 'Take it with you',
-    body: 'Save JSON downloads the brand file. Export ZIP downloads a brand kit with the file, CSS, fonts and assets.',
-    target: '#export-btn',
+    body: 'Save downloads the brand file as JSON, a brand kit ZIP with the file, CSS, fonts and assets, or the brand book as a PDF.',
+    target: '#save-btn',
   },
   {
     title: 'Help',

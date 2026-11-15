@@ -8,7 +8,6 @@ defineProps<{
   title: string;
   busy?: boolean;
 }>();
-defineEmits<{ click: [] }>();
 </script>
 
 <template>
@@ -19,7 +18,6 @@ defineEmits<{ click: [] }>();
     :title="title"
     :aria-busy="busy ? 'true' : undefined"
     :disabled="busy || undefined"
-    @click="$emit('click')"
   >
     <Icon :name="icon" /><span class="cd-action-label">{{ label }}</span>
   </button>

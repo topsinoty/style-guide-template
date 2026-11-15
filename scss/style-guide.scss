@@ -164,3 +164,4 @@ p {
 @include meta.load-css('../partials/basic-style');
 @include meta.load-css('../partials/editor');
 @include meta.load-css('../partials/drawer');
+@include meta.load-css('../partials/print');
