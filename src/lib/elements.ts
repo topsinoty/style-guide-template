@@ -1,7 +1,6 @@
 import { child, children, vendorData, withVendorData } from './tree.js';
 import type { TokenNode } from './types.js';
 
-// HTML elements a text style can be applied to, as Word applies Heading 1 to a paragraph.
 export const ELEMENTS = [
   { value: 'h1', label: 'Heading 1' },
   { value: 'h2', label: 'Heading 2' },
@@ -28,7 +27,6 @@ export function elementOf(name: string, token: TokenNode | undefined, vendor: st
   return inferred(name);
 }
 
-/** Element → text style name; the first style claiming an element keeps it. */
 export function elementStyles(tree: TokenNode | undefined, vendor: string): Map<string, string> {
   const out = new Map<string, string>();
   for (const [name, token] of children(child(tree, 'typography'))) {
@@ -38,7 +36,6 @@ export function elementStyles(tree: TokenNode | undefined, vendor: string): Map<
   return out;
 }
 
-/** Applies a style to an element, taking the element away from any other style. */
 export function setElement(group: TokenNode, name: string, element: string, vendor: string): TokenNode {
   const out = structuredClone(group);
   for (const [other, token] of children(out)) {

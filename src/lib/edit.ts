@@ -72,7 +72,6 @@ export const themesOf = (doc: ResolverDoc) => keysOf(doc.modifiers?.[THEME]?.con
 export const defaultTheme = (doc: ResolverDoc): string | undefined =>
   doc.modifiers?.[THEME]?.default ?? themesOf(doc)[0];
 
-/** Where a theme's own tokens live: the foundation for the default theme, else the theme's overrides. */
 export function themeSource(doc: ResolverDoc, theme: string): TokenNode | undefined {
   const mod = doc.modifiers?.[THEME];
   if (!mod || theme === defaultTheme(doc) || !mod.contexts[theme]) return foundation(doc);

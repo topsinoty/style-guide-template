@@ -7,25 +7,22 @@
 :root {
 	--ed-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 	--ed-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-	--ed-bg: light-dark(#f7f7f5, #141416); // ds-allow-hardcode: editor palette
-	--ed-surface: light-dark(#ffffff, #1c1c1f); // ds-allow-hardcode: editor palette
-	--ed-sunken: light-dark(#efefec, #101012); // ds-allow-hardcode: editor palette
-	--ed-hover: light-dark(#ecece8, #26262a); // ds-allow-hardcode: editor palette
-	--ed-border: light-dark(#e1e1dc, #2c2c31); // ds-allow-hardcode: editor palette
-	--ed-border-strong: light-dark(
-		#85857e,
-		#76767f
-	); // ds-allow-hardcode: editor palette, 3:1 on surface and bg
-	--ed-text: light-dark(#1a1a1c, #ededef); // ds-allow-hardcode: editor palette
-	--ed-text-2: light-dark(#585860, #a6a6ae); // ds-allow-hardcode: editor palette
-	--ed-accent: light-dark(#2952cc, #8fa9ff); // ds-allow-hardcode: editor palette
-	--ed-accent-hover: light-dark(#1f42ad, #a9bdff); // ds-allow-hardcode: editor palette
-	--ed-on-accent: light-dark(#ffffff, #0c1433); // ds-allow-hardcode: editor palette
-	--ed-accent-soft: light-dark(#e9eefc, #1f2742); // ds-allow-hardcode: editor palette
-	--ed-danger: light-dark(#b42318, #ff8f85); // ds-allow-hardcode: editor palette
-	--ed-ok: light-dark(#18794e, #6ad59b); // ds-allow-hardcode: editor palette
-	--ed-warn: light-dark(#a15c07, #f5b55c); // ds-allow-hardcode: editor palette
-	--ed-shadow: 0 #{ed(0.5)} #{ed(1.5)} light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5)); // ds-allow-hardcode: editor palette
+	--ed-bg: light-dark(#f7f7f5, #141416);
+	--ed-surface: light-dark(#ffffff, #1c1c1f);
+	--ed-sunken: light-dark(#efefec, #101012);
+	--ed-hover: light-dark(#ecece8, #26262a);
+	--ed-border: light-dark(#e1e1dc, #2c2c31);
+	--ed-border-strong: light-dark(#85857e, #76767f);
+	--ed-text: light-dark(#1a1a1c, #ededef);
+	--ed-text-2: light-dark(#585860, #a6a6ae);
+	--ed-accent: light-dark(#2952cc, #8fa9ff);
+	--ed-accent-hover: light-dark(#1f42ad, #a9bdff);
+	--ed-on-accent: light-dark(#ffffff, #0c1433);
+	--ed-accent-soft: light-dark(#e9eefc, #1f2742);
+	--ed-danger: light-dark(#b42318, #ff8f85);
+	--ed-ok: light-dark(#18794e, #6ad59b);
+	--ed-warn: light-dark(#a15c07, #f5b55c);
+	--ed-shadow: 0 #{ed(0.5)} #{ed(1.5)} light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5));
 	--ed-1: #{ed(0.25)};
 	--ed-2: #{ed(0.5)};
 	--ed-3: #{ed(0.75)};
@@ -50,7 +47,6 @@
 	}
 }
 
-// Shared look for every piece of editor UI, in the drawer and in popups.
 %ed-base {
 	font-family: var(--ed-font);
 	font-size: var(--ed-fs);
@@ -78,7 +74,7 @@
 	}
 
 	:focus-visible {
-		outline: 2px solid var(--ed-accent); // ds-allow-hardcode: focus ring
+		outline: 2px solid var(--ed-accent);
 		outline-offset: 1px;
 	}
 
@@ -89,7 +85,7 @@
 		gap: var(--ed-1);
 		min-height: var(--ed-control);
 		padding: 0 var(--ed-3);
-		border: 1px solid transparent; // ds-allow-hardcode: hairline
+		border: 1px solid transparent;
 		border-radius: var(--ed-r);
 		background: var(--ed-accent);
 		color: var(--ed-on-accent);
@@ -165,7 +161,7 @@
 		width: 100%;
 		min-height: var(--ed-control);
 		padding: 0 var(--ed-2);
-		border: 1px solid var(--ed-border-strong); // ds-allow-hardcode: hairline
+		border: 1px solid var(--ed-border-strong);
 		border-radius: var(--ed-r);
 		background: var(--ed-surface);
 		color: var(--ed-text);
@@ -201,8 +197,8 @@
 	.cd-role-swatch {
 		width: var(--ed-control);
 		height: var(--ed-control);
-		padding: 2px; // ds-allow-hardcode: swatch inset
-		border: 1px solid var(--ed-border-strong); // ds-allow-hardcode: hairline
+		padding: 2px;
+		border: 1px solid var(--ed-border-strong);
 		border-radius: var(--ed-r);
 		background: var(--ed-surface);
 	}
@@ -239,8 +235,8 @@
 		width: ed(0.875);
 		height: ed(0.875);
 		margin-right: var(--ed-1);
-		border-radius: 3px; // ds-allow-hardcode: chip corner
-		box-shadow: inset 0 0 0 1px var(--ed-border-strong); // ds-allow-hardcode: hairline
+		border-radius: 3px;
+		box-shadow: inset 0 0 0 1px var(--ed-border-strong);
 	}
 }
 
@@ -248,7 +244,7 @@
 	@extend %ed-base;
 
 	background: var(--ed-bg);
-	border-left: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border-left: 1px solid var(--ed-border);
 	box-shadow: var(--ed-shadow);
 
 	@include MQ(S) {
@@ -274,7 +270,6 @@
 		line-height: inherit;
 	}
 
-	// The guide's section spacing and numbering belong to the page, not the editor.
 	section {
 		min-width: 0;
 		margin: 0;
@@ -284,7 +279,7 @@
 
 .cd-drawer-header {
 	padding: var(--ed-2) var(--ed-3) var(--ed-2) var(--ed-4);
-	border-bottom: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border-bottom: 1px solid var(--ed-border);
 	background: var(--ed-surface);
 
 	h2 {
@@ -301,12 +296,11 @@
 	padding: 0;
 }
 
-// Stays on top while the panel scrolls: where you are, where to jump, which theme.
 .ed-sticky {
 	position: sticky;
 	top: 0;
 	z-index: 2;
-	border-bottom: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border-bottom: 1px solid var(--ed-border);
 	background: var(--ed-surface);
 
 	.ed-theme-bar {
@@ -329,8 +323,8 @@
 		flex: none;
 		min-height: ed(1.75);
 		padding: 0 var(--ed-2);
-		border: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
-		border-radius: 999px; // ds-allow-hardcode: pill
+		border: 1px solid var(--ed-border);
+		border-radius: 999px;
 		background: none;
 		color: var(--ed-text-2);
 		font: 500 var(--ed-fs-xs) / 1 var(--ed-font);
@@ -343,13 +337,12 @@
 	}
 }
 
-// Tabs: the five jobs of the editor.
 .ed-tabs {
 	position: relative;
 	display: flex;
 	gap: var(--ed-1);
 	padding: var(--ed-2) var(--ed-4) 0;
-	border-bottom: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border-bottom: 1px solid var(--ed-border);
 	overflow-x: auto;
 
 	[role='tab'] {
@@ -383,7 +376,7 @@
 	bottom: 0;
 	left: 0;
 	width: var(--reka-tabs-indicator-size);
-	height: 2px; // ds-allow-hardcode: tab indicator
+	height: 2px;
 	padding: 0 var(--ed-2);
 	transform: translateX(var(--reka-tabs-indicator-position));
 	background: var(--ed-accent) content-box;
@@ -400,7 +393,7 @@
 	}
 
 	&:focus-visible {
-		outline-offset: -2px; // ds-allow-hardcode: focus ring inset
+		outline-offset: -2px;
 	}
 }
 
@@ -411,7 +404,7 @@
 	& + & {
 		margin-top: var(--ed-5);
 		padding-top: var(--ed-5);
-		border-top: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+		border-top: 1px solid var(--ed-border);
 	}
 
 	> h3 {
@@ -432,7 +425,6 @@
 	}
 }
 
-// Sub-group inside an area (a palette color, a scale, an asset group).
 .ed-group {
 	display: grid;
 	gap: var(--ed-2);
@@ -455,7 +447,6 @@
 	}
 }
 
-// Fields: label above control, quiet label.
 .cd-field {
 	display: grid;
 	gap: var(--ed-1);
@@ -509,14 +500,13 @@
 	align-self: end;
 }
 
-// A form that adds something: one line, quiet until used.
 .ed-add {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: var(--ed-2);
 	padding: var(--ed-3);
-	border: 1px dashed var(--ed-border); // ds-allow-hardcode: hairline
+	border: 1px dashed var(--ed-border);
 	border-radius: var(--ed-r);
 
 	> .cd-field {
@@ -528,18 +518,17 @@
 	}
 }
 
-// Rows: a list of things, each one line until opened.
 .ed-list {
 	display: grid;
 	margin: 0;
 	padding: 0;
-	border: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border: 1px solid var(--ed-border);
 	border-radius: var(--ed-r);
 	background: var(--ed-surface);
 	list-style: none;
 
 	> li + li {
-		border-top: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+		border-top: 1px solid var(--ed-border);
 	}
 }
 
@@ -669,7 +658,7 @@
 	border-radius: var(--ed-r);
 	background: var(--ed-sunken);
 	object-fit: contain;
-	box-shadow: inset 0 0 0 1px var(--ed-border); // ds-allow-hardcode: hairline
+	box-shadow: inset 0 0 0 1px var(--ed-border);
 }
 
 .ed-thumb-file {
@@ -685,14 +674,13 @@
 .ed-badge {
 	flex: none;
 	padding: ed(0.125) var(--ed-2);
-	border-radius: 999px; // ds-allow-hardcode: pill
+	border-radius: 999px;
 	background: var(--ed-accent-soft);
 	color: var(--ed-accent);
 	font-size: var(--ed-fs-xs);
 	font-weight: 500;
 }
 
-// Compact table rows for scales and simple tokens: name, value, unit, remove.
 .ed-table {
 	display: grid;
 	margin: 0;
@@ -707,7 +695,7 @@
 		padding: var(--ed-1) 0;
 
 		& + li {
-			border-top: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+			border-top: 1px solid var(--ed-border);
 		}
 	}
 
@@ -732,7 +720,6 @@
 	background: var(--ed-accent);
 }
 
-// Theme switcher shown above color editing.
 .ed-theme-bar {
 	display: flex;
 	align-items: center;
@@ -750,8 +737,8 @@
 .ed-segmented {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 2px; // ds-allow-hardcode: segment gap
-	padding: 2px; // ds-allow-hardcode: segment inset
+	gap: 2px;
+	padding: 2px;
 	border-radius: var(--ed-r);
 	background: var(--ed-sunken);
 
@@ -779,12 +766,11 @@
 			color: var(--ed-text);
 			box-shadow:
 				0 0 0 1px var(--ed-border),
-				0 1px 2px rgb(0 0 0 / 0.12); // ds-allow-hardcode: segment lift
+				0 1px 2px rgb(0 0 0 / 0.12);
 		}
 	}
 }
 
-// Popups and dialogs opened from the editor share its look.
 .cd-listbox-popup,
 .cd-combobox-popup,
 .cd-popover,
@@ -793,7 +779,7 @@
 .cd-help {
 	@extend %ed-base;
 
-	border: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border: 1px solid var(--ed-border);
 	border-radius: var(--ed-r);
 	background: var(--ed-surface);
 	box-shadow: var(--ed-shadow);
@@ -808,7 +794,7 @@
 }
 
 .cd-confirm-overlay {
-	background: rgb(0 0 0 / 0.4); // ds-allow-hardcode: scrim
+	background: rgb(0 0 0 / 0.4);
 }
 
 .cd-listbox-option {
@@ -826,14 +812,13 @@
 	}
 }
 
-// Inline-edited names (themes, asset groups): read as text until touched.
 .cd-drawer input.ed-inline-input {
 	flex: 1;
 	min-width: 0;
 	min-height: var(--ed-control);
 	margin-left: var(--ed-1);
 	padding: 0 var(--ed-2);
-	border: 1px solid transparent; // ds-allow-hardcode: hairline
+	border: 1px solid transparent;
 	border-radius: var(--ed-r);
 	background: transparent;
 	color: var(--ed-text);
@@ -865,7 +850,6 @@
 	padding-left: var(--ed-3);
 }
 
-// Label on the left, control on the right: roles, font families.
 .ed-kv {
 	display: grid;
 	grid-template-columns: ed(9) minmax(0, 1fr);
@@ -887,7 +871,6 @@
 	}
 }
 
-// A brand-color preview: the only place brand colors show inside the editor.
 .ed-role-sample,
 .ed-type-sample {
 	display: inline-flex;
@@ -896,7 +879,7 @@
 	justify-content: center;
 	width: ed(2);
 	height: ed(2);
-	border: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border: 1px solid var(--ed-border);
 	border-radius: var(--ed-r);
 	font: 600 var(--ed-fs) / 1 var(--ed-font);
 }
@@ -981,14 +964,14 @@
 	margin: 0 var(--ed-1);
 	border-radius: var(--ed-r);
 	background: var(--ed-surface);
-	outline: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	outline: 1px solid var(--ed-border);
 }
 
 .cd-drawer {
 	.cd-mini-scale {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(ed(1.75), 1fr));
-		gap: 2px; // ds-allow-hardcode: swatch gap
+		gap: 2px;
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -997,16 +980,16 @@
 	.cd-swatch-button {
 		height: ed(2);
 		border-radius: var(--ed-r-inner);
-		box-shadow: inset 0 0 0 1px var(--ed-border); // ds-allow-hardcode: hairline
+		box-shadow: inset 0 0 0 1px var(--ed-border);
 
 		&.is-base {
-			outline: 2px solid var(--ed-text); // ds-allow-hardcode: base marker
+			outline: 2px solid var(--ed-text);
 			outline-offset: 1px;
 		}
 
 		&.is-hand::after {
 			background: var(--ed-surface);
-			box-shadow: 0 0 0 1px var(--ed-text); // ds-allow-hardcode: hairline
+			box-shadow: 0 0 0 1px var(--ed-text);
 		}
 	}
 
@@ -1050,7 +1033,6 @@
 	}
 }
 
-// An asset group's own header sits a level above its files.
 .ed-group-bar {
 	padding: var(--ed-1);
 	border-radius: var(--ed-r);
@@ -1070,12 +1052,11 @@
 	}
 }
 
-// Font catalog: search, results in their own face, then the files to add.
 .ed-catalog {
 	display: grid;
 	gap: var(--ed-2);
 	padding: var(--ed-3);
-	border: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border: 1px solid var(--ed-border);
 	border-radius: var(--ed-r);
 	background: var(--ed-surface);
 	animation: ed-enter var(--ed-slow) var(--ed-ease);
@@ -1171,8 +1152,8 @@
 	gap: var(--ed-1);
 	min-height: ed(1.75);
 	padding: 0 var(--ed-2);
-	border: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
-	border-radius: 999px; // ds-allow-hardcode: pill
+	border: 1px solid var(--ed-border);
+	border-radius: 999px;
 	font-size: var(--ed-fs-sm);
 	cursor: pointer;
 	transition:
@@ -1190,18 +1171,17 @@
 	}
 
 	&:has(:focus-visible) {
-		outline: 2px solid var(--ed-accent); // ds-allow-hardcode: focus ring
+		outline: 2px solid var(--ed-accent);
 		outline-offset: 1px;
 	}
 }
 
-// Says what is missing before a form would fail, with the way there.
 .ed-blocked {
 	display: grid;
 	justify-items: start;
 	gap: var(--ed-2);
 	padding: var(--ed-3);
-	border: 1px dashed var(--ed-border); // ds-allow-hardcode: hairline
+	border: 1px dashed var(--ed-border);
 	border-radius: var(--ed-r);
 }
 
@@ -1229,7 +1209,7 @@
 
 	& + & {
 		padding-top: var(--ed-3);
-		border-top: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+		border-top: 1px solid var(--ed-border);
 	}
 
 	legend {
@@ -1277,7 +1257,7 @@
 	border-radius: var(--ed-r);
 	box-shadow:
 		0 0 0 2px var(--ed-accent),
-		0 0 0 200vmax rgb(0 0 0 / 0.5); // ds-allow-hardcode: scrim
+		0 0 0 200vmax rgb(0 0 0 / 0.5);
 	pointer-events: none;
 	transition:
 		top var(--ed-slow) var(--ed-ease),
@@ -1287,7 +1267,7 @@
 
 	&.is-empty {
 		inset: 50%;
-		box-shadow: 0 0 0 200vmax rgb(0 0 0 / 0.5); // ds-allow-hardcode: scrim
+		box-shadow: 0 0 0 200vmax rgb(0 0 0 / 0.5);
 	}
 }
 
@@ -1348,7 +1328,7 @@
 	position: fixed;
 	inset: 0;
 	z-index: 90;
-	background: rgb(0 0 0 / 0.5); // ds-allow-hardcode: scrim
+	background: rgb(0 0 0 / 0.5);
 }
 
 .cd-help {
@@ -1402,7 +1382,7 @@
 
 	kbd {
 		padding: 0 var(--ed-1);
-		border: 1px solid var(--ed-border-strong); // ds-allow-hardcode: hairline
+		border: 1px solid var(--ed-border-strong);
 		border-radius: var(--ed-r-inner);
 		font: inherit;
 		font-size: var(--ed-fs-xs);
@@ -1432,7 +1412,7 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: var(--ed-3) var(--ed-4);
-	border-bottom: 1px solid var(--ed-border); // ds-allow-hardcode: hairline
+	border-bottom: 1px solid var(--ed-border);
 }
 
 .cd-help-body {

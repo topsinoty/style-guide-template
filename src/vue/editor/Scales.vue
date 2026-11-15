@@ -19,7 +19,6 @@ import IconButton from './IconButton.vue';
 import NameForm from './NameForm.vue';
 import NumberField from './NumberField.vue';
 
-// The Type tab shows the font-size scale beside the text styles that use it.
 const props = withDefaults(defineProps<{ ctx: EditorContext; keys?: string[] }>(), {
   keys: () => ['spacing', 'radius'],
 });
@@ -30,7 +29,6 @@ const SCALES = [
   ['font-size', 'Font sizes'],
 ] as const;
 
-// Before a scale exists, the unit waits for its base.
 const pendingUnit = reactive<Record<string, string>>({});
 
 const scales = computed(() =>
@@ -64,7 +62,6 @@ function setRootSize(value: number) {
   );
 }
 
-// Common step sets, so a new scale is one click rather than a step at a time.
 const STANDARD: Record<string, { linear: Record<string, number>; ratio?: Record<string, number> }> = {
   spacing: { linear: { xs: 1, sm: 2, md: 4, lg: 6, xl: 8, '2xl': 12, '3xl': 16 } },
   radius: { linear: { none: 0, sm: 1, md: 2, lg: 3, xl: 4, full: 9999 } },
@@ -92,7 +89,6 @@ function setUnit(key: string, unit: string) {
     props.ctx.setToken(key, setScaleUnit(group, unit, props.ctx.vendor, props.ctx.meta.rootSize));
 }
 
-// A ratio makes each step a power of it (step 2 is base × ratio²); none multiplies the base.
 function setRatio(key: string, value: number) {
   const spec = scaleOf(child(props.ctx.tree, key), props.ctx.vendor);
   if (!spec) return props.ctx.session.warn('Set the base first.');

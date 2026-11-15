@@ -1,9 +1,6 @@
 @use 'sass:meta';
 @use '../partials/layout' as *;
 
-// Every color, font, size, radius, shadow and duration comes from the brand's
-// CSS custom properties, generated from its DTCG resolver file at runtime.
-
 :root {
 	color-scheme: light;
 }
@@ -14,7 +11,7 @@ body {
 }
 
 .cd-box {
-	border: 1px solid var(--color-card-border); // ds-allow-hardcode: hairline
+	border: 1px solid var(--color-card-border);
 	border-radius: var(--radius-sm);
 	background: var(--color-card-background);
 	color: var(--color-card-foreground);
@@ -142,7 +139,7 @@ p {
 	&.btn-secondary {
 		color: var(--color-secondary-foreground);
 		background: transparent;
-		box-shadow: inset 0 0 0 1px var(--color-secondary-border); // ds-allow-hardcode: hairline
+		box-shadow: inset 0 0 0 1px var(--color-secondary-border);
 
 		@include hover {
 			background: var(--color-secondary-background-hover);

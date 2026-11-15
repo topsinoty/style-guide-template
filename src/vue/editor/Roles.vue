@@ -20,7 +20,7 @@ const opened = ref<string>();
 
 const hexOf = (resolved: unknown) => {
   const color = narrow(resolved, isColor);
-  return color ? toHex(color) : '#000000'; // ds-allow-hardcode: picker fallback for an unresolved color
+  return color ? toHex(color) : '#000000';
 };
 
 const palette = computed(() => paletteColors(props.ctx.doc, props.ctx.vendor));

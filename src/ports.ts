@@ -31,7 +31,6 @@ export interface FontProvider {
   files(font: FontDetail, picks: FontPicks): FontFile[];
   fileUrl(file: FontFile): string;
   licenseUrl(file: FontFile): string;
-  /** One regular file of a catalog font, to show its name in its own face. */
   previewUrl(font: FontListing): string;
 }
 

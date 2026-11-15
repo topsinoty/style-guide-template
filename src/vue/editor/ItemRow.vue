@@ -3,7 +3,6 @@ import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from 'reka-ui
 import Icon from '../Icon.vue';
 import IconButton from './IconButton.vue';
 
-// One item of a list: a single line that names it, opening to its fields.
 const props = defineProps<{
   title: string;
   meta?: string;

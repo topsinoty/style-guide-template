@@ -3,7 +3,6 @@ import { nextTick, ref, useTemplateRef } from 'vue';
 import { onKeyStroke } from '@vueuse/core';
 import Icon from '../Icon.vue';
 
-// Adding is occasional: show one quiet button until the form is wanted.
 defineProps<{ label: string }>();
 const open = ref(false);
 const panel = useTemplateRef<HTMLElement>('panel');

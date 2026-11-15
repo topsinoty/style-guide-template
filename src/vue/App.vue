@@ -52,7 +52,6 @@ const session = provideSession(props.session);
 const themeChoice = useStorage('styleguide:theme', 'auto');
 const prefersDark = usePreferredDark();
 const themes = computed(() => themesOf(session.value.doc));
-// The stored choice may name a theme this brand does not have; fall back to the system's, then the default.
 const theme = computed(() => {
   const system = prefersDark.value ? 'dark' : 'light';
   return (
@@ -117,7 +116,6 @@ useEventListener(document.fonts, 'loadingerror', (e: FontFaceSetLoadEvent) => {
   session.value.warn(...failed.map((font) => `Font could not be loaded: ${font}`));
 });
 
-// Cross-fade the whole page between themes instead of snapping.
 function previewTheme(next: string) {
   const apply = async () => {
     themeChoice.value = next;

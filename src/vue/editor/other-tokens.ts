@@ -19,4 +19,4 @@ export function tokenValue(type: string, text: string): unknown {
 }
 
 export const valueExample = (type: string) =>
-  ({ duration: '200ms', dimension: '12px', number: '0.8', color: '#2e59aa' })[type] ?? ''; // ds-allow-hardcode: example values shown as placeholders
+  ({ duration: '200ms', dimension: '12px', number: '0.8', color: '#2e59aa' })[type] ?? '';

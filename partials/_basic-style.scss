@@ -419,14 +419,13 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	}
 }
 
-// Plays a duration or easing token: the dot crosses the track on each click.
 .cd-motion {
 	position: relative;
 	width: 6rem;
 	height: 1.5rem;
 	padding: 0;
 	border: var(--hairline) solid var(--color-card-border);
-	border-radius: 999px; // ds-allow-hardcode: pill
+	border-radius: 999px;
 	background: var(--color-card-background);
 	cursor: pointer;
 
@@ -451,11 +450,10 @@ $scrollbar-thumb: color-mix(in oklch, #{$scrollbar-color} 50%, transparent);
 	}
 }
 
-// The guide's text inspector: an outline on the hovered text and a note on what it is.
 .cd-inspect-box {
 	position: fixed;
 	z-index: 20;
-	outline: 1px dashed var(--ed-accent); // ds-allow-hardcode: inspector outline
+	outline: 1px dashed var(--ed-accent);
 	outline-offset: 2px;
 	pointer-events: none;
 }

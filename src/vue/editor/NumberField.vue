@@ -8,7 +8,6 @@ const props = withDefaults(
     min?: number;
     max?: number;
     step?: number | string;
-    /** Clearing the field commits NaN instead of being ignored. */
     optional?: boolean;
   }>(),
   { step: 'any' },

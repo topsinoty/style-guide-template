@@ -38,7 +38,6 @@ export function createStore({
   let typing: { key: string; at: number } | null = null;
   const record = (key?: string) => {
     const now = Date.now();
-    // Keystrokes in one field, without a long pause, are one undo step.
     const sameBurst = key !== undefined && typing?.key === key && now - typing.at < TYPING_PAUSE;
     typing = key === undefined ? null : { key, at: now };
     if (sameBurst) return;

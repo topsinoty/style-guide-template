@@ -25,7 +25,6 @@ const layer = (alpha: number, y: number, blur: number, spread = 0, lightness = 0
   blur: px(blur),
   spread: px(spread),
 });
-// A dark page swallows a soft shadow, so the dark set is deeper and adds a faint light edge.
 const ring = (alpha: number) => layer(alpha, 0, 0, 1, 1);
 const STANDARD = {
   light: { sm: [layer(0.05, 1, 1)], md: [layer(0.1, 2, 8)], lg: [layer(0.15, 8, 24)] },
@@ -51,7 +50,6 @@ const readLayer = (value: unknown) =>
       }
     : null;
 
-// A shadow in another theme uses the default theme's until it is changed there.
 const shadows = computed(() => {
   const base = child(props.ctx.tree, 'shadow');
   const names = [...new Set([...children(base), ...children(own.value)].map(([name]) => name))];

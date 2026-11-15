@@ -73,7 +73,6 @@ export function removeStep(group: TokenNode, step: string, vendor: string): Toke
 const convert = ({ value, unit }: Dimension, to: string, rem: number): Dimension =>
   unit === to ? { value, unit } : { value: round(to === 'rem' ? value / rem : value * rem), unit: to };
 
-// Switches a whole scale between px and rem, hand-set steps included.
 export function setScaleUnit(group: TokenNode, unit: 'px' | 'rem', vendor: string, rem = 16): TokenNode {
   const out = structuredClone(group);
   for (const [name, token] of entriesOf(out)) {

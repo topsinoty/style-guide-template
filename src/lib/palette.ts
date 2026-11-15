@@ -335,17 +335,11 @@ const chroma = (color: PaletteColor) => {
   return cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : Infinity;
 };
 
-/**
- * Role parts drawn from one shade, the way a designer fills a button: the shade for background and
- * border, the next two shades for hover and active (darker on a light page, lighter on a dark one),
- * and the end of the least colorful palette color that reads best on it for text.
- */
 export function roleFromShade(
   colors: PaletteColor[],
   colorId: string,
   shadeName: string,
   darkPage: boolean,
-  /** Shades between background and border: 0 for buttons, more for surfaces and fields. */
   borderSteps = 0,
 ): Record<string, string> {
   const color = colors.find((c) => c.id === colorId);
@@ -357,7 +351,6 @@ export function roleFromShade(
     return `{color.${color.id}.${shade.name}}`;
   };
   const background = color.shades[i].color;
-  // Prefer a full grey scale for text; lone black and white only when there is none.
   const scales = colors.filter((c) => c.shades.length > 1);
   const ink = (scales.length ? scales : colors).toSorted((a, b) => chroma(a) - chroma(b))[0];
   const ends = ink ? [ink.shades[0], ink.shades.at(-1)] : [];

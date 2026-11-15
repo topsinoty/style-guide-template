@@ -139,7 +139,6 @@ function styleProblem() {
 
 function addStyle(name: string) {
   if (styleProblem()) return;
-  // Start from the likely choice: the heading font for headings, the body font otherwise, at md.
   const font = (role: string) => fontOptions.value.find((o) => o.value === `{font.${role}}`);
   const heading = elementOf(name, undefined, props.ctx.vendor)?.startsWith('h');
   const family = (heading ? font('heading') : font('body')) ?? fontOptions.value[0];

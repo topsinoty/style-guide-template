@@ -10,7 +10,6 @@ const props = defineProps<{
   rows?: number;
   preview?: CSSProperties;
 }>();
-// key names this field, so the store can fold one burst of typing into a single undo step.
 const emit = defineEmits<{ commit: [value: string, key: string] }>();
 const key = `textarea-${crypto.randomUUID()}`;
 const draft = ref(props.value ?? '');

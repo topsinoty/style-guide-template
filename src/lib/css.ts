@@ -191,7 +191,6 @@ function rootRule(size = DEFAULT_ROOT_SIZE): string {
   return block('html', [`font-size: ${Math.round((size / DEFAULT_ROOT_SIZE) * 1e6) / 1e4}%;`]);
 }
 
-// Each element a text style applies to reads that style's variables.
 function elementRules(doc: ResolverDoc, vendor: string, name: Namer, scope: string): string {
   const styles = elementStyles(doc.sets?.foundation?.sources?.[0], vendor);
   return [...styles]
@@ -217,7 +216,6 @@ export function generateCss(
     vendor?: string;
     name?: Namer;
     rootSelector?: string;
-    /** Limits element rules to part of a page, such as the guide's main. */
     elementScope?: string;
   },
 ): string {

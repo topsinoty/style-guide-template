@@ -4,7 +4,6 @@ import { useEventListener } from '@vueuse/core';
 import { elementStyles, ELEMENTS } from '../../lib/elements.js';
 import type { ResolverDoc } from '../../lib/types.js';
 
-// Hover or select text in the guide to see which element it is and which text style dresses it.
 const props = defineProps<{ doc: ResolverDoc; vendor: string; root?: HTMLElement | null }>();
 const TEXT = 'h1, h2, h3, h4, h5, h6, p, small, code, li, a, th, td';
 const target = ref<HTMLElement>();

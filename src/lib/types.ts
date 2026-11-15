@@ -101,7 +101,6 @@ export interface BrandMeta {
   logo?: string;
   sections?: TextSection[];
   contrast?: ContrastPair[];
-  /** Pixels in one rem on the page; the browser default is 16. */
   rootSize?: number;
   [key: string]: unknown;
 }

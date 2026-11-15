@@ -77,7 +77,7 @@ function setText(row: { path: string; type: string; value: unknown }, event: Eve
 
 const hexOf = (resolved: unknown) => {
   const color = narrow(resolved, isColor);
-  return color ? toHex(color) : '#000000'; // ds-allow-hardcode: picker fallback for an unresolved color
+  return color ? toHex(color) : '#000000';
 };
 
 const newName = ref('');

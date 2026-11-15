@@ -55,7 +55,6 @@ const status = computed(() => {
   return `${n.toLocaleString()} ${n === 1 ? 'font' : 'fonts'}`;
 });
 
-// Each visible result loads one small file so its name shows in its own face.
 const previews = reactive(new Set<string>());
 const previewFamily = (font: FontListing) => `cd-preview-${font.id}`;
 watch(hits, (fonts) => {

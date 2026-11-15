@@ -3,7 +3,6 @@ import { computed, ref } from 'vue';
 
 const props = defineProps<{ name: string; type: string }>();
 const moved = ref(false);
-// A duration plays with the default easing; an easing plays over a fixed 600ms.
 const style = computed(() =>
   props.type === 'duration'
     ? { transitionDuration: `var(${props.name})` }
